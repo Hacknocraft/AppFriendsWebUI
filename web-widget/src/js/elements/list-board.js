@@ -241,7 +241,7 @@ class ListBoard extends Element {
   }
 
   createChannelItem(...args) {
-    let channelUrl = args[0];
+    let channelID = args[0];
     let coverUrl = args[1];
     let title = args[2];
     let time = args[3];
@@ -287,7 +287,7 @@ class ListBoard extends Element {
     item.appendChild(itemContent);
 
     var li = this.createLi();
-    this._setDataset(li, 'channel-url', channelUrl);
+    this._setDataset(li, 'channel-id', channelID);
     li.topTitle = contentTitle;
     li.time = contentTime;
     li.message = contentLastMessage;
@@ -347,7 +347,7 @@ class ListBoard extends Element {
   addListOnFirstIndex(target) {
     let items = this._getListItemsArray();
     items.filter((item) => {
-      if (item.getAttribute('data-channel-url') == target.getAttribute('data-channel-url')) {
+      if (item.getAttribute('data-channel-id') == target.getAttribute('data-channel-id')) {
         this.list.removeChild(item);
       }
     });
@@ -359,7 +359,7 @@ class ListBoard extends Element {
     let targetChannel;
     for (var i = 0 ; i < items.length ; i++) {
       let item = items[i];
-      if (item.getAttribute('data-channel-url') == channelUrl) {
+      if (item.getAttribute('data-channel-id') == channelUrl) {
         targetChannel = item;
         break;
       }

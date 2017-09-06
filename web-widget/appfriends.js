@@ -4268,6 +4268,13 @@ class UserSession {
     return false;
   }
 
+  logout() {
+    UserSession.userToken = null;
+    UserSession.currentUserID = null;
+    UserSession.currentUserName = null;
+    __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */].userToken = null;
+  }
+
   login(userid, username, callback) {
     if (this.isLoggedIn()) {
       const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError("Can't call login again when there's already a user logged in. Please logout first.", __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.ErrorCode.userAlreadyLoggedIn);
@@ -4287,6 +4294,7 @@ class UserSession {
             callback(null, afError);
           }
         } else {
+          UserSession.userToken = response.data.token;
           __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */].userToken = response.data.token;
           UserSession.currentUserID = userid;
           UserSession.currentUserName = username;
@@ -8123,7 +8131,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_usersession__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_userservice__ = __webpack_require__(73);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__services_request__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__wssocket__ = __webpack_require__(75);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__services_syncservice__ = __webpack_require__(127);
 
 
 
@@ -8142,6 +8150,11 @@ class AFCore {
     this.User = new __WEBPACK_IMPORTED_MODULE_3__services_userservice__["a" /* default */]();
     this.Dialog = new __WEBPACK_IMPORTED_MODULE_0__services_dialogservice__["a" /* default */]();
     this.Session = new __WEBPACK_IMPORTED_MODULE_2__services_usersession__["a" /* default */]();
+    this.Sync = new __WEBPACK_IMPORTED_MODULE_5__services_syncservice__["a" /* default */]();
+
+    if (this.Session.isLoggedIn()) {
+      this.Sync.startSyncingWithSocket();
+    }
   }
 
   /*
@@ -8152,6 +8165,14 @@ class AFCore {
   }
 
   /*
+  log out the current user
+  */
+  logout(callback) {
+    this.Session.logout();
+    callback();
+  }
+
+  /*
    Login to AppFriends providing an userid and a username
    @param callback function(userToken, error)
    */
@@ -8159,43 +8180,12 @@ class AFCore {
     const SELF = this;
     this.Session.login(userid, username, (token, error) => {
       if (!error) {
-        SELF.createWSSocket(token);
+        this.Sync.startSyncingWithSocket();
       }
       if (callback) {
         callback(token, error);
       }
     });
-  }
-
-  createWSSocket(token) {
-    this.wssocket = new __WEBPACK_IMPORTED_MODULE_5__wssocket__["a" /* default */](__WEBPACK_IMPORTED_MODULE_4__services_request__["a" /* default */].appKey, __WEBPACK_IMPORTED_MODULE_4__services_request__["a" /* default */].appSecret, token);
-    const SELF = this;
-    this.wssocket.connect((event, data) => {
-      SELF.processWSEvent(event, data);
-    });
-  }
-
-  processWSEvent(event, data) {
-    switch (event) {
-      case __WEBPACK_IMPORTED_MODULE_5__wssocket__["a" /* default */].socketEvent.CONNECTED:
-        console.log('WS CONNECTED');
-        break;
-      case __WEBPACK_IMPORTED_MODULE_5__wssocket__["a" /* default */].socketEvent.DISCONNECTED:
-        console.log('WS DISCONNECTED');
-        break;
-      case __WEBPACK_IMPORTED_MODULE_5__wssocket__["a" /* default */].socketEvent.DATA_RECV:
-        console.log('WS DATA_RECV');
-        break;
-      case __WEBPACK_IMPORTED_MODULE_5__wssocket__["a" /* default */].socketEvent.PEER_CLOSE:
-        console.log('WS PEER_CLOSE');
-        break;
-      default:
-        break;
-    }
-
-    if (data) {
-      console.log(data);
-    }
   }
 }
 
@@ -16766,6 +16756,108 @@ module.exports = function(module) {
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(46);
+
+
+/***/ }),
+/* 127 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SyncService; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__wssocket__ = __webpack_require__(75);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__request__ = __webpack_require__(8);
+
+
+
+class SyncService {
+  constructor() {
+    this.pendingSyncKey = 0;
+    this.syncKeys = {};
+  }
+
+  resetService() {
+    this.pendingSyncKey = 0;
+    this.syncKeys = {};
+
+    // need to stop all polling
+    this.wssocket.closeConnection();
+    clearInterval(this.polling);
+  }
+
+  startSyncingWithSocket() {
+    this.createWSSocket(__WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */].userToken);
+
+    // start polling message from server every 1 second
+    this.polling = setInterval(this.pollMessage.bind(this), 10000);
+  }
+
+  pollMessage() {
+    if (!this.pendingSyncKey || !this.syncKeys) {
+      this.executeSyncWithServer();
+    } else if (this.syncKeys.m && this.pendingSyncKey > this.syncKeys.m) {
+      this.executeSyncWithServer();
+    }
+  }
+
+  executeSyncWithServer() {
+    console.log('syncing ...');
+    const request = new __WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */]();
+    let currentSyncedKey = 0;
+    if (this.syncKeys.m) {
+      currentSyncedKey = this.syncKeys.m;
+    }
+    return request.startRequest('post', '/sync', {
+      m: currentSyncedKey
+    }).then(response => {
+      if (!response.data.error) {
+        console.log(response.data.messages);
+        // const messagesData = response.data.messages;
+        // for (let i = 0; i < messagesData.length; i += 1) {
+        // }
+      }
+    });
+  }
+
+  createWSSocket(token) {
+    this.wssocket = new __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */].appKey, __WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */].appSecret, token);
+    const SELF = this;
+    this.wssocket.connect((event, data) => {
+      SELF.processWSEvent(event, data);
+    });
+  }
+
+  processWSEvent(event, data) {
+    switch (event) {
+      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.CONNECTED:
+        console.log('WS CONNECTED');
+        break;
+      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.DISCONNECTED:
+        console.log('WS DISCONNECTED');
+        break;
+      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.DATA_RECV:
+        console.log('WS DATA_RECV');
+        break;
+      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.PEER_CLOSE:
+        console.log('WS PEER_CLOSE');
+        break;
+      default:
+        break;
+    }
+
+    if (data) {
+      console.log(data);
+      this.processSyncData(data);
+    }
+  }
+
+  processSyncData(data) {
+    // need to sync messsages in private dialogs
+    if (data.m) {
+      this.pendingSyncKey = data.m;
+    }
+  }
+}
+
 
 
 /***/ })

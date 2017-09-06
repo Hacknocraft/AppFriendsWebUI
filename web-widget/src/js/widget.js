@@ -15,7 +15,7 @@ const KEY_DOWN_ENTER = 13;
 const KEY_DOWN_KR = 229;
 const CHAT_BOARD_WIDTH = 300;
 const ERROR_MESSAGE = 'Please create "sb_widget" element on first.';
-const ERROR_MESSAGE_SDK = 'Please import "SendBird SDK" on first.';
+const ERROR_MESSAGE_SDK = 'Please import "AppFriends SDK" on first.';
 const EVENT_TYPE_CLICK = 'click';
 
 window.WebFontConfig = {
@@ -24,11 +24,10 @@ window.WebFontConfig = {
 
 class SBWidget {
   constructor() {
-
   }
 
-  start(appId) {
-    if (!window.SendBird) {
+  start(appId, secret) {
+    if (!window.af) {
       console.error(ERROR_MESSAGE_SDK);
       return;
     }
@@ -39,14 +38,14 @@ class SBWidget {
         this._initClickEvent(event)
       });
       this._init();
-      this._start(appId);
+      this._start(appId, secret);
     } else {
       console.error(ERROR_MESSAGE);
     }
   }
 
-  startWithConnect(appId, userId, nickname, callback) {
-    if (!window.SendBird) {
+  startWithConnect(appId, sercret, userId, nickname, callback) {
+    if (!window.af) {
       console.error(ERROR_MESSAGE_SDK);
       return;
     }
@@ -57,7 +56,7 @@ class SBWidget {
         this._initClickEvent(event)
       });
       this._init();
-      this._start(appId);
+      this._start(appId, sercret);
       this._connect(userId, nickname, callback);
     } else {
       console.error(ERROR_MESSAGE);
@@ -172,15 +171,17 @@ class SBWidget {
     }
   }
 
-  _start(appId) {
-    this.sb = new Sendbird(appId);
+  _start(appId, sercret) {
+    this.af = window.af;
+    this.af.initialize(appId, sercret);
+    this.sb = new Sendbird();
 
     this.popup.addCloseBtnClickEvent(() => {
       this.closePopup();
     });
 
     this.widgetBtn.addClickEvent(() => {
-      this.sb.isConnected() ? this.listBoard.showChannelList() : this.listBoard.showLoginForm();
+      this.af.isLoggedIn() ? this.listBoard.showChannelList() : this.listBoard.showLoginForm();
       this.toggleBoard(true);
       this.listBoard.addChannelListScrollEvent(() => {
         this.getChannelList();
@@ -198,7 +199,6 @@ class SBWidget {
       this.chatSection.addClickEvent(chatBoard.startBtn, () => {
         if (!hasClass(chatBoard.startBtn, className.DISABLED)) {
           addClass(chatBoard.startBtn, className.DISABLED);
-          this.sb.userListQuery = null;
           this.spinner.insert(chatBoard.startBtn);
           let selectedUserIds = this.chatSection.getSelectedUserIds(chatBoard.userContent);
           this.sb.createNewChannel(selectedUserIds, (channel) => {
@@ -261,64 +261,11 @@ class SBWidget {
   }
 
   _connect(userId, nickname, callback) {
-    this.sb.connect(userId, nickname, () => {
+    this.af.login(userId, nickname, (token, error) => {
       this.widgetBtn.toggleIcon(true);
-
       this.listBoard.showChannelList();
       this.spinner.insert(this.listBoard.list);
       this.getChannelList();
-
-      this.sb.createHandlerGlobal(
-        (channel, message) => {
-          this.messageReceivedAction(channel, message);
-        },
-        (channel) => {
-          this.updateUnreadMessageCount(channel);
-        },
-        (channel) => {
-          let targetBoard = this.chatSection.getChatBoard(channel.url);
-          if (targetBoard) {
-            let isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
-            this.chatSection.showTyping(channel, this.spinner);
-            this.chatSection.responsiveHeight(channel.url);
-            if (isBottom) {
-              this.chatSection.scrollToBottom(targetBoard.messageContent);
-            }
-          }
-        },
-        (channel) => {
-          let targetBoard = this.chatSection.getChatBoard(channel.url);
-          if (targetBoard) {
-            var channelSet = this.getChannelSet(channel.url);
-            if (channelSet) {
-              this.chatSection.updateReadReceipt(channelSet, targetBoard);
-            }
-          }
-        },
-        (channel, user) => {
-          if (this.sb.isCurrentUser(user)) {
-            let item = this.listBoard.getChannelItem(channel.url);
-            this.listBoard.list.removeChild(item);
-            this.listBoard.checkEmptyList();
-          } else {
-            this.listBoard.setChannelTitle(channel.url, this.sb.getNicknamesString(channel));
-            this.updateUnreadMessageCount(channel);
-            let targetChatBoard = this.chatSection.getChatBoard(channel.url);
-            if (targetChatBoard) {
-              this.updateChannelInfo(targetChatBoard, channel);
-            }
-          }
-        },
-        (channel, user) => {
-          this.listBoard.setChannelTitle(channel.url, this.sb.getNicknamesString(channel));
-          let targetChatBoard = this.chatSection.getChatBoard(channel.url);
-          if (targetChatBoard) {
-            this.updateChannelInfo(targetChatBoard, channel);
-          }
-        }
-      );
-
-      if (callback) callback();
     });
   }
 
@@ -371,7 +318,7 @@ class SBWidget {
   getChannelList() {
     let _list = this.listBoard.list;
     let _spinner = this.spinner;
-    this.sb.getChannelList((channelList) => {
+    this.af.PublicChannel.fetchChannels((channelList, error) => {
       if (_list.lastElementChild == _spinner.self) {
         _spinner.remove(_list);
       }
@@ -379,30 +326,30 @@ class SBWidget {
         let item = this.createChannelItem(channel);
         _list.appendChild(item);
       });
-      this.updateUnreadMessageCount();
       this.listBoard.checkEmptyList();
     });
   }
 
   createChannelItem(channel) {
     let item = this.listBoard.createChannelItem(
-      channel.url,
-      channel.coverUrl,
-      this.sb.getNicknamesString(channel),
-      this.sb.getMessageTime(channel.lastMessage),
-      this.sb.getLastMessage(channel),
-      this.sb.getChannelUnreadCount(channel)
+      channel.id,
+      channel.coverImageUrl,
+      channel.title,
+      this.sb.getMessageTime(channel.lastMessageTime),
+      channel.lastMessageText,
+      0
     );
     this.listBoard.addChannelClickEvent(item, () => {
       this.closePopup();
-      let channelUrl = item.getAttribute('data-channel-url');
-      let openChatBoard = this.chatSection.getChatBoard(channelUrl);
+      let channelID = item.getAttribute('data-channel-id');
+      console.log(`channel: ${channelID}`);
+      let openChatBoard = this.chatSection.getChatBoard(channelID);
       if (!openChatBoard) {
         var newChat = this.chatSection.getChatBoard(NEW_CHAT_BOARD_ID);
         if (newChat) {
           this.chatSection.closeChatBoard(newChat);
         }
-        this._connectChannel(channelUrl);
+        this._connectChannel(channelID);
       }
     });
     return item;
@@ -421,22 +368,21 @@ class SBWidget {
   closeInvitePopup() {
     this.chatSection.removeInvitePopup();
     this.popup.closeInvitePopup();
-    this.sb.userListQuery = null;
   }
 
   showChannel(channelUrl) {
     this._connectChannel(channelUrl, false);
   }
 
-  _connectChannel(channelUrl, doNotCall) {
-    var chatBoard = this.chatSection.createChatBoard(channelUrl, doNotCall);
+  _connectChannel(channelID, doNotCall) {
+    var chatBoard = this.chatSection.createChatBoard(channelID, doNotCall);
     if (!doNotCall) {
-      this.responsiveChatSection(channelUrl, true);
+      this.responsiveChatSection(channelID, true);
     }
     this.chatSection.addClickEvent(chatBoard.closeBtn, () => {
       this.chatSection.closeChatBoard(chatBoard);
       this.closePopup();
-      this.removeChannelSet(channelUrl);
+      this.removeChannelSet(channelID);
       this.responsiveChatSection();
     });
     this.chatSection.addClickEvent(chatBoard.leaveBtn, () => {
@@ -444,7 +390,7 @@ class SBWidget {
       this.chatSection.setLeaveBtnClickEvent(chatBoard.leavePopup.leaveBtn, () => {
         this.spinner.insert(chatBoard.leavePopup.leaveBtn);
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
-        let channelSet = this.getChannelSet(channelUrl);
+        let channelSet = this.getChannelSet(channelID);
         if (channelSet) {
           this.sb.channelLeave(channelSet.channel, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
@@ -464,9 +410,9 @@ class SBWidget {
         this.closeMemberPopup();
         this.closeInvitePopup();
         addClass(chatBoard.memberBtn, className.ACTIVE);
-        let index = this.chatSection.indexOfChatBord(channelUrl);
+        let index = this.chatSection.indexOfChatBord(channelID);
         this.popup.showMemberPopup(this.chatSection.self, index);
-        let channelSet = this.getChannelSet(channelUrl);
+        let channelSet = this.getChannelSet(channelID);
         this.popup.updateCount(this.popup.memberPopup.count, channelSet.channel.memberCount);
         for (var i = 0 ; i < channelSet.channel.members.length ; i++) {
           let member = channelSet.channel.members[i];
@@ -503,10 +449,10 @@ class SBWidget {
         this.closeInvitePopup();
         this.closeMemberPopup();
         addClass(chatBoard.inviteBtn, className.ACTIVE);
-        let index = this.chatSection.indexOfChatBord(channelUrl);
+        let index = this.chatSection.indexOfChatBord(channelID);
         this.popup.showInvitePopup(this.chatSection.self, index);
         this.spinner.insert(this.popup.invitePopup.list);
-        let channelSet = this.getChannelSet(channelUrl);
+        let channelSet = this.getChannelSet(channelID);
         let memberIds = channelSet.channel.members.map((member) => {
           return member.userId;
         });
@@ -517,7 +463,7 @@ class SBWidget {
             addClass(this.popup.invitePopup.inviteBtn, className.DISABLED);
             this.spinner.insert(this.popup.invitePopup.inviteBtn);
             let selectedUserIds = this.popup.getSelectedUserIds(this.popup.invitePopup.list);
-            let channelSet = this.getChannelSet(channelUrl);
+            let channelSet = this.getChannelSet(channelID);
             this.sb.inviteMember(channelSet.channel, selectedUserIds, () => {
               this.spinner.remove(this.popup.invitePopup.inviteBtn);
               this.closeInvitePopup();
@@ -533,7 +479,7 @@ class SBWidget {
       }
     });
     this.spinner.insert(chatBoard.content);
-    this.sb.getChannelInfo(channelUrl, (channel) => {
+    this.sb.getChannelInfo(channelID, (channel) => {
       this.updateChannelInfo(chatBoard, channel);
       let channelSet = this.getChannelSet(channel);
       this.getMessageList(channelSet, chatBoard, false, () => {
@@ -542,7 +488,7 @@ class SBWidget {
       channel.markAsRead();
       this.updateUnreadMessageCount(channel);
 
-      let listItem = this.listBoard.getChannelItem(channelUrl);
+      let listItem = this.listBoard.getChannelItem(channelID);
       if (!listItem) {
         listItem = this.createChannelItem(channel);
         this.listBoard.list.insertBefore(listItem, this.listBoard.list.firstChild);

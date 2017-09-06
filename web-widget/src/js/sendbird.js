@@ -5,8 +5,8 @@ const GLOBAL_HANDLER = 'GLOBAL_HANDLER';
 const GET_MESSAGE_LIMIT = 20;
 
 class Sendbird {
-  constructor(appId) {
-    this.sb = new window.SendBird({ appId: appId });
+  constructor() {
+    this.af = window.af;
     this.channelListQuery = null;
     this.userListQuery = null;
   }
@@ -14,39 +14,33 @@ class Sendbird {
   reset() {
     this.channelListQuery = null;
     this.userListQuery = null;
-    this.sb.removeChannelHandler(GLOBAL_HANDLER);
+    this.af.removeChannelHandler(GLOBAL_HANDLER);
   }
 
   isConnected() {
-    return !!this.sb.currentUser;
+    return !!this.af.isLoggedIn();
   }
 
   connect(userId, nickname, action) {
-    this.sb.connect(userId.trim(), (user, error) => {
+    this.af.login(userId, nickname, (token, error) => {
       if (error) {
         console.error(error);
         return;
       }
-      this.sb.updateCurrentUserInfo(nickname.trim(), '', (response, error) => {
-        if (error) {
-          console.error(error);
-          return;
-        }
-        action();
-      });
+      action();
     });
   }
 
   disconnect(action) {
     if(this.isConnected()) {
-      this.sb.disconnect(() => {
+      this.af.logout(() => {
         action();
       });
     }
   }
 
   isCurrentUser(user) {
-    return this.sb.currentUser.userId == user.userId;
+    return this.af.currentUser.userId == user.userId;
   }
 
   /*
@@ -54,7 +48,7 @@ class Sendbird {
    */
   getChannelList(action) {
     if (!this.channelListQuery) {
-      this.channelListQuery = this.sb.GroupChannel.createMyGroupChannelListQuery();
+      this.channelListQuery = this.af.GroupChannel.createMyGroupChannelListQuery();
       this.channelListQuery.includeEmpty = true;
       this.channelListQuery.limit = 20;
     }
@@ -69,8 +63,8 @@ class Sendbird {
     }
   }
 
-  getChannelInfo(channelUrl, action) {
-    this.sb.GroupChannel.getChannel(channelUrl, function(channel, error) {
+  getChannelInfo(channelID, action) {
+    this.af.PublicChannel.getChannel(channelID, function(channel, error) {
       if (error) {
         console.error(error);
         return;
@@ -80,7 +74,7 @@ class Sendbird {
   }
 
   createNewChannel(userIds, action) {
-    this.sb.GroupChannel.createChannelWithUserIds(userIds, true, '', '', '', function(channel, error) {
+    this.af.GroupChannel.createChannelWithUserIds(userIds, true, '', '', '', function(channel, error) {
       if (error) {
         console.error(error);
         return;
@@ -113,7 +107,7 @@ class Sendbird {
   Message
    */
   getTotalUnreadCount(action) {
-    this.sb.GroupChannel.getTotalUnreadMessageCount((unreadCount) => {
+    this.af.GroupChannel.getTotalUnreadMessageCount((unreadCount) => {
       action(unreadCount);
     });
   }
@@ -159,7 +153,7 @@ class Sendbird {
    */
   getUserList(action) {
     if (!this.userListQuery) {
-      this.userListQuery = this.sb.createUserListQuery();
+      this.userListQuery = this.af.createUserListQuery();
     }
     if (this.userListQuery.hasNext && !this.userListQuery.isLoading) {
       this.userListQuery.next((userList, error) => {
@@ -183,7 +177,7 @@ class Sendbird {
     let userLeftFunc = args[4];
     let userJoinFunc = args[5];
 
-    let channelHandler = new this.sb.ChannelHandler();
+    let channelHandler = new this.af.ChannelHandler();
     channelHandler.onMessageReceived = function(channel, message) {
       messageReceivedFunc(channel, message);
     };
@@ -202,7 +196,7 @@ class Sendbird {
     channelHandler.onUserJoined = function (channel, user) {
       userJoinFunc(channel, user);
     };
-    this.sb.addChannelHandler(GLOBAL_HANDLER, channelHandler);
+    this.af.addChannelHandler(GLOBAL_HANDLER, channelHandler);
   }
 
   /*
@@ -210,7 +204,7 @@ class Sendbird {
    */
   getNicknamesString(channel) {
     let nicknameList = [];
-    let currentUserId = this.sb.currentUser.userId;
+    let currentUserId = this.af.currentUser.userId;
     channel.members.forEach(function(member) {
       if (member.userId != currentUserId) {
         nicknameList.push(xssEscape(member.nickname));
@@ -230,7 +224,7 @@ class Sendbird {
     return '';
   }
 
-  getMessageTime(message) {
+  getMessageTime(time) {
     const months = [
       'JAN', 'FEB', 'MAR', 'APR', 'MAY',
       'JUN', 'JUL', 'AUG', 'SEP', 'OCT',
@@ -254,10 +248,10 @@ class Sendbird {
       return (+val < 10) ? '0' + val : val;
     };
 
-    if (message) {
+    if (time) {
       const LAST_MESSAGE_YESTERDAY = 'YESTERDAY';
       var _nowDate = new Date();
-      var _date = new Date(message.createdAt);
+      var _date = new Date(time);
       if (_nowDate.getDate() - _date.getDate() == 1) {
         return LAST_MESSAGE_YESTERDAY;
       } else if (_nowDate.getFullYear() == _date.getFullYear()
