@@ -73,6 +73,7 @@ class ChatSection extends Element {
   Chat
    */
   createChatBoard(channelUrl, isLast) {
+    console.log("createChatBoard");
     let chatBoard = this.createDiv();
     this._setClass(chatBoard, [className.CHAT_BOARD]);
     chatBoard.id = channelUrl ? channelUrl : '';

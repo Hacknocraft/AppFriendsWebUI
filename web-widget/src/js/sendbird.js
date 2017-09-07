@@ -1,4 +1,3 @@
-import { MAX_COUNT } from './consts.js';
 import { xssEscape } from './utils.js';
 
 const GLOBAL_HANDLER = 'GLOBAL_HANDLER';

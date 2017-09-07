@@ -677,7 +677,7 @@ class SBWidget {
 
   removeChannelSet(dialog) {
     let isObject = true;
-    if (typeof channel === TYPE_STRING || dialog instanceof String) {
+    if (typeof dialog === TYPE_STRING || dialog instanceof String) {
       isObject = false;
     }
 
