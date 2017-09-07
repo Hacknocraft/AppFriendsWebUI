@@ -148,7 +148,7 @@ class SBWidget {
         if (chatBoard) {
           this.chatSection.closeChatBoard(chatBoard);
         }
-        this.removeChannelSet(extraChannelSet.channel);
+        this.removeChannelSet(extraChannelSet.dialog);
       }
       if (dialogID) {
         let idx = this.extraChannelSetList.indexOf(dialogID);
@@ -160,7 +160,7 @@ class SBWidget {
     } else {
       let popDialogID = this.extraChannelSetList.pop();
       if (popDialogID) {
-        this._connectChannel(popDialogID, true);
+        this._connectDialog(popDialogID, true);
         this.chatSection.setWidth((currentSize + 1) * CHAT_BOARD_WIDTH);
       } else {
         if (isShow) {
@@ -372,11 +372,15 @@ class SBWidget {
     this.popup.closeInvitePopup();
   }
 
-  showChannel(channelUrl) {
-    this._connectChannel(channelUrl, false);
+  showChannel(dialogID) {
+    this._connectDialog(dialogID, false);
   }
 
   _connectDialog(dialog, doNotCall) {
+    if (typeof dialog === 'string') {
+      dialog = this.sb.getCachedDialog(dialog);
+    }
+
     let dialogID = dialog.id;
     var chatBoard = this.chatSection.createChatBoard(dialogID, doNotCall);
     if (!doNotCall) {
@@ -486,7 +490,7 @@ class SBWidget {
       this.updateChannelInfo(chatBoard, fetchedDialog);
       let dialogSet = this.getDialogSet(dialog);
       this.getMessageList(dialogSet, chatBoard, false, () => {
-        // this.chatScrollEvent(chatBoard, channelSet);
+        this.chatScrollEvent(chatBoard, dialogSet);
       });
       fetchedDialog.markAsRead();
       this.updateUnreadMessageCount(fetchedDialog);

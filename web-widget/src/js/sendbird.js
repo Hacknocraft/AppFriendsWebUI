@@ -68,6 +68,7 @@ class Sendbird {
   }
 
   getDialogInfo(dialog, action) {
+
     // only need to fetch dialog info again if it's a private group or channel
     if (dialog.isPrivateGroupChat()) {
       this.af.Dialog.getDialogInfo(dialog.id, function(dialog, error) {

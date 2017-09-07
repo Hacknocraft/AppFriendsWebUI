@@ -4415,7 +4415,7 @@ var SBWidget = function () {
           if (chatBoard) {
             this.chatSection.closeChatBoard(chatBoard);
           }
-          this.removeChannelSet(extraChannelSet.channel);
+          this.removeChannelSet(extraChannelSet.dialog);
         }
         if (dialogID) {
           var idx = this.extraChannelSetList.indexOf(dialogID);
@@ -4427,7 +4427,7 @@ var SBWidget = function () {
       } else {
         var popDialogID = this.extraChannelSetList.pop();
         if (popDialogID) {
-          this._connectChannel(popDialogID, true);
+          this._connectDialog(popDialogID, true);
           this.chatSection.setWidth((currentSize + 1) * CHAT_BOARD_WIDTH);
         } else {
           if (isShow) {
@@ -4654,13 +4654,17 @@ var SBWidget = function () {
     }
   }, {
     key: 'showChannel',
-    value: function showChannel(channelUrl) {
-      this._connectChannel(channelUrl, false);
+    value: function showChannel(dialogID) {
+      this._connectDialog(dialogID, false);
     }
   }, {
     key: '_connectDialog',
     value: function _connectDialog(dialog, doNotCall) {
       var _this8 = this;
+
+      if (typeof dialog === 'string') {
+        dialog = this.sb.getCachedDialog(dialog);
+      }
 
       var dialogID = dialog.id;
       var chatBoard = this.chatSection.createChatBoard(dialogID, doNotCall);
@@ -4773,7 +4777,7 @@ var SBWidget = function () {
         _this8.updateChannelInfo(chatBoard, fetchedDialog);
         var dialogSet = _this8.getDialogSet(dialog);
         _this8.getMessageList(dialogSet, chatBoard, false, function () {
-          // this.chatScrollEvent(chatBoard, channelSet);
+          _this8.chatScrollEvent(chatBoard, dialogSet);
         });
         fetchedDialog.markAsRead();
         _this8.updateUnreadMessageCount(fetchedDialog);
@@ -5793,7 +5797,7 @@ var OPTION_TOOLTIP_TEXT = 'Log out';
 var NEW_CHAT_TOOLTIP_TEXT = 'New Message';
 
 var TITLE_TOP_LOGIN = 'SendBird Widget';
-var TITLE_TOP_CHANNEL = 'Channel List';
+var TITLE_TOP_CHANNEL = 'Conversations';
 var TITLE_LOGIN_USER_ID = 'USER ID';
 var TITLE_LOGIN_NICKNAME = 'NICKNAME';
 var TITLE_LOGIN_BTN = 'Start Chat';
@@ -6742,6 +6746,7 @@ var Sendbird = function () {
   }, {
     key: 'getDialogInfo',
     value: function getDialogInfo(dialog, action) {
+
       // only need to fetch dialog info again if it's a private group or channel
       if (dialog.isPrivateGroupChat()) {
         this.af.Dialog.getDialogInfo(dialog.id, function (dialog, error) {
