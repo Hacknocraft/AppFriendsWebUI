@@ -40,7 +40,7 @@ class Sendbird {
   }
 
   isCurrentUser(user) {
-    return this.af.currentUser.userId == user.userId;
+    return this.af.Session.currentUserID == user.id;
   }
 
   /*
@@ -63,14 +63,31 @@ class Sendbird {
     }
   }
 
-  getChannelInfo(channelID, action) {
-    this.af.PublicChannel.getChannel(channelID, function(channel, error) {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      action(channel);
-    });
+  getCachedDialog(dialogID) {
+    return this.af.getDialog(dialogID);
+  }
+
+  getDialogInfo(dialog, action) {
+    // only need to fetch dialog info again if it's a private group or channel
+    if (dialog.isPrivateGroupChat()) {
+      this.af.Dialog.getDialogInfo(dialog.id, function(dialog, error) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        action(dialog);
+      });
+    } else if (dialog.isPublicChannel()) {
+      this.af.PublicChannel.getChannelInfo(dialog.id, function(channel, error) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        action(channel);
+      });
+    } else {
+      action(dialog);
+    }
   }
 
   createNewChannel(userIds, action) {
@@ -107,23 +124,25 @@ class Sendbird {
   Message
    */
   getTotalUnreadCount(action) {
-    this.af.GroupChannel.getTotalUnreadMessageCount((unreadCount) => {
+    this.af.getTotalUnreadMessageCount((unreadCount) => {
       action(unreadCount);
     });
   }
 
-  getMessageList(channelSet, action) {
-    if (!channelSet.query) {
-      channelSet.query = channelSet.channel.createPreviousMessageListQuery();
+  getMessageList(dialogSet, action) {
+    if (!dialogSet.query) {
+      dialogSet.query = dialogSet.dialog.createPreviousMessageListQuery();
     }
-    if (channelSet.query.hasMore && !channelSet.query.isLoading) {
-      channelSet.query.load(GET_MESSAGE_LIMIT, false, function(messageList, error){
+    if (dialogSet.query.hasMore && !dialogSet.query.isLoading) {
+      dialogSet.query.load(GET_MESSAGE_LIMIT, false, function(messageList, error) {
         if (error) {
           console.error(error);
           return;
         }
         action(messageList);
       });
+    } else {
+      action(null);
     }
   }
 
@@ -202,19 +221,22 @@ class Sendbird {
   /*
   Info
    */
-  getNicknamesString(channel) {
+  getNicknamesString(dialog) {
+    if (dialog.title && dialog.title !== '') {
+      return dialog.title;
+    }
     let nicknameList = [];
-    let currentUserId = this.af.currentUser.userId;
-    channel.members.forEach(function(member) {
+    let currentUserId = this.af.Session.currentUserID;
+    dialog.members.forEach(function(member) {
       if (member.userId != currentUserId) {
-        nicknameList.push(xssEscape(member.nickname));
+        nicknameList.push(xssEscape(member.username));
       }
     });
     return nicknameList.toString();
   }
 
-  getMemberCount(channel) {
-    return (channel.memberCount > 9) ? MAX_COUNT : channel.memberCount.toString();
+  getMemberCount(dialog) {
+    return dialog.getMemberCount();
   }
 
   getLastMessage(channel) {

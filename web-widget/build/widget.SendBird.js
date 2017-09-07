@@ -4473,7 +4473,7 @@ var SBWidget = function () {
             var selectedUserIds = _this3.chatSection.getSelectedUserIds(chatBoard.userContent);
             _this3.sb.createNewChannel(selectedUserIds, function (channel) {
               chatBoard.parentNode.removeChild(chatBoard);
-              _this3._connectChannel(channel.url, true);
+              _this3._connectDialog(channel, true);
               _this3.listBoard.checkEmptyList();
             });
           }
@@ -4557,7 +4557,7 @@ var SBWidget = function () {
       var targetBoard = this.chatSection.getChatBoard(channel.url);
       if (targetBoard) {
         var isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
-        var channelSet = this.getChannelSet(channel.url);
+        var channelSet = this.getDialogSet(channel.url);
         var lastMessage = (0, _utils.getLastItem)(channelSet.message);
         channelSet.message.push(message);
         this.setMessageItem(channelSet.channel, targetBoard, [message], false, isBottom, lastMessage);
@@ -4620,14 +4620,16 @@ var SBWidget = function () {
       this.listBoard.addChannelClickEvent(item, function () {
         _this7.closePopup();
         var channelID = item.getAttribute('data-channel-id');
-        console.log('channel: ' + channelID);
         var openChatBoard = _this7.chatSection.getChatBoard(channelID);
         if (!openChatBoard) {
           var newChat = _this7.chatSection.getChatBoard(NEW_CHAT_BOARD_ID);
           if (newChat) {
             _this7.chatSection.closeChatBoard(newChat);
           }
-          _this7._connectChannel(channelID);
+          var dialog = _this7.sb.getCachedDialog(channelID);
+          if (dialog !== null) {
+            _this7._connectDialog(dialog);
+          }
         }
       });
       return item;
@@ -4656,18 +4658,19 @@ var SBWidget = function () {
       this._connectChannel(channelUrl, false);
     }
   }, {
-    key: '_connectChannel',
-    value: function _connectChannel(channelID, doNotCall) {
+    key: '_connectDialog',
+    value: function _connectDialog(dialog, doNotCall) {
       var _this8 = this;
 
-      var chatBoard = this.chatSection.createChatBoard(channelID, doNotCall);
+      var dialogID = dialog.id;
+      var chatBoard = this.chatSection.createChatBoard(dialogID, doNotCall);
       if (!doNotCall) {
-        this.responsiveChatSection(channelID, true);
+        this.responsiveChatSection(dialogID, true);
       }
       this.chatSection.addClickEvent(chatBoard.closeBtn, function () {
         _this8.chatSection.closeChatBoard(chatBoard);
         _this8.closePopup();
-        _this8.removeChannelSet(channelID);
+        _this8.removeChannelSet(dialogID);
         _this8.responsiveChatSection();
       });
       this.chatSection.addClickEvent(chatBoard.leaveBtn, function () {
@@ -4675,7 +4678,7 @@ var SBWidget = function () {
         _this8.chatSection.setLeaveBtnClickEvent(chatBoard.leavePopup.leaveBtn, function () {
           _this8.spinner.insert(chatBoard.leavePopup.leaveBtn);
           (0, _utils.addClass)(chatBoard.leavePopup.leaveBtn, _consts.className.DISABLED);
-          var channelSet = _this8.getChannelSet(channelID);
+          var channelSet = _this8.getDialogSet(dialogID);
           if (channelSet) {
             _this8.sb.channelLeave(channelSet.channel, function () {
               chatBoard.removeChild(chatBoard.leavePopup);
@@ -4695,9 +4698,9 @@ var SBWidget = function () {
           _this8.closeMemberPopup();
           _this8.closeInvitePopup();
           (0, _utils.addClass)(chatBoard.memberBtn, _consts.className.ACTIVE);
-          var index = _this8.chatSection.indexOfChatBord(channelID);
+          var index = _this8.chatSection.indexOfChatBord(dialogID);
           _this8.popup.showMemberPopup(_this8.chatSection.self, index);
-          var channelSet = _this8.getChannelSet(channelID);
+          var channelSet = _this8.getDialogSet(dialogID);
           _this8.popup.updateCount(_this8.popup.memberPopup.count, channelSet.channel.memberCount);
           for (var i = 0; i < channelSet.channel.members.length; i++) {
             var member = channelSet.channel.members[i];
@@ -4736,10 +4739,10 @@ var SBWidget = function () {
           _this8.closeInvitePopup();
           _this8.closeMemberPopup();
           (0, _utils.addClass)(chatBoard.inviteBtn, _consts.className.ACTIVE);
-          var index = _this8.chatSection.indexOfChatBord(channelID);
+          var index = _this8.chatSection.indexOfChatBord(dialogID);
           _this8.popup.showInvitePopup(_this8.chatSection.self, index);
           _this8.spinner.insert(_this8.popup.invitePopup.list);
-          var channelSet = _this8.getChannelSet(channelID);
+          var channelSet = _this8.getDialogSet(dialogID);
           var memberIds = channelSet.channel.members.map(function (member) {
             return member.userId;
           });
@@ -4750,7 +4753,7 @@ var SBWidget = function () {
               (0, _utils.addClass)(_this8.popup.invitePopup.inviteBtn, _consts.className.DISABLED);
               _this8.spinner.insert(_this8.popup.invitePopup.inviteBtn);
               var selectedUserIds = _this8.popup.getSelectedUserIds(_this8.popup.invitePopup.list);
-              var _channelSet = _this8.getChannelSet(channelID);
+              var _channelSet = _this8.getDialogSet(dialogID);
               _this8.sb.inviteMember(_channelSet.channel, selectedUserIds, function () {
                 _this8.spinner.remove(_this8.popup.invitePopup.inviteBtn);
                 _this8.closeInvitePopup();
@@ -4766,18 +4769,17 @@ var SBWidget = function () {
         }
       });
       this.spinner.insert(chatBoard.content);
-      this.sb.getChannelInfo(channelID, function (channel) {
-        _this8.updateChannelInfo(chatBoard, channel);
-        var channelSet = _this8.getChannelSet(channel);
-        _this8.getMessageList(channelSet, chatBoard, false, function () {
-          _this8.chatScrollEvent(chatBoard, channelSet);
+      this.sb.getDialogInfo(dialog, function (fetchedDialog, error) {
+        _this8.updateChannelInfo(chatBoard, fetchedDialog);
+        var dialogSet = _this8.getDialogSet(dialog);
+        _this8.getMessageList(dialogSet, chatBoard, false, function () {
+          // this.chatScrollEvent(chatBoard, channelSet);
         });
-        channel.markAsRead();
-        _this8.updateUnreadMessageCount(channel);
-
-        var listItem = _this8.listBoard.getChannelItem(channelID);
+        fetchedDialog.markAsRead();
+        _this8.updateUnreadMessageCount(fetchedDialog);
+        var listItem = _this8.listBoard.getChannelItem(fetchedDialog.id);
         if (!listItem) {
-          listItem = _this8.createChannelItem(channel);
+          listItem = _this8.createChannelItem(fetchedDialog);
           _this8.listBoard.list.insertBefore(listItem, _this8.listBoard.list.firstChild);
         }
       });
@@ -4802,17 +4804,22 @@ var SBWidget = function () {
     }
   }, {
     key: 'getMessageList',
-    value: function getMessageList(channelSet, target, loadmore, scrollEvent) {
+    value: function getMessageList(dialogSet, target, loadmore, scrollEvent) {
       var _this10 = this;
 
-      this.sb.getMessageList(channelSet, function (messageList) {
+      this.sb.getMessageList(dialogSet, function (messageList) {
+        if (messageList === null) {
+          _this10.spinner.remove(target.content);
+          return;
+        }
+        console.log(messageList);
         var messageItems = messageList.slice();
         var tempTime = void 0;
         for (var index = 0; index < messageList.length; index++) {
           var message = messageList[index];
-          loadmore ? channelSet.message.unshift(message) : channelSet.message.push(message);
+          loadmore ? dialogSet.message.unshift(message) : dialogSet.message.push(message);
 
-          var time = _this10.sb.getMessageTime(message);
+          var time = _this10.sb.getMessageTime(message.sentTime);
           if (time.indexOf(':') > -1) {
             time = TIME_STRING_TODAY;
           }
@@ -4821,6 +4828,7 @@ var SBWidget = function () {
             (0, _utils.insertMessageInList)(messageItems, messageItems.indexOf(message), new _this10.timeMessage(time));
           }
         }
+        console.log(messageItems);
 
         var scrollToBottom = false;
         if (!loadmore) {
@@ -4832,8 +4840,8 @@ var SBWidget = function () {
           _this10.chatSection.createMessageContent(target);
           _this10.chatSection.addFileSelectEvent(target.file, function () {
             var file = target.file.files[0];
-            _this10.sb.sendFileMessage(channelSet.channel, file, function (message) {
-              _this10.messageReceivedAction(channelSet.channel, message);
+            _this10.sb.sendFileMessage(dialogSet.channel, file, function (message) {
+              _this10.messageReceivedAction(dialogSet.channel, message);
             });
           });
           _this10.chatSection.addKeyDownEvent(target.input, function (event) {
@@ -4844,30 +4852,30 @@ var SBWidget = function () {
             if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
               var textMessage = target.input.textContent || _this10.chatSection.textKr;
               if (!(0, _utils.isEmptyString)(textMessage.trim())) {
-                _this10.sb.sendTextMessage(channelSet.channel, textMessage, function (message) {
-                  _this10.messageReceivedAction(channelSet.channel, message);
+                _this10.sb.sendTextMessage(dialogSet.channel, textMessage, function (message) {
+                  _this10.messageReceivedAction(dialogSet.channel, message);
                 });
               }
-              _this10.chatSection.clearInputText(target.input, channelSet.channel.url);
+              _this10.chatSection.clearInputText(target.input, dialogSet.channel.url);
               _this10.chatSection.textKr = '';
-              channelSet.channel.endTyping();
+              dialogSet.channel.endTyping();
             } else {
-              channelSet.channel.startTyping();
+              dialogSet.channel.startTyping();
             }
-            _this10.chatSection.responsiveHeight(channelSet.channel.url);
+            _this10.chatSection.responsiveHeight(dialogSet.channel.url);
           });
           _this10.chatSection.addKeyUpEvent(target.input, function (event) {
             var isBottom = _this10.chatSection.isBottom(target.messageContent, target.list);
-            _this10.chatSection.responsiveHeight(channelSet.channel.url);
+            _this10.chatSection.responsiveHeight(dialogSet.channel.url);
             if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
-              _this10.chatSection.clearInputText(target.input, channelSet.channel.url);
+              _this10.chatSection.clearInputText(target.input, dialogSet.channel.url);
               if (isBottom) {
                 _this10.chatSection.scrollToBottom(target.messageContent);
               }
             } else {
               var textMessage = target.input.textContent || _this10.chatSection.textKr;
               if (textMessage.length === 0) {
-                channelSet.channel.endTyping();
+                dialogSet.channel.endTyping();
               }
             }
           });
@@ -4887,7 +4895,7 @@ var SBWidget = function () {
         if (scrollEvent) {
           scrollEvent();
         }
-        _this10.setMessageItem(channelSet.channel, target, messageItems, loadmore, scrollToBottom);
+        _this10.setMessageItem(dialogSet.channel, target, messageItems, loadmore, scrollToBottom);
       });
     }
   }, {
@@ -4897,7 +4905,7 @@ var SBWidget = function () {
       var addScrollHeight = 0;
       var prevMessage = void 0;
       var newMessage = void 0;
-      if (lastMessage && messageList[0] && !messageList[0].isTimeMessage) {
+      if (lastMessage && messageList[0]) {
         prevMessage = lastMessage;
       }
       for (var i = 0; i < messageList.length; i++) {
@@ -4906,20 +4914,10 @@ var SBWidget = function () {
           newMessage = this.chatSection.createMessageItemTime(message.time);
           prevMessage = null;
         } else {
-          var isContinue = false;
-          if (message.isAdminMessage()) {
-            newMessage = this.chatSection.createAdminMessageItem(message);
-          } else {
-            // isUserMessage() || isFileMessage()
-            isContinue = prevMessage && prevMessage.sender ? message.sender.userId == prevMessage.sender.userId : false;
-            var isCurrentUser = this.sb.isCurrentUser(message.sender);
-            var unreadCount = channel.getReadReceipt(message);
-            if (message.isUserMessage()) {
-              newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
-            } else if (message.isFileMessage()) {
-              newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
-            }
-          }
+          var isContinue = prevMessage && prevMessage.sender ? message.sender.userId == prevMessage.sender.userId : false;
+          var isCurrentUser = this.sb.isCurrentUser(message.sender);
+          var unreadCount = 0;
+          newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
           prevMessage = message;
         }
 
@@ -4949,27 +4947,27 @@ var SBWidget = function () {
       });
     }
   }, {
-    key: 'getChannelSet',
-    value: function getChannelSet(channel, isLast) {
+    key: 'getDialogSet',
+    value: function getDialogSet(dialog, isLast) {
       var isObject = true;
-      if ((typeof channel === 'undefined' ? 'undefined' : _typeof(channel)) === _consts.TYPE_STRING || channel instanceof String) {
+      if ((typeof dialog === 'undefined' ? 'undefined' : _typeof(dialog)) === _consts.TYPE_STRING || dialog instanceof String) {
         isObject = false;
       }
 
-      var channelSet = this.activeChannelSetList.filter(function (obj) {
-        return isObject ? obj.channel == channel : obj.channel.url == channel;
+      var dialogSet = this.activeChannelSetList.filter(function (obj) {
+        return isObject ? obj.dialog == dialog : obj.dialog.id == dialog;
       })[0];
 
-      if (!channelSet && isObject) {
-        channelSet = {
-          'channel': channel,
-          'query': channel.createPreviousMessageListQuery(),
+      if (!dialogSet && isObject) {
+        dialogSet = {
+          'dialog': dialog,
+          'query': dialog.createPreviousMessageListQuery(),
           'message': []
         };
-        isLast ? this.activeChannelSetList.push(channelSet) : this.activeChannelSetList.unshift(channelSet);
+        isLast ? this.activeChannelSetList.push(dialogSet) : this.activeChannelSetList.unshift(dialogSet);
       }
 
-      return channelSet;
+      return dialogSet;
     }
   }, {
     key: 'removeChannelSet',
@@ -5291,6 +5289,9 @@ var ChatSection = function (_Element) {
       if (title !== null) {
         this._setContent(target.topTitle, title);
       }
+      if (count === null || count == 0) {
+        (0, _utils.hide)(target.count);
+      }
     }
   }, {
     key: 'getChatBoard',
@@ -5478,7 +5479,7 @@ var ChatSection = function (_Element) {
     key: 'createMessageItem',
     value: function createMessageItem(message, isCurrentUser, isContinue, unreadCount) {
       var messageSet = this.createDiv();
-      messageSet.id = message.messageId;
+      messageSet.id = message.messageID;
       this._setClass(messageSet, isCurrentUser ? [_consts.className.MESSAGE_SET, _consts.className.USER] : [_consts.className.MESSAGE_SET]);
       if (isContinue) {
         messageSet.style.marginTop = MARGIN_TOP_MESSAGE;
@@ -5486,7 +5487,7 @@ var ChatSection = function (_Element) {
 
       var senderImg = this.createDiv();
       this._setClass(senderImg, [_consts.className.IMAGE]);
-      var senderProfile = message.sender.profileUrl;
+      var senderProfile = message.sender.avatar;
       if (isContinue) {
         senderProfile = '';
         senderImg.style.height = MESSAGE_NONE_IMAGE_HEIGHT;
@@ -5499,7 +5500,7 @@ var ChatSection = function (_Element) {
 
       var senderNickname = this.createDiv();
       this._setClass(senderNickname, [_consts.className.NICKNAME]);
-      this._setContent(senderNickname, (0, _utils.xssEscape)(message.sender.nickname));
+      this._setContent(senderNickname, (0, _utils.xssEscape)(message.sender.username));
       if (isContinue) {
         senderNickname.style.display = DISPLAY_NONE;
       }
@@ -5512,7 +5513,7 @@ var ChatSection = function (_Element) {
       if (message.isUserMessage()) {
         this._setClass(itemText, [_consts.className.TEXT]);
         var urlexp = new RegExp('(http|https)://[a-z0-9\-_]+(\.[a-z0-9\-_]+)+([a-z0-9\-\.,@\?^=%&;:/~\+#]*[a-z0-9\-@\?^=%&;/~\+#])?', 'i');
-        var _message = message.message;
+        var _message = message.text;
         if (urlexp.test(_message)) {
           _message = '<a href="' + _message + (isCurrentUser ? '" target="_blank" style="color: #FFFFFF;">' : '" target="_blank" style="color: #444444;">') + _message + '</a>';
           if (message.customType === 'url_preview') {
@@ -6710,7 +6711,7 @@ var Sendbird = function () {
   }, {
     key: 'isCurrentUser',
     value: function isCurrentUser(user) {
-      return this.af.currentUser.userId == user.userId;
+      return this.af.Session.currentUserID == user.id;
     }
 
     /*
@@ -6736,15 +6737,33 @@ var Sendbird = function () {
       }
     }
   }, {
-    key: 'getChannelInfo',
-    value: function getChannelInfo(channelID, action) {
-      this.af.PublicChannel.getChannel(channelID, function (channel, error) {
-        if (error) {
-          console.error(error);
-          return;
-        }
-        action(channel);
-      });
+    key: 'getCachedDialog',
+    value: function getCachedDialog(dialogID) {
+      return this.af.getDialog(dialogID);
+    }
+  }, {
+    key: 'getDialogInfo',
+    value: function getDialogInfo(dialog, action) {
+      // only need to fetch dialog info again if it's a private group or channel
+      if (dialog.isPrivateGroupChat()) {
+        this.af.Dialog.getDialogInfo(dialog.id, function (dialog, error) {
+          if (error) {
+            console.error(error);
+            return;
+          }
+          action(dialog);
+        });
+      } else if (dialog.isPublicChannel()) {
+        this.af.PublicChannel.getChannelInfo(dialog.id, function (channel, error) {
+          if (error) {
+            console.error(error);
+            return;
+          }
+          action(channel);
+        });
+      } else {
+        action(dialog);
+      }
     }
   }, {
     key: 'createNewChannel',
@@ -6787,24 +6806,26 @@ var Sendbird = function () {
   }, {
     key: 'getTotalUnreadCount',
     value: function getTotalUnreadCount(action) {
-      this.af.GroupChannel.getTotalUnreadMessageCount(function (unreadCount) {
+      this.af.getTotalUnreadMessageCount(function (unreadCount) {
         action(unreadCount);
       });
     }
   }, {
     key: 'getMessageList',
-    value: function getMessageList(channelSet, action) {
-      if (!channelSet.query) {
-        channelSet.query = channelSet.channel.createPreviousMessageListQuery();
+    value: function getMessageList(dialogSet, action) {
+      if (!dialogSet.query) {
+        dialogSet.query = dialogSet.dialog.createPreviousMessageListQuery();
       }
-      if (channelSet.query.hasMore && !channelSet.query.isLoading) {
-        channelSet.query.load(GET_MESSAGE_LIMIT, false, function (messageList, error) {
+      if (dialogSet.query.hasMore && !dialogSet.query.isLoading) {
+        dialogSet.query.load(GET_MESSAGE_LIMIT, false, function (messageList, error) {
           if (error) {
             console.error(error);
             return;
           }
           action(messageList);
         });
+      } else {
+        action(null);
       }
     }
   }, {
@@ -6894,20 +6915,23 @@ var Sendbird = function () {
 
   }, {
     key: 'getNicknamesString',
-    value: function getNicknamesString(channel) {
+    value: function getNicknamesString(dialog) {
+      if (dialog.title && dialog.title !== '') {
+        return dialog.title;
+      }
       var nicknameList = [];
-      var currentUserId = this.af.currentUser.userId;
-      channel.members.forEach(function (member) {
+      var currentUserId = this.af.Session.currentUserID;
+      dialog.members.forEach(function (member) {
         if (member.userId != currentUserId) {
-          nicknameList.push((0, _utils.xssEscape)(member.nickname));
+          nicknameList.push((0, _utils.xssEscape)(member.username));
         }
       });
       return nicknameList.toString();
     }
   }, {
     key: 'getMemberCount',
-    value: function getMemberCount(channel) {
-      return channel.memberCount > 9 ? _consts.MAX_COUNT : channel.memberCount.toString();
+    value: function getMemberCount(dialog) {
+      return dialog.getMemberCount();
     }
   }, {
     key: 'getLastMessage',

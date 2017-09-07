@@ -203,7 +203,7 @@ class SBWidget {
           let selectedUserIds = this.chatSection.getSelectedUserIds(chatBoard.userContent);
           this.sb.createNewChannel(selectedUserIds, (channel) => {
             chatBoard.parentNode.removeChild(chatBoard);
-            this._connectChannel(channel.url, true);
+            this._connectDialog(channel, true);
             this.listBoard.checkEmptyList();
           });
         }
@@ -283,7 +283,7 @@ class SBWidget {
     let targetBoard = this.chatSection.getChatBoard(channel.url);
     if (targetBoard) {
       let isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
-      let channelSet = this.getChannelSet(channel.url);
+      let channelSet = this.getDialogSet(channel.url);
       let lastMessage = getLastItem(channelSet.message);
       channelSet.message.push(message);
       this.setMessageItem(channelSet.channel, targetBoard, [message], false, isBottom, lastMessage);
@@ -342,14 +342,16 @@ class SBWidget {
     this.listBoard.addChannelClickEvent(item, () => {
       this.closePopup();
       let channelID = item.getAttribute('data-channel-id');
-      console.log(`channel: ${channelID}`);
       let openChatBoard = this.chatSection.getChatBoard(channelID);
       if (!openChatBoard) {
         var newChat = this.chatSection.getChatBoard(NEW_CHAT_BOARD_ID);
         if (newChat) {
           this.chatSection.closeChatBoard(newChat);
         }
-        this._connectChannel(channelID);
+        let dialog = this.sb.getCachedDialog(channelID);
+        if (dialog !== null) {
+          this._connectDialog(dialog);
+        }
       }
     });
     return item;
@@ -374,15 +376,16 @@ class SBWidget {
     this._connectChannel(channelUrl, false);
   }
 
-  _connectChannel(channelID, doNotCall) {
-    var chatBoard = this.chatSection.createChatBoard(channelID, doNotCall);
+  _connectDialog(dialog, doNotCall) {
+    let dialogID = dialog.id;
+    var chatBoard = this.chatSection.createChatBoard(dialogID, doNotCall);
     if (!doNotCall) {
-      this.responsiveChatSection(channelID, true);
+      this.responsiveChatSection(dialogID, true);
     }
     this.chatSection.addClickEvent(chatBoard.closeBtn, () => {
       this.chatSection.closeChatBoard(chatBoard);
       this.closePopup();
-      this.removeChannelSet(channelID);
+      this.removeChannelSet(dialogID);
       this.responsiveChatSection();
     });
     this.chatSection.addClickEvent(chatBoard.leaveBtn, () => {
@@ -390,7 +393,7 @@ class SBWidget {
       this.chatSection.setLeaveBtnClickEvent(chatBoard.leavePopup.leaveBtn, () => {
         this.spinner.insert(chatBoard.leavePopup.leaveBtn);
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
-        let channelSet = this.getChannelSet(channelID);
+        let channelSet = this.getDialogSet(dialogID);
         if (channelSet) {
           this.sb.channelLeave(channelSet.channel, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
@@ -410,9 +413,9 @@ class SBWidget {
         this.closeMemberPopup();
         this.closeInvitePopup();
         addClass(chatBoard.memberBtn, className.ACTIVE);
-        let index = this.chatSection.indexOfChatBord(channelID);
+        let index = this.chatSection.indexOfChatBord(dialogID);
         this.popup.showMemberPopup(this.chatSection.self, index);
-        let channelSet = this.getChannelSet(channelID);
+        let channelSet = this.getDialogSet(dialogID);
         this.popup.updateCount(this.popup.memberPopup.count, channelSet.channel.memberCount);
         for (var i = 0 ; i < channelSet.channel.members.length ; i++) {
           let member = channelSet.channel.members[i];
@@ -449,10 +452,10 @@ class SBWidget {
         this.closeInvitePopup();
         this.closeMemberPopup();
         addClass(chatBoard.inviteBtn, className.ACTIVE);
-        let index = this.chatSection.indexOfChatBord(channelID);
+        let index = this.chatSection.indexOfChatBord(dialogID);
         this.popup.showInvitePopup(this.chatSection.self, index);
         this.spinner.insert(this.popup.invitePopup.list);
-        let channelSet = this.getChannelSet(channelID);
+        let channelSet = this.getDialogSet(dialogID);
         let memberIds = channelSet.channel.members.map((member) => {
           return member.userId;
         });
@@ -463,7 +466,7 @@ class SBWidget {
             addClass(this.popup.invitePopup.inviteBtn, className.DISABLED);
             this.spinner.insert(this.popup.invitePopup.inviteBtn);
             let selectedUserIds = this.popup.getSelectedUserIds(this.popup.invitePopup.list);
-            let channelSet = this.getChannelSet(channelID);
+            let channelSet = this.getDialogSet(dialogID);
             this.sb.inviteMember(channelSet.channel, selectedUserIds, () => {
               this.spinner.remove(this.popup.invitePopup.inviteBtn);
               this.closeInvitePopup();
@@ -479,18 +482,17 @@ class SBWidget {
       }
     });
     this.spinner.insert(chatBoard.content);
-    this.sb.getChannelInfo(channelID, (channel) => {
-      this.updateChannelInfo(chatBoard, channel);
-      let channelSet = this.getChannelSet(channel);
-      this.getMessageList(channelSet, chatBoard, false, () => {
-        this.chatScrollEvent(chatBoard, channelSet);
+    this.sb.getDialogInfo(dialog, (fetchedDialog, error) => {
+      this.updateChannelInfo(chatBoard, fetchedDialog);
+      let dialogSet = this.getDialogSet(dialog);
+      this.getMessageList(dialogSet, chatBoard, false, () => {
+        // this.chatScrollEvent(chatBoard, channelSet);
       });
-      channel.markAsRead();
-      this.updateUnreadMessageCount(channel);
-
-      let listItem = this.listBoard.getChannelItem(channelID);
+      fetchedDialog.markAsRead();
+      this.updateUnreadMessageCount(fetchedDialog);
+      let listItem = this.listBoard.getChannelItem(fetchedDialog.id);
       if (!listItem) {
-        listItem = this.createChannelItem(channel);
+        listItem = this.createChannelItem(fetchedDialog);
         this.listBoard.list.insertBefore(listItem, this.listBoard.list.firstChild);
       }
     });
@@ -512,15 +514,20 @@ class SBWidget {
     }
   }
 
-  getMessageList(channelSet, target, loadmore, scrollEvent) {
-    this.sb.getMessageList(channelSet, (messageList) => {
+  getMessageList(dialogSet, target, loadmore, scrollEvent) {
+    this.sb.getMessageList(dialogSet, (messageList) => {
+      if (messageList === null) {
+        this.spinner.remove(target.content);
+        return;
+      }
+      console.log(messageList);
       let messageItems = messageList.slice();
       let tempTime;
       for (var index = 0 ; index < messageList.length ; index++) {
         let message = messageList[index];
-        loadmore ? channelSet.message.unshift(message) : channelSet.message.push(message);
+        loadmore ? dialogSet.message.unshift(message) : dialogSet.message.push(message);
 
-        let time = this.sb.getMessageTime(message);
+        let time = this.sb.getMessageTime(message.sentTime);
         if (time.indexOf(':') > -1) {
           time = TIME_STRING_TODAY;
         }
@@ -529,6 +536,7 @@ class SBWidget {
           insertMessageInList(messageItems, messageItems.indexOf(message), new this.timeMessage(time));
         }
       }
+      console.log(messageItems);
 
       let scrollToBottom = false;
       if (!loadmore) {
@@ -540,8 +548,8 @@ class SBWidget {
         this.chatSection.createMessageContent(target);
         this.chatSection.addFileSelectEvent(target.file, () => {
           let file = target.file.files[0];
-          this.sb.sendFileMessage(channelSet.channel, file, (message) => {
-            this.messageReceivedAction(channelSet.channel, message);
+          this.sb.sendFileMessage(dialogSet.channel, file, (message) => {
+            this.messageReceivedAction(dialogSet.channel, message);
           });
         });
         this.chatSection.addKeyDownEvent(target.input, (event) => {
@@ -552,30 +560,30 @@ class SBWidget {
           if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
             let textMessage = target.input.textContent || this.chatSection.textKr;
             if (!isEmptyString(textMessage.trim())) {
-              this.sb.sendTextMessage(channelSet.channel, textMessage, (message) => {
-                this.messageReceivedAction(channelSet.channel, message);
+              this.sb.sendTextMessage(dialogSet.channel, textMessage, (message) => {
+                this.messageReceivedAction(dialogSet.channel, message);
               });
             }
-            this.chatSection.clearInputText(target.input, channelSet.channel.url);
+            this.chatSection.clearInputText(target.input, dialogSet.channel.url);
             this.chatSection.textKr = '';
-            channelSet.channel.endTyping();
+            dialogSet.channel.endTyping();
           } else {
-            channelSet.channel.startTyping();
+            dialogSet.channel.startTyping();
           }
-          this.chatSection.responsiveHeight(channelSet.channel.url);
+          this.chatSection.responsiveHeight(dialogSet.channel.url);
         });
         this.chatSection.addKeyUpEvent(target.input, (event) => {
           let isBottom = this.chatSection.isBottom(target.messageContent, target.list);
-          this.chatSection.responsiveHeight(channelSet.channel.url);
+          this.chatSection.responsiveHeight(dialogSet.channel.url);
           if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
-            this.chatSection.clearInputText(target.input, channelSet.channel.url);
+            this.chatSection.clearInputText(target.input, dialogSet.channel.url);
             if (isBottom) {
               this.chatSection.scrollToBottom(target.messageContent);
             }
           } else {
             let textMessage = target.input.textContent || this.chatSection.textKr;
             if (textMessage.length === 0) {
-              channelSet.channel.endTyping();
+              dialogSet.channel.endTyping();
             }
           }
         });
@@ -595,7 +603,7 @@ class SBWidget {
       if (scrollEvent) {
         scrollEvent();
       }
-      this.setMessageItem(channelSet.channel, target, messageItems, loadmore, scrollToBottom);
+      this.setMessageItem(dialogSet.channel, target, messageItems, loadmore, scrollToBottom);
     });
   }
 
@@ -604,7 +612,7 @@ class SBWidget {
     let addScrollHeight = 0;
     let prevMessage;
     let newMessage;
-    if (lastMessage && messageList[0] && !messageList[0].isTimeMessage) {
+    if (lastMessage && messageList[0]) {
       prevMessage = lastMessage;
     }
     for (var i = 0 ; i < messageList.length ; i++) {
@@ -613,19 +621,10 @@ class SBWidget {
         newMessage = this.chatSection.createMessageItemTime(message.time);
         prevMessage = null;
       } else {
-        let isContinue = false;
-        if (message.isAdminMessage()) {
-          newMessage = this.chatSection.createAdminMessageItem(message);
-        } else { // isUserMessage() || isFileMessage()
-          isContinue = (prevMessage && prevMessage.sender) ? (message.sender.userId == prevMessage.sender.userId) : false;
-          let isCurrentUser = this.sb.isCurrentUser(message.sender);
-          let unreadCount = channel.getReadReceipt(message);
-          if (message.isUserMessage()) {
-            newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
-          } else if (message.isFileMessage()) {
-            newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
-          }
-        }
+        let isContinue = (prevMessage && prevMessage.sender) ? (message.sender.userId == prevMessage.sender.userId) : false;
+        let isCurrentUser = this.sb.isCurrentUser(message.sender);
+        let unreadCount = 0;
+        newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
         prevMessage = message;
       }
 
@@ -652,26 +651,26 @@ class SBWidget {
     });
   }
 
-  getChannelSet(channel, isLast) {
+  getDialogSet(dialog, isLast) {
     let isObject = true;
-    if (typeof channel === TYPE_STRING || channel instanceof String) {
+    if (typeof dialog === TYPE_STRING || dialog instanceof String) {
       isObject = false;
     }
 
-    let channelSet = this.activeChannelSetList.filter((obj) => {
-      return isObject ? obj.channel == channel : obj.channel.url == channel;
+    let dialogSet = this.activeChannelSetList.filter((obj) => {
+      return isObject ? obj.dialog == dialog : obj.dialog.id == dialog;
     })[0];
 
-    if (!channelSet && isObject) {
-      channelSet = {
-        'channel': channel,
-        'query': channel.createPreviousMessageListQuery(),
+    if (!dialogSet && isObject) {
+      dialogSet = {
+        'dialog': dialog,
+        'query': dialog.createPreviousMessageListQuery(),
         'message': []
       };
-      isLast ? this.activeChannelSetList.push(channelSet) : this.activeChannelSetList.unshift(channelSet);
+      isLast ? this.activeChannelSetList.push(dialogSet) : this.activeChannelSetList.unshift(dialogSet);
     }
 
-    return channelSet;
+    return dialogSet;
   }
 
   removeChannelSet(channel) {

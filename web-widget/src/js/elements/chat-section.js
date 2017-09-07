@@ -203,6 +203,9 @@ class ChatSection extends Element {
     if (title !== null) {
       this._setContent(target.topTitle, title);
     }
+    if (count === null || count == 0) {
+      hide(target.count);
+    }
   }
 
   getChatBoard(channelUrl) {
@@ -375,7 +378,7 @@ class ChatSection extends Element {
 
   createMessageItem(message, isCurrentUser, isContinue, unreadCount) {
     var messageSet = this.createDiv();
-    messageSet.id = message.messageId;
+    messageSet.id = message.messageID;
     this._setClass(messageSet, isCurrentUser ? [className.MESSAGE_SET, className.USER] : [className.MESSAGE_SET]);
     if (isContinue) {
       messageSet.style.marginTop = MARGIN_TOP_MESSAGE;
@@ -383,7 +386,7 @@ class ChatSection extends Element {
 
     var senderImg = this.createDiv();
     this._setClass(senderImg, [className.IMAGE]);
-    var senderProfile = message.sender.profileUrl;
+    var senderProfile = message.sender.avatar;
     if (isContinue) {
       senderProfile = '';
       senderImg.style.height = MESSAGE_NONE_IMAGE_HEIGHT;
@@ -396,7 +399,7 @@ class ChatSection extends Element {
 
     var senderNickname = this.createDiv();
     this._setClass(senderNickname, [className.NICKNAME]);
-    this._setContent(senderNickname, xssEscape(message.sender.nickname));
+    this._setContent(senderNickname, xssEscape(message.sender.username));
     if (isContinue) {
       senderNickname.style.display = DISPLAY_NONE;
     }
@@ -409,7 +412,7 @@ class ChatSection extends Element {
     if (message.isUserMessage()) {
       this._setClass(itemText, [className.TEXT]);
       var urlexp = new RegExp('(http|https)://[a-z0-9\-_]+(\.[a-z0-9\-_]+)+([a-z0-9\-\.,@\?^=%&;:/~\+#]*[a-z0-9\-@\?^=%&;/~\+#])?', 'i');
-      var _message = message.message;
+      var _message = message.text;
       if (urlexp.test(_message)) {
         _message = '<a href="' + _message + (isCurrentUser ? '" target="_blank" style="color: #FFFFFF;">' : '" target="_blank" style="color: #444444;">') + _message + '</a>';
         if (message.customType === 'url_preview') {
