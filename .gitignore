@@ -4,3 +4,4 @@ appfriends.js
 .idea
 .idea/*
 */build
+*/.DS_Store
