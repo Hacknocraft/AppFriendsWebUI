@@ -9887,12 +9887,10 @@ class DialogService {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__wssocket__ = __webpack_require__(75);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__request__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_user__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_attachment__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_message__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__helper_error__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__helper_error___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__helper_error__);
-
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_message__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_dialog__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__helper_error__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__helper_error___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__helper_error__);
 
 
 
@@ -9968,13 +9966,13 @@ class SyncService {
     return request.startRequest('get', `/channels/${channelID}/messages/history?from_message_id=${messageID}`).then(response => {
       if (response.data.error) {
         const error = response.data.error;
-        const afError = __WEBPACK_IMPORTED_MODULE_6__helper_error___default.a.createError(error.reason, error.code);
+        const afError = __WEBPACK_IMPORTED_MODULE_5__helper_error___default.a.createError(error.reason, error.code);
         callback(null, afError);
       } else {
         const messages = [];
         response.data.messages.forEach(message => {
-          SELF.cacheSenderUser(message.sender);
-          const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
+          SELF.cacheSenderUserFromMessage(message);
+          const messageObj = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createMessageFromJSON(message);
           if (messageObj !== null) {
             messages.push(messageObj);
           }
@@ -9982,7 +9980,7 @@ class SyncService {
         callback(messages, null);
       }
     }).catch(error => {
-      const afError = __WEBPACK_IMPORTED_MODULE_6__helper_error___default.a.createError(error.message, error.code);
+      const afError = __WEBPACK_IMPORTED_MODULE_5__helper_error___default.a.createError(error.message, error.code);
       callback(null, afError);
     });
   }
@@ -9994,25 +9992,21 @@ class SyncService {
       if (messageCache[message.id]) {
         return;
       }
-      const senderUser = SELF.cacheSenderUser(message.sender);
-      const attachment = __WEBPACK_IMPORTED_MODULE_3__datamodels_attachment__["a" /* default */].createAttachment(message.attachment);
-      const customData = JSON.parse(message.custom_data);
-      const metaData = message.meta_data;
-      const messageObj = new __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */](senderUser, message.dialog_type, message.dialog_id, message.dialog_id, message.dialog_type === 's', new Date(message.receive_time), new Date(message.sent_time), message.text, attachment, customData, metaData, __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].sendingStatus.success, null, true);
+      SELF.cacheSenderUserFromMessage(message);
+      const messageObj = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createMessageFromJSON(message);
       messageCache[message.id] = messageObj;
       SELF.saveDialog(messageObj);
     });
   }
 
-  cacheSenderUser(senderUserString) {
-    if (!senderUserString || senderUserString === 'null') {
+  cacheSenderUserFromMessage(messageData) {
+    const senderUser = __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */].getSenderFromMessageData(messageData);
+    if (senderUser === null) {
       return null;
     }
-    const senderUserJSONObj = JSON.parse(senderUserString);
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](senderUserJSONObj.id, senderUserJSONObj.user_name, senderUserJSONObj.avatar);
     const users = this.afCore.User.users;
-    if (!users[senderUserJSONObj.id]) {
-      users[senderUserJSONObj.id] = senderUser;
+    if (!users[senderUser.id]) {
+      users[senderUser.id] = senderUser;
     }
 
     return senderUser;
@@ -10027,8 +10021,8 @@ class SyncService {
       dialog.lastMessageTime = messageObj.receiveTime;
       dialog.unreadMessageCount += 1;
     } else {
-      const dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType);
-      if (messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
+      const dialog = new __WEBPACK_IMPORTED_MODULE_4__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType);
+      if (messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_4__datamodels_dialog__["a" /* default */].type.individual) {
         dialog.title = messageObj.senderUser.id;
       }
       dialog.lastMessageText = messageObj.text;

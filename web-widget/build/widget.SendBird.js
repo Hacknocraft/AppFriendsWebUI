@@ -4401,33 +4401,33 @@ var SBWidget = function () {
     }
   }, {
     key: 'responsiveChatSection',
-    value: function responsiveChatSection(channelUrl, isShow) {
+    value: function responsiveChatSection(dialogID, isShow) {
       var _bodyWidth = document.getElementsByTagName('BODY')[0].offsetWidth - 360;
       var maxSize = parseInt(_bodyWidth / CHAT_BOARD_WIDTH);
       var currentSize = this.activeChannelSetList.length;
       if (currentSize >= maxSize) {
         var extraChannelSet = (0, _utils.getLastItem)(this.activeChannelSetList);
         if (extraChannelSet) {
-          if (this.extraChannelSetList.indexOf(extraChannelSet.channel.url) < 0) {
-            this.extraChannelSetList.push(extraChannelSet.channel.url);
+          if (this.extraChannelSetList.indexOf(extraChannelSet.dialog.id) < 0) {
+            this.extraChannelSetList.push(extraChannelSet.dialog.id);
           }
-          var chatBoard = this.chatSection.getChatBoard(extraChannelSet.channel.url);
+          var chatBoard = this.chatSection.getChatBoard(extraChannelSet.dialog.id);
           if (chatBoard) {
             this.chatSection.closeChatBoard(chatBoard);
           }
           this.removeChannelSet(extraChannelSet.channel);
         }
-        if (channelUrl) {
-          var idx = this.extraChannelSetList.indexOf(channelUrl);
+        if (dialogID) {
+          var idx = this.extraChannelSetList.indexOf(dialogID);
           if (idx > -1) {
             this.extraChannelSetList.splice(idx, 1);
           }
         }
         this.chatSection.setWidth(maxSize * CHAT_BOARD_WIDTH);
       } else {
-        var popChannelUrl = this.extraChannelSetList.pop();
-        if (popChannelUrl) {
-          this._connectChannel(popChannelUrl, true);
+        var popDialogID = this.extraChannelSetList.pop();
+        if (popDialogID) {
+          this._connectChannel(popDialogID, true);
           this.chatSection.setWidth((currentSize + 1) * CHAT_BOARD_WIDTH);
         } else {
           if (isShow) {
@@ -4546,13 +4546,13 @@ var SBWidget = function () {
     value: function messageReceivedAction(dialog, message) {
       var target = this.listBoard.getChannelItem(dialog.id);
       if (!target) {
-        target = this.createChannelItem(dialog);
+        target = this.createDialogItem(dialog);
         this.listBoard.checkEmptyList();
       }
       this.listBoard.addListOnFirstIndex(target);
 
-      this.listBoard.setChannelLastMessage(dialog.id, message.isAttachmentMessage() ? (0, _utils.xssEscape)(message.name) : (0, _utils.xssEscape)(message.message));
-      this.listBoard.setChannelLastMessageTime(dialog.id, this.sb.getMessageTime(message));
+      this.listBoard.setChannelLastMessage(dialog.id, message.isAttachmentMessage() ? (0, _utils.xssEscape)(message.sender.username) : (0, _utils.xssEscape)(message.text));
+      this.listBoard.setChannelLastMessageTime(dialog.id, this.sb.getMessageTime(message.sentTime));
 
       var targetBoard = this.chatSection.getChatBoard(dialog.id);
       if (targetBoard) {
@@ -4605,18 +4605,18 @@ var SBWidget = function () {
           _spinner.remove(_list);
         }
         channelList.forEach(function (channel) {
-          var item = _this6.createChannelItem(channel);
+          var item = _this6.createDialogItem(channel);
           _list.appendChild(item);
         });
         _this6.listBoard.checkEmptyList();
       });
     }
   }, {
-    key: 'createChannelItem',
-    value: function createChannelItem(channel) {
+    key: 'createDialogItem',
+    value: function createDialogItem(dialog) {
       var _this7 = this;
 
-      var item = this.listBoard.createChannelItem(channel.id, channel.coverImageUrl, channel.title, this.sb.getMessageTime(channel.lastMessageTime), channel.lastMessageText, 0);
+      var item = this.listBoard.createChannelItem(dialog.id, dialog.coverImageUrl, dialog.title, this.sb.getMessageTime(dialog.lastMessageTime), dialog.lastMessageText, 0);
       this.listBoard.addChannelClickEvent(item, function () {
         _this7.closePopup();
         var channelID = item.getAttribute('data-channel-id');
@@ -4626,9 +4626,9 @@ var SBWidget = function () {
           if (newChat) {
             _this7.chatSection.closeChatBoard(newChat);
           }
-          var dialog = _this7.sb.getCachedDialog(channelID);
-          if (dialog !== null) {
-            _this7._connectDialog(dialog);
+          var _dialog = _this7.sb.getCachedDialog(channelID);
+          if (_dialog !== null) {
+            _this7._connectDialog(_dialog);
           }
         }
       });
@@ -4779,7 +4779,7 @@ var SBWidget = function () {
         _this8.updateUnreadMessageCount(fetchedDialog);
         var listItem = _this8.listBoard.getChannelItem(fetchedDialog.id);
         if (!listItem) {
-          listItem = _this8.createChannelItem(fetchedDialog);
+          listItem = _this8.createDialogItem(fetchedDialog);
           _this8.listBoard.list.insertBefore(listItem, _this8.listBoard.list.firstChild);
         }
       });
@@ -4969,14 +4969,14 @@ var SBWidget = function () {
     }
   }, {
     key: 'removeChannelSet',
-    value: function removeChannelSet(channel) {
+    value: function removeChannelSet(dialog) {
       var isObject = true;
-      if ((typeof channel === 'undefined' ? 'undefined' : _typeof(channel)) === _consts.TYPE_STRING || channel instanceof String) {
+      if ((typeof channel === 'undefined' ? 'undefined' : _typeof(channel)) === _consts.TYPE_STRING || dialog instanceof String) {
         isObject = false;
       }
 
       this.activeChannelSetList = this.activeChannelSetList.filter(function (obj) {
-        return isObject ? obj.channel != channel : obj.channel.url != channel;
+        return isObject ? obj.dialog != dialog : obj.dialog.id != dialog;
       });
     }
   }, {
@@ -6188,12 +6188,12 @@ var ListBoard = function (_Element) {
     }
   }, {
     key: 'getChannelItem',
-    value: function getChannelItem(channelUrl) {
+    value: function getChannelItem(dialogID) {
       var items = this._getListItemsArray();
       var targetChannel = void 0;
       for (var i = 0; i < items.length; i++) {
         var item = items[i];
-        if (item.getAttribute('data-channel-id') == channelUrl) {
+        if (item.getAttribute('data-channel-id') == dialogID) {
           targetChannel = item;
           break;
         }
@@ -6202,32 +6202,32 @@ var ListBoard = function (_Element) {
     }
   }, {
     key: 'setChannelUnread',
-    value: function setChannelUnread(channelUrl, count) {
-      var target = this.getChannelItem(channelUrl);
+    value: function setChannelUnread(dialogID, count) {
+      var target = this.getChannelItem(dialogID);
       if (target) {
         this.setUnreadCount(target.unread, count);
       }
     }
   }, {
     key: 'setChannelLastMessage',
-    value: function setChannelLastMessage(channelUrl, message) {
-      var target = this.getChannelItem(channelUrl);
+    value: function setChannelLastMessage(dialogID, message) {
+      var target = this.getChannelItem(dialogID);
       if (target) {
         this._setContent(target.message, message);
       }
     }
   }, {
     key: 'setChannelLastMessageTime',
-    value: function setChannelLastMessageTime(channelUrl, time) {
-      var target = this.getChannelItem(channelUrl);
+    value: function setChannelLastMessageTime(dialogID, time) {
+      var target = this.getChannelItem(dialogID);
       if (target) {
         this._setContent(target.time, time);
       }
     }
   }, {
     key: 'setChannelTitle',
-    value: function setChannelTitle(channelUrl, name) {
-      var target = this.getChannelItem(channelUrl);
+    value: function setChannelTitle(dialogID, name) {
+      var target = this.getChannelItem(dialogID);
       if (target) {
         this._setContent(target.topTitle, name);
       }

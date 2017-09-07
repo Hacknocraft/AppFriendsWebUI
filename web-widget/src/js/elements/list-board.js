@@ -354,12 +354,12 @@ class ListBoard extends Element {
     this.list.insertBefore(target, this.list.firstChild);
   }
 
-  getChannelItem(channelUrl) {
+  getChannelItem(dialogID) {
     let items = this._getListItemsArray();
     let targetChannel;
     for (var i = 0 ; i < items.length ; i++) {
       let item = items[i];
-      if (item.getAttribute('data-channel-id') == channelUrl) {
+      if (item.getAttribute('data-channel-id') == dialogID) {
         targetChannel = item;
         break;
       }
@@ -367,29 +367,29 @@ class ListBoard extends Element {
     return targetChannel;
   }
 
-  setChannelUnread(channelUrl, count) {
-    let target = this.getChannelItem(channelUrl);
+  setChannelUnread(dialogID, count) {
+    let target = this.getChannelItem(dialogID);
     if (target) {
       this.setUnreadCount(target.unread, count);
     }
   }
 
-  setChannelLastMessage(channelUrl, message) {
-    let target = this.getChannelItem(channelUrl);
+  setChannelLastMessage(dialogID, message) {
+    let target = this.getChannelItem(dialogID);
     if (target) {
       this._setContent(target.message, message);
     }
   }
 
-  setChannelLastMessageTime(channelUrl, time) {
-    let target = this.getChannelItem(channelUrl);
+  setChannelLastMessageTime(dialogID, time) {
+    let target = this.getChannelItem(dialogID);
     if (target) {
       this._setContent(target.time, time);
     }
   }
 
-  setChannelTitle(channelUrl, name) {
-    let target = this.getChannelItem(channelUrl);
+  setChannelTitle(dialogID, name) {
+    let target = this.getChannelItem(dialogID);
     if (target) {
       this._setContent(target.topTitle, name);
     }
