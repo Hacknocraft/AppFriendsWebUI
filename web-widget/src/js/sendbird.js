@@ -40,7 +40,7 @@ class Sendbird {
   }
 
   isCurrentUser(user) {
-    return this.af.Session.currentUserID == user.id;
+    return this.af.Session.currentUser().id == user.id;
   }
 
   /*
@@ -146,8 +146,9 @@ class Sendbird {
     }
   }
 
-  sendTextMessage(channel, textMessage, action) {
-    channel.sendUserMessage(textMessage, (message, error) => {
+  sendTextMessage(dialog, textMessage, action) {
+    console.log("sendTextMessage");
+    dialog.sendTextMessage(textMessage, '', false, [], (message, error) => {
       if (error) {
         console.error(error);
         return;

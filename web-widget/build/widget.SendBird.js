@@ -4543,26 +4543,26 @@ var SBWidget = function () {
     }
   }, {
     key: 'messageReceivedAction',
-    value: function messageReceivedAction(channel, message) {
-      var target = this.listBoard.getChannelItem(channel.url);
+    value: function messageReceivedAction(dialog, message) {
+      var target = this.listBoard.getChannelItem(dialog.id);
       if (!target) {
-        target = this.createChannelItem(channel);
+        target = this.createChannelItem(dialog);
         this.listBoard.checkEmptyList();
       }
       this.listBoard.addListOnFirstIndex(target);
 
-      this.listBoard.setChannelLastMessage(channel.url, message.isFileMessage() ? (0, _utils.xssEscape)(message.name) : (0, _utils.xssEscape)(message.message));
-      this.listBoard.setChannelLastMessageTime(channel.url, this.sb.getMessageTime(message));
+      this.listBoard.setChannelLastMessage(dialog.id, message.isAttachmentMessage() ? (0, _utils.xssEscape)(message.name) : (0, _utils.xssEscape)(message.message));
+      this.listBoard.setChannelLastMessageTime(dialog.id, this.sb.getMessageTime(message));
 
-      var targetBoard = this.chatSection.getChatBoard(channel.url);
+      var targetBoard = this.chatSection.getChatBoard(dialog.id);
       if (targetBoard) {
         var isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
-        var channelSet = this.getDialogSet(channel.url);
-        var lastMessage = (0, _utils.getLastItem)(channelSet.message);
-        channelSet.message.push(message);
-        this.setMessageItem(channelSet.channel, targetBoard, [message], false, isBottom, lastMessage);
-        channel.markAsRead();
-        this.updateUnreadMessageCount(channel);
+        var dialogSet = this.getDialogSet(dialog.id);
+        var lastMessage = (0, _utils.getLastItem)(dialogSet.message);
+        dialogSet.message.push(message);
+        this.setMessageItem(dialogSet.dialog, targetBoard, [message], false, isBottom, lastMessage);
+        dialog.markAsRead();
+        this.updateUnreadMessageCount(dialog);
       }
     }
   }, {
@@ -4812,7 +4812,6 @@ var SBWidget = function () {
           _this10.spinner.remove(target.content);
           return;
         }
-        console.log(messageList);
         var messageItems = messageList.slice();
         var tempTime = void 0;
         for (var index = 0; index < messageList.length; index++) {
@@ -4828,7 +4827,6 @@ var SBWidget = function () {
             (0, _utils.insertMessageInList)(messageItems, messageItems.indexOf(message), new _this10.timeMessage(time));
           }
         }
-        console.log(messageItems);
 
         var scrollToBottom = false;
         if (!loadmore) {
@@ -4840,8 +4838,8 @@ var SBWidget = function () {
           _this10.chatSection.createMessageContent(target);
           _this10.chatSection.addFileSelectEvent(target.file, function () {
             var file = target.file.files[0];
-            _this10.sb.sendFileMessage(dialogSet.channel, file, function (message) {
-              _this10.messageReceivedAction(dialogSet.channel, message);
+            _this10.sb.sendFileMessage(dialogSet.dialog, file, function (message) {
+              _this10.messageReceivedAction(dialogSet.dialog, message);
             });
           });
           _this10.chatSection.addKeyDownEvent(target.input, function (event) {
@@ -4852,30 +4850,30 @@ var SBWidget = function () {
             if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
               var textMessage = target.input.textContent || _this10.chatSection.textKr;
               if (!(0, _utils.isEmptyString)(textMessage.trim())) {
-                _this10.sb.sendTextMessage(dialogSet.channel, textMessage, function (message) {
-                  _this10.messageReceivedAction(dialogSet.channel, message);
+                _this10.sb.sendTextMessage(dialogSet.dialog, textMessage, function (message) {
+                  _this10.messageReceivedAction(dialogSet.dialog, message);
                 });
               }
-              _this10.chatSection.clearInputText(target.input, dialogSet.channel.url);
+              _this10.chatSection.clearInputText(target.input, dialogSet.dialog.id);
               _this10.chatSection.textKr = '';
-              dialogSet.channel.endTyping();
+              dialogSet.dialog.endTyping();
             } else {
-              dialogSet.channel.startTyping();
+              dialogSet.dialog.startTyping();
             }
-            _this10.chatSection.responsiveHeight(dialogSet.channel.url);
+            _this10.chatSection.responsiveHeight(dialogSet.dialog.id);
           });
           _this10.chatSection.addKeyUpEvent(target.input, function (event) {
             var isBottom = _this10.chatSection.isBottom(target.messageContent, target.list);
-            _this10.chatSection.responsiveHeight(dialogSet.channel.url);
+            _this10.chatSection.responsiveHeight(dialogSet.dialog.id);
             if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
-              _this10.chatSection.clearInputText(target.input, dialogSet.channel.url);
+              _this10.chatSection.clearInputText(target.input, dialogSet.dialog.id);
               if (isBottom) {
                 _this10.chatSection.scrollToBottom(target.messageContent);
               }
             } else {
               var textMessage = target.input.textContent || _this10.chatSection.textKr;
               if (textMessage.length === 0) {
-                dialogSet.channel.endTyping();
+                dialogSet.dialog.endTyping();
               }
             }
           });
@@ -5541,7 +5539,7 @@ var ChatSection = function (_Element) {
           _message = (0, _utils.xssEscape)(_message);
         }
         this._setContent(itemText, _message);
-      } else if (message.isFileMessage()) {
+      } else if (message.isAttachmentMessage()) {
         if (message.type.match(/^image\/gif$/)) {
           this._setClass(itemText, [_consts.className.FILE_MESSAGE]);
           var image = this.createImg();
@@ -6711,7 +6709,7 @@ var Sendbird = function () {
   }, {
     key: 'isCurrentUser',
     value: function isCurrentUser(user) {
-      return this.af.Session.currentUserID == user.id;
+      return this.af.Session.currentUser().id == user.id;
     }
 
     /*
@@ -6830,8 +6828,9 @@ var Sendbird = function () {
     }
   }, {
     key: 'sendTextMessage',
-    value: function sendTextMessage(channel, textMessage, action) {
-      channel.sendUserMessage(textMessage, function (message, error) {
+    value: function sendTextMessage(dialog, textMessage, action) {
+      console.log("sendTextMessage");
+      dialog.sendTextMessage(textMessage, '', false, [], function (message, error) {
         if (error) {
           console.error(error);
           return;

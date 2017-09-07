@@ -269,26 +269,26 @@ class SBWidget {
     });
   }
 
-  messageReceivedAction(channel, message) {
-    let target = this.listBoard.getChannelItem(channel.url);
+  messageReceivedAction(dialog, message) {
+    let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
-      target = this.createChannelItem(channel);
+      target = this.createChannelItem(dialog);
       this.listBoard.checkEmptyList();
     }
     this.listBoard.addListOnFirstIndex(target);
 
-    this.listBoard.setChannelLastMessage(channel.url, message.isFileMessage() ? xssEscape(message.name) : xssEscape(message.message));
-    this.listBoard.setChannelLastMessageTime(channel.url, this.sb.getMessageTime(message));
+    this.listBoard.setChannelLastMessage(dialog.id, message.isAttachmentMessage() ? xssEscape(message.name) : xssEscape(message.message));
+    this.listBoard.setChannelLastMessageTime(dialog.id, this.sb.getMessageTime(message));
 
-    let targetBoard = this.chatSection.getChatBoard(channel.url);
+    let targetBoard = this.chatSection.getChatBoard(dialog.id);
     if (targetBoard) {
       let isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
-      let channelSet = this.getDialogSet(channel.url);
-      let lastMessage = getLastItem(channelSet.message);
-      channelSet.message.push(message);
-      this.setMessageItem(channelSet.channel, targetBoard, [message], false, isBottom, lastMessage);
-      channel.markAsRead();
-      this.updateUnreadMessageCount(channel);
+      let dialogSet = this.getDialogSet(dialog.id);
+      let lastMessage = getLastItem(dialogSet.message);
+      dialogSet.message.push(message);
+      this.setMessageItem(dialogSet.dialog, targetBoard, [message], false, isBottom, lastMessage);
+      dialog.markAsRead();
+      this.updateUnreadMessageCount(dialog);
     }
   }
 
@@ -520,7 +520,6 @@ class SBWidget {
         this.spinner.remove(target.content);
         return;
       }
-      console.log(messageList);
       let messageItems = messageList.slice();
       let tempTime;
       for (var index = 0 ; index < messageList.length ; index++) {
@@ -536,7 +535,6 @@ class SBWidget {
           insertMessageInList(messageItems, messageItems.indexOf(message), new this.timeMessage(time));
         }
       }
-      console.log(messageItems);
 
       let scrollToBottom = false;
       if (!loadmore) {
@@ -548,8 +546,8 @@ class SBWidget {
         this.chatSection.createMessageContent(target);
         this.chatSection.addFileSelectEvent(target.file, () => {
           let file = target.file.files[0];
-          this.sb.sendFileMessage(dialogSet.channel, file, (message) => {
-            this.messageReceivedAction(dialogSet.channel, message);
+          this.sb.sendFileMessage(dialogSet.dialog, file, (message) => {
+            this.messageReceivedAction(dialogSet.dialog, message);
           });
         });
         this.chatSection.addKeyDownEvent(target.input, (event) => {
@@ -560,30 +558,30 @@ class SBWidget {
           if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
             let textMessage = target.input.textContent || this.chatSection.textKr;
             if (!isEmptyString(textMessage.trim())) {
-              this.sb.sendTextMessage(dialogSet.channel, textMessage, (message) => {
-                this.messageReceivedAction(dialogSet.channel, message);
+              this.sb.sendTextMessage(dialogSet.dialog, textMessage, (message) => {
+                this.messageReceivedAction(dialogSet.dialog, message);
               });
             }
-            this.chatSection.clearInputText(target.input, dialogSet.channel.url);
+            this.chatSection.clearInputText(target.input, dialogSet.dialog.id);
             this.chatSection.textKr = '';
-            dialogSet.channel.endTyping();
+            dialogSet.dialog.endTyping();
           } else {
-            dialogSet.channel.startTyping();
+            dialogSet.dialog.startTyping();
           }
-          this.chatSection.responsiveHeight(dialogSet.channel.url);
+          this.chatSection.responsiveHeight(dialogSet.dialog.id);
         });
         this.chatSection.addKeyUpEvent(target.input, (event) => {
           let isBottom = this.chatSection.isBottom(target.messageContent, target.list);
-          this.chatSection.responsiveHeight(dialogSet.channel.url);
+          this.chatSection.responsiveHeight(dialogSet.dialog.id);
           if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
-            this.chatSection.clearInputText(target.input, dialogSet.channel.url);
+            this.chatSection.clearInputText(target.input, dialogSet.dialog.id);
             if (isBottom) {
               this.chatSection.scrollToBottom(target.messageContent);
             }
           } else {
             let textMessage = target.input.textContent || this.chatSection.textKr;
             if (textMessage.length === 0) {
-              dialogSet.channel.endTyping();
+              dialogSet.dialog.endTyping();
             }
           }
         });

@@ -440,7 +440,7 @@ class ChatSection extends Element {
         _message = xssEscape(_message);
       }
       this._setContent(itemText, _message);
-    } else if (message.isFileMessage()) {
+    } else if (message.isAttachmentMessage()) {
       if (message.type.match(/^image\/gif$/)) {
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let image = this.createImg();
