@@ -73,7 +73,6 @@ class ChatSection extends Element {
   Chat
    */
   createChatBoard(channelUrl, isLast) {
-    console.log("createChatBoard");
     let chatBoard = this.createDiv();
     this._setClass(chatBoard, [className.CHAT_BOARD]);
     chatBoard.id = channelUrl ? channelUrl : '';
@@ -365,16 +364,12 @@ class ChatSection extends Element {
   }
 
   setImageSize(target, message) {
-    this._setBackgroundImage(target, (message.thumbnails.length > 0) ? message.thumbnails[0].url : message.url);
-    if (message.thumbnails.length > 0) {
-      this._imageResize(target, message.thumbnails[0].real_width, message.thumbnails[0].real_height);
-    } else {
-      var img = new Image();
-      img.addEventListener('load', (res) => {
-        res.path ? this._imageResize(target, res.path[0].width, res.path[0].height) : this._imageResize(target, res.target.width, res.target.height);
-      });
-      img.src = message.url;
-    }
+    this._setBackgroundImage(target, message.attachment.url);
+    var img = new Image();
+    img.addEventListener('load', (res) => {
+      res.path ? this._imageResize(target, res.path[0].width, res.path[0].height) : this._imageResize(target, res.target.width, res.target.height);
+    });
+    img.src = message.attachment.url;
   }
 
   createMessageItem(message, isCurrentUser, isContinue, unreadCount) {
@@ -442,14 +437,15 @@ class ChatSection extends Element {
       }
       this._setContent(itemText, _message);
     } else if (message.isAttachmentMessage()) {
-      if (message.type.match(/^image\/gif$/)) {
+      if (message.attachment.type.match(/^(image|gif)$/)) {
+        console.log("this is gif");
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let image = this.createImg();
         this._setClass(image, [className.IMAGE]);
-        image.src = message.url;
+        image.src = message.attachment.url;
         this.setImageSize(image, message);
         itemText.appendChild(image);
-      } else if (message.type.match(/^video\/.+$/)) {
+      } else if (message.attachment.type.match(/^video\/.+$/)) {
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let video = this.createVideo();
         video.controls = true;
@@ -475,7 +471,7 @@ class ChatSection extends Element {
         let file = this.createA();
         file.href = message.url;
         file.target = 'blank';
-        if (message.type.match(/^image\/.+$/)) {
+        if (message.attachment.type.match(/^image\/.+$/)) {
           this._setClass(file, [className.IMAGE]);
           this.setImageSize(file, message);
         } else {

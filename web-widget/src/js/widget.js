@@ -3,7 +3,7 @@ import ListBoard from './elements/list-board.js';
 import ChatSection from './elements/chat-section.js';
 import Popup from './elements/popup.js';
 import Spinner from './elements/spinner.js';
-import Sendbird from './sendbird.js';
+import AFAdapter from './appfriends-adapter.js';
 import { hide, show, addClass, removeClass, hasClass, getFullHeight, insertMessageInList, getLastItem, isEmptyString, xssEscape } from './utils.js';
 import { className, TYPE_STRING, MAX_COUNT } from './consts.js';
 
@@ -129,7 +129,7 @@ class SBWidget {
     this.activeChannelSetList = [];
     this.closePopup();
 
-    this.sb.reset();
+    this.afadapter.reset();
     this.listBoard.reset();
     this.widgetBtn.reset();
   }
@@ -174,7 +174,7 @@ class SBWidget {
   _start(appId, sercret) {
     this.af = window.af;
     this.af.initialize(appId, sercret);
-    this.sb = new Sendbird();
+    this.afadapter = new AFAdapter();
 
     this.popup.addCloseBtnClickEvent(() => {
       this.closePopup();
@@ -201,7 +201,7 @@ class SBWidget {
           addClass(chatBoard.startBtn, className.DISABLED);
           this.spinner.insert(chatBoard.startBtn);
           let selectedUserIds = this.chatSection.getSelectedUserIds(chatBoard.userContent);
-          this.sb.createNewChannel(selectedUserIds, (channel) => {
+          this.afadapter.createNewChannel(selectedUserIds, (channel) => {
             chatBoard.parentNode.removeChild(chatBoard);
             this._connectDialog(channel, true);
             this.listBoard.checkEmptyList();
@@ -210,7 +210,7 @@ class SBWidget {
       });
       this.spinner.insert(chatBoard.userContent);
 
-      this.sb.getUserList((userList) => {
+      this.afadapter.getUserList((userList) => {
         this.spinner.remove(chatBoard.userContent);
         this.setUserList(chatBoard, userList);
       });
@@ -233,8 +233,8 @@ class SBWidget {
     });
 
     this.listBoard.addLogoutClickEvent(() => {
-      this.sb.disconnect(() => {
-        this.sb.reset();
+      this.afadapter.disconnect(() => {
+        this.afadapter.reset();
         this.toggleBoard(false);
         this.widgetBtn.toggleIcon(false);
         this.listBoard.setOptionEventLock(false);
@@ -266,30 +266,48 @@ class SBWidget {
       this.listBoard.showChannelList();
       this.spinner.insert(this.listBoard.list);
       this.getChannelList();
+
+      this.afadapter.createHandlerGlobal(this.messageReceivedAction.bind(this));
     });
   }
 
+  // message received function
   messageReceivedAction(dialog, message) {
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
-      target = this.createDialogItem(dialog);
       this.listBoard.checkEmptyList();
+      if (dialog.coverImageURL === "" || dialog.coverImageURL === null) {
+        dialog.coverImageURL = message.sender.avatar;
+      }
+      target = this.createDialogItem(dialog);
     }
     this.listBoard.addListOnFirstIndex(target);
 
-    this.listBoard.setChannelLastMessage(dialog.id, message.isAttachmentMessage() ? xssEscape(message.sender.username) : xssEscape(message.text));
-    this.listBoard.setChannelLastMessageTime(dialog.id, this.sb.getMessageTime(message.sentTime));
+    this.listBoard.setChannelLastMessage(dialog.id, xssEscape(message.text));
+    this.listBoard.setChannelLastMessageTime(dialog.id, this.afadapter.getMessageTime(message.sentTime));
 
     let targetBoard = this.chatSection.getChatBoard(dialog.id);
     if (targetBoard) {
-      let isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
       let dialogSet = this.getDialogSet(dialog.id);
-      let lastMessage = getLastItem(dialogSet.message);
-      dialogSet.message.push(message);
-      this.setMessageItem(dialogSet.dialog, targetBoard, [message], false, isBottom, lastMessage);
-      dialog.markAsRead();
-      this.updateUnreadMessageCount(dialog);
+      if (!this.checkIfMessageInDialogSet(dialogSet, message)) {
+        let isBottom = this.chatSection.isBottom(targetBoard.messageContent, targetBoard.list);
+        let lastMessage = getLastItem(dialogSet.message);
+        dialogSet.message.push(message);
+        this.setMessageItem(dialogSet.dialog, targetBoard, [message], false, isBottom, lastMessage);
+        dialog.markAsRead();
+        this.updateUnreadMessageCount(dialog);
+      }
     }
+  }
+
+  checkIfMessageInDialogSet(dialogSet, message) {
+
+    for (var i=0; i<dialogSet.message.length; i+=1) {
+      if (message.messageID === dialogSet.message[i].messageID) {
+        return true;
+      }
+    }
+    return false;
   }
 
   setUserList(target, userList) {
@@ -297,7 +315,7 @@ class SBWidget {
     this.chatSection.createUserList(userContent);
     for (var i = 0 ; i < userList.length ; i++) {
       let user = userList[i];
-      if (!this.sb.isCurrentUser(user)) {
+      if (!this.afadapter.isCurrentUser(user)) {
         let item = this.chatSection.createUserListItem(user);
         this.chatSection.addClickEvent(item, () => {
           hasClass(item.select, className.ACTIVE) ? removeClass(item.select, className.ACTIVE) : addClass(item.select, className.ACTIVE);
@@ -309,7 +327,7 @@ class SBWidget {
       }
     }
     this.chatSection.addUserListScrollEvent(target, () => {
-      this.sb.getUserList((userList) => {
+      this.afadapter.getUserList((userList) => {
         this.setUserList(target, userList);
       });
     });
@@ -331,14 +349,16 @@ class SBWidget {
   }
 
   createDialogItem(dialog) {
+
     let item = this.listBoard.createChannelItem(
       dialog.id,
-      dialog.coverImageUrl,
+      dialog.coverImageURL,
       dialog.title,
-      this.sb.getMessageTime(dialog.lastMessageTime),
+      this.afadapter.getMessageTime(dialog.lastMessageTime),
       dialog.lastMessageText,
       0
     );
+
     this.listBoard.addChannelClickEvent(item, () => {
       this.closePopup();
       let channelID = item.getAttribute('data-channel-id');
@@ -348,7 +368,7 @@ class SBWidget {
         if (newChat) {
           this.chatSection.closeChatBoard(newChat);
         }
-        let dialog = this.sb.getCachedDialog(channelID);
+        let dialog = this.afadapter.getCachedDialog(channelID);
         if (dialog !== null) {
           this._connectDialog(dialog);
         }
@@ -378,7 +398,7 @@ class SBWidget {
 
   _connectDialog(dialog, doNotCall) {
     if (typeof dialog === 'string') {
-      dialog = this.sb.getCachedDialog(dialog);
+      dialog = this.afadapter.getCachedDialog(dialog);
     }
 
     let dialogID = dialog.id;
@@ -399,7 +419,7 @@ class SBWidget {
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
         let channelSet = this.getDialogSet(dialogID);
         if (channelSet) {
-          this.sb.channelLeave(channelSet.channel, () => {
+          this.afadapter.channelLeave(channelSet.channel, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
             removeClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
             chatBoard.leavePopup = null;
@@ -423,14 +443,14 @@ class SBWidget {
         this.popup.updateCount(this.popup.memberPopup.count, channelSet.channel.memberCount);
         for (var i = 0 ; i < channelSet.channel.members.length ; i++) {
           let member = channelSet.channel.members[i];
-          let item = this.popup.createMemberItem(member, false, this.sb.isCurrentUser(member));
+          let item = this.popup.createMemberItem(member, false, this.afadapter.isCurrentUser(member));
           this.popup.memberPopup.list.appendChild(item);
         }
       }
     });
     this.chatSection.addClickEvent(chatBoard.inviteBtn, () => {
       var _getUserList = (memberIds, loadmore) => {
-        this.sb.getUserList((userList) => {
+        this.afadapter.getUserList((userList) => {
           if (!loadmore) {
             this.spinner.remove(this.popup.invitePopup.list);
           }
@@ -471,10 +491,10 @@ class SBWidget {
             this.spinner.insert(this.popup.invitePopup.inviteBtn);
             let selectedUserIds = this.popup.getSelectedUserIds(this.popup.invitePopup.list);
             let channelSet = this.getDialogSet(dialogID);
-            this.sb.inviteMember(channelSet.channel, selectedUserIds, () => {
+            this.afadapter.inviteMember(channelSet.channel, selectedUserIds, () => {
               this.spinner.remove(this.popup.invitePopup.inviteBtn);
               this.closeInvitePopup();
-              this.listBoard.setChannelTitle(channelSet.channel.url, this.sb.getNicknamesString(channelSet.channel));
+              this.listBoard.setChannelTitle(channelSet.channel.url, this.afadapter.getNicknamesString(channelSet.channel));
               this.updateChannelInfo(chatBoard, channelSet.channel);
             });
           }
@@ -486,7 +506,7 @@ class SBWidget {
       }
     });
     this.spinner.insert(chatBoard.content);
-    this.sb.getDialogInfo(dialog, (fetchedDialog, error) => {
+    this.afadapter.getDialogInfo(dialog, (fetchedDialog, error) => {
       this.updateChannelInfo(chatBoard, fetchedDialog);
       let dialogSet = this.getDialogSet(dialog);
       this.getMessageList(dialogSet, chatBoard, false, () => {
@@ -504,12 +524,12 @@ class SBWidget {
 
   updateChannelInfo(target, channel) {
     this.chatSection.updateChatTop(
-      target, this.sb.getMemberCount(channel), this.sb.getNicknamesString(channel)
+      target, this.afadapter.getMemberCount(channel), this.afadapter.getNicknamesString(channel)
     );
   }
 
   updateUnreadMessageCount(channel) {
-    this.sb.getTotalUnreadCount((unreadCount) => {
+    this.afadapter.getTotalUnreadCount((unreadCount) => {
       this.widgetBtn.setUnreadCount(unreadCount);
     });
 
@@ -519,7 +539,7 @@ class SBWidget {
   }
 
   getMessageList(dialogSet, target, loadmore, scrollEvent) {
-    this.sb.getMessageList(dialogSet, (messageList) => {
+    this.afadapter.getMessageList(dialogSet, (messageList) => {
       if (messageList === null) {
         this.spinner.remove(target.content);
         return;
@@ -530,7 +550,7 @@ class SBWidget {
         let message = messageList[index];
         loadmore ? dialogSet.message.unshift(message) : dialogSet.message.push(message);
 
-        let time = this.sb.getMessageTime(message.sentTime);
+        let time = this.afadapter.getMessageTime(message.sentTime);
         if (time.indexOf(':') > -1) {
           time = TIME_STRING_TODAY;
         }
@@ -550,7 +570,7 @@ class SBWidget {
         this.chatSection.createMessageContent(target);
         this.chatSection.addFileSelectEvent(target.file, () => {
           let file = target.file.files[0];
-          this.sb.sendFileMessage(dialogSet.dialog, file, (message) => {
+          this.afadapter.sendFileMessage(dialogSet.dialog, file, (message) => {
             this.messageReceivedAction(dialogSet.dialog, message);
           });
         });
@@ -562,7 +582,7 @@ class SBWidget {
           if (event.keyCode == KEY_DOWN_ENTER && !event.shiftKey) {
             let textMessage = target.input.textContent || this.chatSection.textKr;
             if (!isEmptyString(textMessage.trim())) {
-              this.sb.sendTextMessage(dialogSet.dialog, textMessage, (message) => {
+              this.afadapter.sendTextMessage(dialogSet.dialog, textMessage, (message) => {
                 this.messageReceivedAction(dialogSet.dialog, message);
               });
             }
@@ -624,7 +644,7 @@ class SBWidget {
         prevMessage = null;
       } else {
         let isContinue = (prevMessage && prevMessage.sender) ? (message.sender.userId == prevMessage.sender.userId) : false;
-        let isCurrentUser = this.sb.isCurrentUser(message.sender);
+        let isCurrentUser = this.afadapter.isCurrentUser(message.sender);
         let unreadCount = 0;
         newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
         prevMessage = message;

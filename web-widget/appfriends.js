@@ -4441,7 +4441,10 @@ class Dialog {
     this.customData = '';
     this.lastMessageText = '';
     this.lastMessageTime = Date.now();
+    this.lastReadMessageID = 0;
+    this.lastMessageID = 0;
     this.unreadMessageCount = 0;
+    this.earliestMessageID = null;
     this.lastReadTime = Date.now();
     this.messages = {}; // [Message]
   }
@@ -4476,10 +4479,17 @@ class Dialog {
     return new function (dialog) {
       this.isLoading = false;
       this.hasMore = true;
-      this.earliestMessageID = null;
+      const SELF = this;
       this.load = function (limit, reverse, cb) {
+        SELF.isLoading = true;
         if (dialog.isPublicChannel()) {
-          window.af.MessageSync.fetchChannelMessagesHistory(dialog.id, this.earliestMessageID, cb);
+          window.af.MessageSync.fetchChannelMessagesHistory(dialog.id, dialog.earliestMessageID, (messages, error) => {
+            SELF.isLoading = false;
+            if (messages.length === 0 && error === null) {
+              SELF.hasMore = false;
+            }
+            cb(messages, error);
+          });
         } else {
           cb(null, null);
         }
@@ -6085,7 +6095,7 @@ class Attachment {
     this.type = type;
   }
 }
-/* harmony export (immutable) */ __webpack_exports__["b"] = Attachment;
+/* harmony export (immutable) */ __webpack_exports__["a"] = Attachment;
 
 
 Attachment.attachmentType = {
@@ -6098,7 +6108,7 @@ Attachment.attachmentType = {
 class ImageAttachment extends Attachment {
   constructor(fullSizeURL, thumbnailURL) {
     super(Attachment.attachmentType.image);
-    this.fullSizeURL = fullSizeURL;
+    this.url = fullSizeURL;
     this.thumbnailURL = thumbnailURL;
   }
 }
@@ -6186,7 +6196,7 @@ class AttachmentFactory {
     return new LocationAttachment(location2D, title, subtitle, placemarkName);
   }
 }
-/* harmony export (immutable) */ __webpack_exports__["a"] = AttachmentFactory;
+/* harmony export (immutable) */ __webpack_exports__["b"] = AttachmentFactory;
 
 
 
@@ -6244,11 +6254,11 @@ class Message {
   }
 
   isUserMessage() {
-    return !this.isSystem;
+    return !this.isSystem && !this.isAttachmentMessage();
   }
 
   isAttachmentMessage() {
-    const hasAttachment = this.attachment !== null && (this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* Attachment */].attachmentType.image || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* Attachment */].attachmentType.gif || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* Attachment */].attachmentType.video || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* Attachment */].attachmentType.location);
+    const hasAttachment = this.attachment !== null && (this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.image || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.gif || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.video || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.location);
     return hasAttachment;
   }
 
@@ -6333,11 +6343,11 @@ class Message {
       return attachmentJSON;
     }
     if (this.attachment.thumbnailURL) {
-      attachmentJSON.payload = { url: this.attachment.fullSizeURL,
+      attachmentJSON.payload = { url: this.attachment.url,
         thumbnail: this.attachment.thumbnailURL };
     } else {
-      attachmentJSON.payload = { url: this.attachment.fullSizeURL,
-        thumbnail: this.attachment.fullSizeURL };
+      attachmentJSON.payload = { url: this.attachment.url,
+        thumbnail: this.attachment.url };
     }
 
     return attachmentJSON;
@@ -6393,7 +6403,7 @@ class Message {
   }
 
   static createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt) {
-    const imageAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* AttachmentFactory */].createImageAttachment(imageURL, thumbnailURL);
+    const imageAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createImageAttachment(imageURL, thumbnailURL);
     const messageData = {
       senderUser,
       dialogType,
@@ -6411,7 +6421,7 @@ class Message {
   }
 
   static createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt) {
-    const videoAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* AttachmentFactory */].createVideoAttachment(videoStreamURL, thumbnailURL);
+    const videoAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createVideoAttachment(videoStreamURL, thumbnailURL);
     const messageData = {
       senderUser,
       dialogType,
@@ -6429,7 +6439,7 @@ class Message {
   }
 
   static createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt) {
-    const gifAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* AttachmentFactory */].createGifAttachment(gifURL);
+    const gifAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createGifAttachment(gifURL);
     const messageData = {
       senderUser,
       dialogType,
@@ -6447,7 +6457,7 @@ class Message {
   }
 
   static createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt) {
-    const locationAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* AttachmentFactory */].createLocationAttachment(location2D, title, subtitle, placemarkName);
+    const locationAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createLocationAttachment(location2D, title, subtitle, placemarkName);
     const messageData = {
       senderUser,
       dialogType,
@@ -6465,11 +6475,17 @@ class Message {
   }
 
   static createMessageFromJSON(message) {
-    const senderUser = __WEBPACK_IMPORTED_MODULE_1__user__["a" /* default */].getSenderFromMessageData(message);
+    let senderUser = __WEBPACK_IMPORTED_MODULE_1__user__["a" /* default */].getSenderFromMessageData(message);
     if (senderUser === null) {
-      return null;
+      const customData = JSON.parse(message.custom_data);
+      if (customData.sender) {
+        senderUser = new __WEBPACK_IMPORTED_MODULE_1__user__["a" /* default */](customData.sender.id, customData.sender.user_name, customData.sender.avatar);
+      }
+      if (senderUser === null) {
+        return null;
+      }
     }
-    const attachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* AttachmentFactory */].createAttachment(message.attachment);
+    const attachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createAttachment(message.attachment);
     const customData = JSON.parse(message.custom_data);
     const metaData = message.meta_data;
 
@@ -6484,6 +6500,7 @@ class Message {
       isSystem: message.dialog_type === 's',
       customData,
       metaData,
+      messageID: message.id,
       receiptRequired: true,
       attachment
     };
@@ -6522,7 +6539,7 @@ exports.createError = function (message, code) {
   if (code) {
     error.code = code;
   }
-  console.log("error: " + code + " " + message);
+  console.log("error: " + code + " " + message + " " + error.stack);
   return error;
 };
 
@@ -8740,16 +8757,16 @@ class AFCore {
     this.dialogHandlers = {};
   }
 
-  addChannelHandler(id, handler) {
+  addDialogHandler(id, handler) {
     this.dialogHandlers[id] = handler;
   }
 
-  removeChannelHandler(id) {
+  removeDialogHandler(id) {
     delete this.dialogHandlers[id];
   }
 
-  removeAllChannelHandlers() {
-    this.channelHandlers = {};
+  removeAllDialogHandlers() {
+    this.dialogHandlers = {};
   }
 
   /*
@@ -10006,7 +10023,6 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
 
   sendPublicChannelMessage(channelID, messageJSON, cb) {
     const path = `/channels/${channelID}/messages`;
-    this.sendMessage(messageJSON, path, cb);
     this.sendPostRequest(messageJSON, path, (response, err) => {
       if (err) {
         cb(null, err);
@@ -10032,9 +10048,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_user__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_message__ = __webpack_require__(34);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__datamodels_attachment__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__usersession__ = __webpack_require__(12);
-
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__usersession__ = __webpack_require__(12);
 
 
 
@@ -10052,8 +10066,9 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     this.afCore = afCore;
     this.syncingFlag = false;
     this.syncingTimeout = null;
-    this.fetchReadMessageFlag = false;
-    this.dialogUsersSyncQueue = {};
+    this.firstSyncFlag = true;
+    this.readMessagesIds = {};
+    this.dialogUsersSearchQueue = [];
   }
 
   resetService() {
@@ -10099,7 +10114,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       m: currentSyncedKey
     }, '/sync', (response, err) => {
       if (err) {
-        SELF.syncingFlag = false;
+        SELF.postProcessAfterSync(false);
       } else {
         SELF.saveSyncedMessages(response.data.messages);
         SELF.updateSyncKeysFromSyncReply(response.data.sync_key);
@@ -10108,6 +10123,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
   }
 
   fetchChannelMessagesHistory(channelID, fromMessageID, callback) {
+    console.log('fetch channel history');
     const messageID = fromMessageID !== null ? fromMessageID : Date.now();
     const SELF = this;
     this.sendGetRequest(`/channels/${channelID}/messages/history?from_message_id=${messageID}`, (response, err) => {
@@ -10124,6 +10140,10 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
             messages.push(messageObj);
           }
         });
+        if (messages.length > 0) {
+          const dialog = window.af.getDialog(channelID);
+          dialog.earliestMessageID = messages[0].messageID;
+        }
         if (callback) {
           callback(messages, null);
         }
@@ -10159,7 +10179,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
       messageCache[message.id] = messageObj;
 
-      if (SELF.fetchReadMessageFlag && message.dialog_type !== 's') {
+      if (!SELF.firstSyncFlag && message.dialog_type !== 's') {
         const dialogHandlers = this.afCore.dialogHandlers;
         Object.keys(dialogHandlers).forEach(handerID => {
           const dialogHandler = dialogHandlers[handerID];
@@ -10175,14 +10195,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
   }
 
   saveSentMessage(message) {
-    const senderUser = this.cacheSenderUserFromMessage(message);
-    const attachment = __WEBPACK_IMPORTED_MODULE_6__datamodels_attachment__["a" /* AttachmentFactory */].createAttachment(message.attachment);
-    const customData = JSON.parse(message.custom_data);
-    const metaData = message.meta_data;
-    const messageObj = new __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */](senderUser, message.dialog_type, message.dialog_id, message.id, message.temp_id, message.dialog_type === 's', message.receive_time, message.sent_time, message.text, attachment, customData, metaData, __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].sendingStatus.success, null, true);
-
+    const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
     this.saveDialog(messageObj);
-
     return messageObj;
   }
 
@@ -10190,7 +10204,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const receiptsJSON = JSON.stringify(receipts);
     const path = '/messages/receipts';
     this.sendPostRequest(receiptsJSON, path, (response, error) => {
-      console.log(response);
       if (cb) {
         cb(response, error);
       }
@@ -10259,9 +10272,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         dialog.unreadMessageCount = Object.keys(dialog.messages).length;
       }
     });
-
-    console.log('dialogCache %o', dialogCache);
-    this.fetchReadMessageFlag = true;
   }
 
   getUnreadMessagesWithMessageID(dialogID, messageID) {
@@ -10293,43 +10303,44 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
   saveDialog(messageObj) {
     const dialogCache = this.afCore.Dialog.dialogs;
     const dialogFullID = `${messageObj.dialogID}`;
+    let dialog = null;
     if (dialogCache[dialogFullID]) {
-      const dialog = dialogCache[dialogFullID];
-      dialog.lastMessageText = messageObj.text;
-      dialog.lastMessageTime = messageObj.receiveTime;
-      if (this.fetchReadMessageFlag && messageObj.sender.id !== __WEBPACK_IMPORTED_MODULE_7__usersession__["a" /* default */].currentUserID) {
-        dialog.unreadMessageCount += 1;
+      dialog = dialogCache[dialogFullID];
+    } else {
+      dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType);
+      if (messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
+        if (!messageObj.isSystemMessage() && messageObj.sender.id === __WEBPACK_IMPORTED_MODULE_6__usersession__["a" /* default */].currentUserID) {
+          if (this.afCore.User.users[messageObj.sender.id]) {
+            dialog.title = this.afCore.User.users[messageObj.sender.id].username;
+          } else {
+            // todo: Need to fetch user info
+            console.log(`dialog short of user ${messageObj.dialogID} ${messageObj.sender.id}`);
+            this.dialogUsersSearchQueue.push(messageObj.dialogID);
+          }
+        } else {
+          dialog.title = messageObj.sender.username;
+        }
       }
-      return dialog;
+      dialogCache[dialogFullID] = dialog;
     }
 
-    const dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType);
-    if (messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
-      if (messageObj.sender.id === __WEBPACK_IMPORTED_MODULE_7__usersession__["a" /* default */].currentUserID) {
-        if (this.afCore.User.users[messageObj.sender.id]) {
-          dialog.title = this.afCore.User.users[messageObj.sender.id].username;
-        } else {
-          // todo: Need to fetch user info
-        }
-      } else {
-        dialog.title = messageObj.sender.username;
-      }
-    }
     dialog.lastMessageText = messageObj.text;
     dialog.lastMessageTime = messageObj.receiveTime;
-    if (this.fetchReadMessageFlag && messageObj.sender.id !== __WEBPACK_IMPORTED_MODULE_7__usersession__["a" /* default */].currentUserID) {
-      dialog.unreadMessageCount += 1;
+    dialog.lastMessageID = messageObj.messageID;
+    if (!messageObj.isSystemMessage() && messageObj.sender.id !== __WEBPACK_IMPORTED_MODULE_6__usersession__["a" /* default */].currentUserID) {
+      if (this.readMessagesIds[dialogFullID] && this.readMessagesIds[dialogFullID] < messageObj.messageID) {
+        dialog.unreadMessageCount += 1;
+      } else if (!this.readMessagesIds[dialogFullID]) {
+        dialog.unreadMessageCount += 1;
+      }
+      dialog.lastReadMessageID = this.readMessagesIds[dialogFullID] ? this.readMessagesIds[dialogFullID] : 0;
     }
-    dialogCache[dialogFullID] = dialog;
-
     return dialog;
   }
 
   updateSyncKeysFromSyncReply(destKey) {
     const SELF = this;
     if (!destKey.m) {
-      this.syncingFlag = false;
-      console.log('stop syncing ...');
       this.postProcessAfterSync();
       return;
     }
@@ -10338,15 +10349,14 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       this.syncKeys.m = destKey.m;
     }
 
-    console.log(`update sync key, current sync key: ${this.syncKeys.m} , dest sync key: ${this.pendingSyncKey}`);
+    // console.log(`update sync key, current sync
+    // key: ${this.syncKeys.m} , dest sync key: ${this.pendingSyncKey}`);
 
     if (this.pendingSyncKey > destKey.m) {
       this.syncingTimeout = setTimeout(() => {
         SELF.executeSyncWithServer(true);
       }, 500);
     } else {
-      this.syncingFlag = false;
-      console.log('stop syncing ...');
       this.postProcessAfterSync();
     }
   }
@@ -10378,6 +10388,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     }
 
     if (data) {
+      console.log('WS data %o', data);
       this.processSyncData(JSON.parse(data));
     }
   }
@@ -10388,19 +10399,136 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       this.pendingSyncKey = data.m;
       this.pollMessage();
     }
+
+    if (data.cm) {
+      this.processChannelNewMessage(data.cm);
+    }
+
+    if (data.n) {
+      this.processTopTenOnlineUsers(data.n);
+    }
+
+    if (data.t) {
+      this.processTotalnOnlineUsers(data.t);
+    }
+
+    if (data.r) {
+      this.readMessagesIds = data.r;
+    }
   }
 
-  postProcessAfterSync() {
-    if (!this.fetchReadMessageFlag) {
-      this.fetchReadMessages();
-      const dialogHandlers = this.afCore.dialogHandlers;
-      Object.keys(dialogHandlers).forEach(handerID => {
-        const dialogHandler = dialogHandlers[handerID];
-        if (dialogHandler.onBadgeUpdated) {
-          dialogHandler.onBadgeUpdated();
+  processChannelNewMessage(message) {
+    const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
+    console.log('%o', messageObj);
+    const dialogHandlers = this.afCore.dialogHandlers;
+    const SELF = this;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (dialogHandler.onMessageReceived) {
+        const dialog = SELF.afCore.PublicChannel.getCachedChannel(messageObj.dialogID);
+        if (dialog) {
+          dialogHandler.onMessageReceived(dialog, messageObj);
         }
+      }
+    });
+  }
+
+  processTopTenOnlineUsers(users) {
+    const usersList = [];
+    Object.keys(users).forEach(userIndex => {
+      const user = users[userIndex];
+      const userObj = new __WEBPACK_IMPORTED_MODULE_3__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
+      usersList.push(userObj);
+    });
+    const dialogHandlers = this.afCore.dialogHandlers;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (dialogHandler.topTenOnlineUsers) {
+        dialogHandler.topTenOnlineUsers(usersList);
+      }
+    });
+  }
+
+  processTotalnOnlineUsers(totalUsers) {
+    const dialogHandlers = this.afCore.dialogHandlers;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (dialogHandler.totalOnlineUsers) {
+        dialogHandler.totalOnlineUsers(totalUsers);
+      }
+    });
+  }
+
+  postProcessAfterSync(success = true) {
+    if (this.firstSyncFlag) {
+      this.firstSyncFlag = false;
+    }
+
+    this.syncingFlag = false;
+    console.log('stop syncing ...');
+
+    if (!success) {
+      return;
+    }
+
+    const SELF = this;
+    if (this.dialogUsersSearchQueue.length > 0) {
+      this.afCore.User.batchSearchUsersWithIDs(this.dialogUsersSearchQueue, (users, err) => {
+        if (!err) {
+          SELF.processSearchedUsers(users);
+          SELF.dialogUsersSearchQueue = [];
+        }
+
+        console.log('users %o', users);
+        const dialogHandlers = this.afCore.dialogHandlers;
+        Object.keys(dialogHandlers).forEach(handerID => {
+          const dialogHandler = dialogHandlers[handerID];
+          if (dialogHandler.onBadgeUpdated) {
+            dialogHandler.onBadgeUpdated();
+          }
+        });
+
+        const dialogCache = SELF.afCore.Dialog.dialogs;
+        console.log('dialogCache %o', dialogCache);
       });
     }
+  }
+
+  processSearchedUsers(users) {
+    Object.keys(users).forEach(userIndex => {
+      const user = users[userIndex];
+      if (!this.afCore.User.users[user.id]) {
+        this.afCore.User.users[user.id] = user;
+        console.log('add user %o', user);
+      }
+    });
+
+    const dialogCache = this.afCore.Dialog.dialogs;
+    Object.keys(dialogCache).forEach(dialogID => {
+      const dialog = dialogCache[dialogID];
+      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual && (!dialog.title || dialog.title === '')) {
+        if (this.afCore.User.users[dialog.id]) {
+          console.log(`set dialog title ${this.afCore.User.users[dialog.id].username}`);
+          dialog.title = this.afCore.User.users[dialog.id].username;
+        }
+      }
+    });
+  }
+
+  subsribeOnlineUsers() {
+    this.wssocket.subsribeOnlineUsers();
+  }
+
+  unsubsribeOnlineUsers() {
+    this.wssocket.unsubsribeOnlineUsers();
+  }
+
+  joinChannel(channelID) {
+    this.wssocket.joinChannel(channelID);
+  }
+
+  leaveChannel(channelID) {
+    this.wssocket.leaveChannel(channelID);
   }
 
   testSendReadMessages() {
@@ -10458,6 +10586,25 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
         }
       });
     }
+  }
+
+  batchSearchUsersWithIDs(userids, callback) {
+    this.sendPostRequest(userids, '/users/batch_search', (response, err) => {
+      if (!err) {
+        const users = [];
+        Object.keys(response.data.users).forEach(userIndex => {
+          const user = response.data.users[userIndex];
+          const userObj = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
+          userObj.customData = user.custom_data;
+          users.push(userObj);
+        });
+        if (callback) {
+          callback(users, null);
+        }
+      } else if (callback) {
+        callback(null, err);
+      }
+    });
   }
 
   /*
