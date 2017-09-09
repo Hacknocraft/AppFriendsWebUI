@@ -191,15 +191,19 @@ class AFAdapter {
    */
   createHandlerGlobal(...args) {
     let messageReceivedFunc = args[0];
-    let ChannelChangedFunc = args[1];
-    let typingStatusFunc = args[2];
-    let readReceiptFunc = args[3];
-    let userLeftFunc = args[4];
-    let userJoinFunc = args[5];
+    let dialogCreatedFunc = args[1];
+    let dialogChangedFunc = args[2];
+    let typingStatusFunc = args[3];
+    let readReceiptFunc = args[4];
+    let userLeftFunc = args[5];
+    let userJoinFunc = args[6];
 
     let DialogHandler = {
       onMessageReceived: (dialog, message) => {
         messageReceivedFunc(dialog, message);
+      },
+      onDialogCreated: (dialog) => {
+        dialogCreatedFunc(dialog);
       }
     };
     // channelHandler.onMessageReceived = function(channel, message) {
@@ -220,6 +224,7 @@ class AFAdapter {
     // channelHandler.onUserJoined = function (channel, user) {
     //   userJoinFunc(channel, user);
     // };
+
     console.log("add handler");
     this.af.addDialogHandler(GLOBAL_HANDLER, DialogHandler);
   }

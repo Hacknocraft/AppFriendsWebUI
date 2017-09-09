@@ -267,8 +267,20 @@ class SBWidget {
       this.spinner.insert(this.listBoard.list);
       this.getChannelList();
 
-      this.afadapter.createHandlerGlobal(this.messageReceivedAction.bind(this));
+      this.afadapter.createHandlerGlobal(
+        this.messageReceivedAction.bind(this),
+        this.dialogCreatedAction.bind(this)
+      )
     });
+  }
+
+  dialogCreatedAction(dialog) {
+    let target = this.listBoard.getChannelItem(dialog.id);
+    if (!target) {
+      this.listBoard.checkEmptyList();
+      target = this.createDialogItem(dialog);
+    }
+    this.listBoard.addListOnFirstIndex(target);
   }
 
   // message received function
@@ -350,9 +362,11 @@ class SBWidget {
 
   createDialogItem(dialog) {
 
+    const dialogImage = dialog.getDialogImage();
+
     let item = this.listBoard.createChannelItem(
       dialog.id,
-      dialog.coverImageURL,
+      dialogImage,
       dialog.title,
       this.afadapter.getMessageTime(dialog.lastMessageTime),
       dialog.lastMessageText,
