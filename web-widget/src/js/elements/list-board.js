@@ -292,6 +292,7 @@ class ListBoard extends Element {
     li.time = contentTime;
     li.message = contentLastMessage;
     li.unread = contentUnread;
+    li.itemImg = itemImg;
     li.appendChild(item);
 
     return li;
@@ -392,6 +393,13 @@ class ListBoard extends Element {
     let target = this.getChannelItem(dialogID);
     if (target) {
       this._setContent(target.topTitle, name);
+    }
+  }
+
+  setChannelAvatar(dialogID, url) {
+    let target = this.getChannelItem(dialogID);
+    if (target) {
+      this._setBackgroundImage(target.itemImg, url);
     }
   }
 }

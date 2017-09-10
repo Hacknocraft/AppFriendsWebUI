@@ -269,9 +269,25 @@ class SBWidget {
 
       this.afadapter.createHandlerGlobal(
         this.messageReceivedAction.bind(this),
-        this.dialogCreatedAction.bind(this)
+        this.dialogCreatedAction.bind(this),
+        this.dialogUpdatedAction.bind(this)
       )
     });
+  }
+
+  dialogUpdatedAction(dialog) {
+
+    let target = this.listBoard.getChannelItem(dialog.id);
+    if (!target) {
+      this.listBoard.checkEmptyList();
+      target = this.createDialogItem(dialog);
+    }
+    this.listBoard.addListOnFirstIndex(target);
+
+    this.listBoard.setChannelLastMessage(dialog.id, xssEscape(dialog.lastMessageText));
+    this.listBoard.setChannelLastMessageTime(dialog.id,
+                                             this.afadapter.getMessageTime(dialog.lastMessageTime));
+    this.listBoard.setChannelAvatar(dialog.id, dialog.getDialogImage());
   }
 
   dialogCreatedAction(dialog) {
@@ -288,15 +304,13 @@ class SBWidget {
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();
-      if (dialog.coverImageURL === "" || dialog.coverImageURL === null) {
-        dialog.coverImageURL = message.sender.avatar;
-      }
       target = this.createDialogItem(dialog);
     }
     this.listBoard.addListOnFirstIndex(target);
 
     this.listBoard.setChannelLastMessage(dialog.id, xssEscape(message.text));
     this.listBoard.setChannelLastMessageTime(dialog.id, this.afadapter.getMessageTime(message.sentTime));
+    this.listBoard.setChannelAvatar(dialog.id, dialog.getDialogImage());
 
     let targetBoard = this.chatSection.getChatBoard(dialog.id);
     if (targetBoard) {
@@ -375,6 +389,7 @@ class SBWidget {
 
     this.listBoard.addChannelClickEvent(item, () => {
       this.closePopup();
+      console.log("open dialog");
       let channelID = item.getAttribute('data-channel-id');
       let openChatBoard = this.chatSection.getChatBoard(channelID);
       if (!openChatBoard) {
@@ -553,7 +568,7 @@ class SBWidget {
   }
 
   getMessageList(dialogSet, target, loadmore, scrollEvent) {
-    this.afadapter.getMessageList(dialogSet, (messageList) => {
+    this.afadapter.getMessageList(dialogSet, !loadmore, (messageList) => {
       if (messageList === null) {
         this.spinner.remove(target.content);
         return;

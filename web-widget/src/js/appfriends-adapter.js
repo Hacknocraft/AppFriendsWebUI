@@ -129,12 +129,13 @@ class AFAdapter {
     });
   }
 
-  getMessageList(dialogSet, action) {
+  getMessageList(dialogSet, fromBeginning, action) {
     if (!dialogSet.query) {
       dialogSet.query = dialogSet.dialog.createPreviousMessageListQuery();
     }
     if (dialogSet.query.hasMore && !dialogSet.query.isLoading) {
-      dialogSet.query.load(GET_MESSAGE_LIMIT, false, function(messageList, error) {
+      dialogSet.query.load(GET_MESSAGE_LIMIT, false, fromBeginning, function(messageList, error) {
+        console.log("load");
         if (error) {
           console.error(error);
           return;
@@ -204,6 +205,9 @@ class AFAdapter {
       },
       onDialogCreated: (dialog) => {
         dialogCreatedFunc(dialog);
+      },
+      onDialogChanged: (dialog) => {
+        dialogChangedFunc(dialog);
       }
     };
     // channelHandler.onMessageReceived = function(channel, message) {

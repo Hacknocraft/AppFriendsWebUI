@@ -4440,7 +4440,7 @@ class Dialog {
     this.coverImageURL = ''; // url
     this.customData = '';
     this.lastMessageText = '';
-    this.lastMessageTime = Date.now();
+    this.lastMessageTime = 0;
     this.lastReadMessageID = 0;
     this.lastMessageID = 0;
     this.unreadMessageCount = 0;
@@ -4452,11 +4452,8 @@ class Dialog {
   getDialogImage() {
     if (this.dialogType === Dialog.type.channel) {
       return this.coverImageURL;
-    } else if (this.dialogType === Dialog.type.individual || this.dialogType === Dialog.type.group) {
-      if (this.messages.length > 0) {
-        return this.messages[this.messages.length - 1].sender.avatar;
-      }
-      return null;
+    } else if (typeof this.messages[this.lastMessageID] !== 'undefined' && this.messages[this.lastMessageID] !== null) {
+      return this.messages[this.lastMessageID].sender.avatar;
     }
     return null;
   }
@@ -4492,10 +4489,11 @@ class Dialog {
       this.isLoading = false;
       this.hasMore = true;
       const SELF = this;
-      this.load = function (limit, reverse, cb) {
+      this.load = function (limit, reverse, fromBeginning = false, cb) {
         SELF.isLoading = true;
+        const messageID = fromBeginning ? null : dialog.earliestMessageID;
         if (dialog.isPublicChannel()) {
-          window.af.MessageSync.fetchChannelMessagesHistory(dialog.id, dialog.earliestMessageID, (messages, error) => {
+          window.af.MessageSync.fetchChannelMessagesHistory(dialog.id, messageID, (messages, error) => {
             SELF.isLoading = false;
             if (messages.length === 0 && error === null) {
               SELF.hasMore = false;
@@ -4503,7 +4501,14 @@ class Dialog {
             cb(messages, error);
           });
         } else {
-          cb(null, null);
+          console.log('loading');
+          const messages = [];
+          Object.keys(dialog.messages).forEach(currentKey => {
+            if (dialog.messages[currentKey] < messageID) {
+              messages.push(dialog.messages[currentKey]);
+            }
+          });
+          cb(messages, null);
         }
       };
     }(this);
@@ -9765,39 +9770,26 @@ module.exports = function spread(callback) {
 
 
 class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* default */] {
-  constructor() {
+  constructor(afCore) {
     super();
-    this.channels = []; // [Dialog]
+    this.afCore = afCore;
   }
 
   getCachedChannel(dialogID) {
-    for (let i = 0; i < this.channels.length; i += 1) {
-      if (dialogID === this.channels[i].id) {
-        return this.channels[i];
-      }
-    }
-    return null;
+    const dialogCache = this.afCore.Dialog.dialogs;
+    return dialogCache[dialogID];
   }
 
   insertChannelToLocalCache(channel) {
-    for (let i = 0; i < this.channels.length; i += 1) {
-      const cachedChannel = this.channels[i];
-      if (channel.id === cachedChannel.id) {
-        this.channels[i] = channel;
-        return;
-      }
+    const dialogCache = this.afCore.Dialog.dialogs;
+    if (!dialogCache[channel.id]) {
+      dialogCache[channel.id] = channel;
     }
-    this.channels.push(channel);
   }
 
   channelFromLocalCache(channelID) {
-    for (let i = 0; i < this.channels.length; i += 1) {
-      const cachedChannel = this.channels[i];
-      if (channelID === cachedChannel.id) {
-        return this.channels[i];
-      }
-    }
-    return null;
+    const dialogCache = this.afCore.Dialog.dialogs;
+    return dialogCache[channelID];
   }
 
   /*
@@ -9838,6 +9830,7 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
     const SELF = this;
     this.sendGetRequest('/channels', (response, err) => {
       if (!err) {
+        const channels = [];
         for (let i = 0; i < response.data.length; i += 1) {
           const channelData = response.data[i];
           const channel = new __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */](channelData.id, __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */].type.channel);
@@ -9846,9 +9839,10 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
           channel.coverImageUrl = channelData.cover_image_url;
           channel.customData = channelData.custom_data;
           SELF.insertChannelToLocalCache(channel);
+          channels.push(channel);
         }
         if (callback) {
-          callback(SELF.channels, null);
+          callback(channels, null);
         }
       } else if (callback) {
         callback(null, err);
@@ -10147,9 +10141,9 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       } else {
         const messages = [];
         response.data.messages.forEach(message => {
-          SELF.cacheSenderUserFromMessage(message);
           const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
           if (messageObj !== null) {
+            SELF.cacheSenderUserFromMessage(messageObj);
             messages.push(messageObj);
           }
         });
@@ -10165,12 +10159,10 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
   }
 
   saveSyncedMessages(messages) {
-    const dialogCache = this.afCore.Dialog.dialogs;
     const SELF = this;
     const outReceipts = [];
     messages.forEach(message => {
       const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-
       if (message.dialog_type !== 's') {
         outReceipts.push({
           status: 'received',
@@ -10181,24 +10173,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       } else {
         SELF.processSystemMessage(messageObj);
       }
-
-      const messageCache = dialogCache[message.dialog_id].messages;
-
-      if (messageCache[message.id]) {
-        return;
-      }
-
-      SELF.cacheSenderUserFromMessage(message);
-
-      messageCache[message.id] = messageObj;
-
-      // save dialog
-      const dialog = SELF.saveDialog(messageObj);
-      if (!SELF.firstSyncFlag && message.dialog_type !== 's') {
-        SELF.notifyMessageReceived(dialog, messageObj);
-      }
+      SELF.saveDialog(messageObj);
     });
-
     // send recieve receipt
     this.sendReciept(outReceipts);
   }
@@ -10355,6 +10331,37 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     }
   }
 
+  notifyUserJoinDialog(dialog, user) {
+    const dialogHandlers = this.afCore.dialogHandlers;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (typeof dialogHandler !== 'undefined') {
+        console.log('user %o join %o', user, dialog);
+        dialogHandler.onUserJoined(dialog, user);
+      }
+    });
+  }
+
+  notifyMessageReceived(dialog, messageObj) {
+    const dialogHandlers = this.afCore.dialogHandlers;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (typeof dialogHandler !== 'undefined') {
+        dialogHandler.onMessageReceived(dialog, messageObj);
+      }
+    });
+  }
+
+  notifyUserLeftDialog(dialog, user) {
+    const dialogHandlers = this.afCore.dialogHandlers;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (typeof dialogHandler !== 'undefined') {
+        dialogHandler.onUserLeft(dialog, user);
+      }
+    });
+  }
+
   getUnreadMessagesWithMessageID(dialogID, messageID) {
     const messageCache = this.afCore.Dialog.dialogs[dialogID].messages;
     if (messageCache && messageCache[messageID]) {
@@ -10368,17 +10375,16 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     return 0;
   }
 
-  cacheSenderUserFromMessage(messageData) {
-    const senderUser = __WEBPACK_IMPORTED_MODULE_3__datamodels_user__["a" /* default */].getSenderFromMessageData(messageData);
-    if (senderUser === null) {
+  cacheSenderUserFromMessage(messageObj) {
+    if (messageObj.sender === null) {
       return null;
     }
     const users = this.afCore.User.users;
-    if (!users[senderUser.id]) {
-      users[senderUser.id] = senderUser;
+    if (!users[messageObj.sender.id]) {
+      users[messageObj.sender.id] = messageObj.sender;
     }
 
-    return senderUser;
+    return messageObj.sender;
   }
 
   saveDialog(messageObj) {
@@ -10411,9 +10417,11 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       dialogCache[dialogID] = dialog;
     }
 
-    dialog.lastMessageText = messageObj.text;
-    dialog.lastMessageTime = messageObj.receiveTime;
-    dialog.lastMessageID = messageObj.messageID;
+    if (dialog.lastMessageTime < messageObj.receiveTime && !messageObj.isSystemMessage()) {
+      dialog.lastMessageText = messageObj.text;
+      dialog.lastMessageTime = messageObj.receiveTime;
+      dialog.lastMessageID = messageObj.messageID;
+    }
 
     if (!messageObj.isSystemMessage() && messageObj.sender.id !== __WEBPACK_IMPORTED_MODULE_6__usersession__["a" /* default */].currentUserID) {
       if (this.readMessagesIds[dialogID] && this.readMessagesIds[dialogID] < messageObj.messageID) {
@@ -10424,8 +10432,21 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       dialog.lastReadMessageID = this.readMessagesIds[dialogID] ? this.readMessagesIds[dialogID] : 0;
     }
 
+    // Save message
+    const messageCache = dialogCache[messageObj.dialogID].messages;
+    if (!messageCache[messageObj.messageID]) {
+      this.cacheSenderUserFromMessage(messageObj);
+      messageCache[messageObj.messageID] = messageObj;
+    }
+
     if (newDialog) {
       this.notifyDialogCreated(dialog);
+    } else {
+      this.notifyDialogUpdated(dialog);
+    }
+
+    if (!this.firstSyncFlag && messageObj.dialogType !== 's') {
+      this.notifyMessageReceived(dialog, messageObj);
     }
 
     return dialog;
@@ -10536,19 +10557,11 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
   processChannelNewMessage(message) {
     const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-    console.log('%o', messageObj);
-    const dialogHandlers = this.afCore.dialogHandlers;
-    const SELF = this;
-
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onMessageReceived) {
-        const dialog = SELF.afCore.PublicChannel.getCachedChannel(messageObj.dialogID);
-        if (dialog) {
-          dialogHandler.onMessageReceived(dialog, messageObj);
-        }
-      }
-    });
+    console.log('channel message %o', messageObj);
+    const dialog = this.afCore.PublicChannel.getCachedChannel(messageObj.dialogID);
+    if (dialog) {
+      this.notifyMessageReceived(dialog, messageObj);
+    }
   }
 
   processTopTenOnlineUsers(users) {
@@ -10648,32 +10661,11 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     this.wssocket.leaveChannel(channelID);
   }
 
-  notifyUserJoinDialog(dialog, user) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onUserJoined) {
-        console.log('user %o join %o', user, dialog);
-        dialogHandler.onUserJoined(dialog, user);
-      }
-    });
-  }
-
-  notifyUserLeftDialog(dialog, user) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onUserLeft) {
-        dialogHandler.onUserLeft(dialog, user);
-      }
-    });
-  }
-
   notifyDialogUpdated(dialog) {
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onDialogChanged) {
+      if (typeof dialogHandler !== 'undefined') {
         dialogHandler.onDialogChanged(dialog);
       }
     });
@@ -10683,18 +10675,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onDialogCreated) {
+      if (typeof dialogHandler !== 'undefined') {
         dialogHandler.onDialogCreated(dialog);
-      }
-    });
-  }
-
-  notifyMessageReceived(dialog, messageObj) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onMessageReceived(dialog, messageObj)) {
-        dialogHandler.onMessageReceived(dialog, messageObj);
       }
     });
   }
@@ -10703,7 +10685,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onBadgeUpdated()) {
+      if (typeof dialogHandler !== 'undefined') {
         dialogHandler.onBadgeUpdated();
       }
     });
@@ -10713,7 +10695,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.topTenOnlineUsers) {
+      if (typeof dialogHandler !== 'undefined') {
         dialogHandler.topTenOnlineUsers(usersList);
       }
     });
@@ -10723,7 +10705,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.totalOnlineUsers) {
+      if (typeof dialogHandler !== 'undefined') {
         dialogHandler.totalOnlineUsers(totalUsers);
       }
     });
