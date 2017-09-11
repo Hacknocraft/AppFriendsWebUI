@@ -67,26 +67,27 @@ class AFAdapter {
   }
 
   getDialogInfo(dialog, action) {
-
     // only need to fetch dialog info again if it's a private group or channel
     if (dialog.isPrivateGroupChat()) {
       this.af.Dialog.getDialogInfo(dialog.id, function(dialog, error) {
         if (error) {
           console.error(error);
+          action(null, error);
           return;
         }
-        action(dialog);
+        action(dialog, null);
       });
     } else if (dialog.isPublicChannel()) {
       this.af.PublicChannel.getChannelInfo(dialog.id, function(channel, error) {
         if (error) {
           console.error(error);
+          action(null, error);
           return;
         }
-        action(channel);
+        action(channel, null);
       });
     } else {
-      action(dialog);
+      action(dialog, null);
     }
   }
 
@@ -193,10 +194,10 @@ class AFAdapter {
     let messageReceivedFunc = args[0];
     let dialogCreatedFunc = args[1];
     let dialogChangedFunc = args[2];
-    let typingStatusFunc = args[3];
-    let readReceiptFunc = args[4];
-    let userLeftFunc = args[5];
-    let userJoinFunc = args[6];
+    let badgeChangedFunc = args[3];
+    let userJoinFunc = args[4];
+    // let readReceiptFunc = args[4];
+    // let userLeftFunc = args[5];
 
     let DialogHandler = {
       onMessageReceived: (dialog, message) => {
@@ -207,6 +208,12 @@ class AFAdapter {
       },
       onDialogChanged: (dialog) => {
         dialogChangedFunc(dialog);
+      },
+      onBadgeUpdated: () => {
+        badgeChangedFunc();
+      },
+      onUserJoined: (dialog, user) => {
+        userJoinFunc(dialog, user);
       }
     };
     // channelHandler.onMessageReceived = function(channel, message) {
@@ -247,6 +254,19 @@ class AFAdapter {
       }
     });
     return nicknameList.toString();
+  }
+
+  getDialogTitle(dialog) {
+    if (dialog.isPublicChannel()) {
+      return dialog.title;
+    } else if (dialog.isPrivateGroupChat()) {
+      if (dialog.title === '') {
+        return `Untitled group, ${dialog.getMemberCount()} users`;
+      } else {
+        return dialog.title;
+      }
+    }
+    return dialog.title;
   }
 
   getMemberCount(dialog) {

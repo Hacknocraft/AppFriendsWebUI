@@ -519,7 +519,7 @@ class ChatSection extends Element {
   createAdminMessageItem(message) {
     var admin = this.createDiv();
     this._setClass(admin, [className.MESSAGE_SET, className.ADMIN_MESSAGE]);
-    this._setContent(admin, xssEscape(message.message));
+    this._setContent(admin, xssEscape(message.text));
     return admin;
   }
 
