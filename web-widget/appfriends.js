@@ -8846,10 +8846,7 @@ class AFCore {
   */
   getDialog(dialogID) {
     console.log('getDialog');
-    let dialog = this.Dialog.getCachedDialog(dialogID);
-    if (dialog === null) {
-      dialog = this.PublicChannel.getCachedChannel(dialogID);
-    }
+    const dialog = this.Dialog.getCachedDialog(dialogID);
     return dialog;
   }
 
@@ -9899,11 +9896,15 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   constructor(afCore) {
     super();
     this.dialogs = {};
+    this.dialogsIds = {};
     this.afCore = afCore;
   }
 
   getCachedDialog(dialogID) {
-    return this.dialogs[dialogID];
+    if (dialogID in this.dialogs) {
+      return this.dialogs[dialogID];
+    }
+    return null;
   }
 
   getDialogInfo(dialogID, cb) {
@@ -9912,6 +9913,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
       if (cb) {
         if (err === null) {
           const dialog = SELF.dialogObjectFromData(response.data);
+          SELF.dialogs[`${dialog.id}`] = dialog;
           cb(dialog, null);
         } else {
           cb(null, err);
@@ -9937,8 +9939,6 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   saveAllDialogs(dialogsItems) {
     // clear all cached dialogs
     const SELF = this;
-    this.dialogs = {};
-    this.dialogsIds = {};
     if (dialogsItems) {
       dialogsItems.forEach(dialogItem => {
         const dialogObj = SELF.dialogObjectFromData(dialogItem);
@@ -10316,7 +10316,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         const userID = member;
         if (!userCache[userID] && SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
           SELF.dialogUsersSearchQueue.push(userID);
-          console.log(`user need to be cache, ${dialogID} ${userID}`);
         }
       });
       dialog.members = messageObj.metaData.members;
@@ -10329,7 +10328,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         if (!userCache[userID]) {
           if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
             SELF.dialogUsersSearchQueue.push(userID);
-            console.log(`user need to be cache, ${dialogID} ${userID}`);
           }
           const joinDialogs = SELF.joinDialogUsers[userID];
           if (!joinDialogs) {
@@ -10337,7 +10335,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           } else {
             SELF.joinDialogUsers[userID].push(dialog.id);
           }
-          console.log('add user %s to dialog %s', userID, dialog.id);
         } else {
           // notify user join dialog
           SELF.notifyUserJoinDialog(dialog, userCache[userID]);
@@ -10475,6 +10472,13 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
     if (newDialog) {
       this.notifyDialogCreated(dialog);
+      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
+        this.afCore.Dialog.getDialogInfo(dialog.id, (fetchedDialog, error) => {
+          if (error === null) {
+            this.notifyDialogUpdated(fetchedDialog);
+          }
+        });
+      }
     } else {
       this.notifyDialogUpdated(dialog);
     }

@@ -291,11 +291,11 @@ class SBWidget {
       target = this.createDialogItem(dialog);
     }
     this.listBoard.addListOnFirstIndex(target);
-
     this.listBoard.setChannelLastMessage(dialog.id, xssEscape(dialog.lastMessageText));
     this.listBoard.setChannelLastMessageTime(dialog.id,
                                              this.afadapter.getMessageTime(dialog.lastMessageTime));
     this.listBoard.setChannelAvatar(dialog.id, dialog.getDialogImage());
+    this.listBoard.setChannelTitle(dialog.id, this.afadapter.getDialogTitle(dialog));
   }
 
   dialogCreatedAction(dialog) {
@@ -372,13 +372,6 @@ class SBWidget {
     let _list = this.listBoard.list;
     const SELF = this;
     this.af.PublicChannel.fetchChannels((channelList, error) => {
-      if (error === null) {
-        channelList.forEach((channel) => {
-          let item = SELF.createDialogItem(channel);
-          _list.appendChild(item);
-        });
-        SELF.listBoard.checkEmptyList();
-      }
       action();
     });
   }
@@ -404,7 +397,7 @@ class SBWidget {
   createDialogItem(dialog) {
 
     const dialogImage = dialog.getDialogImage();
-
+    console.log(dialog.type);
     let item = this.listBoard.createChannelItem(
       dialog.id,
       dialogImage,
