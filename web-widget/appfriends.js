@@ -3577,6 +3577,7 @@ class UserSession extends __WEBPACK_IMPORTED_MODULE_3__service__["a" /* default 
   }
 
   logout() {
+    this.afCore.MessageSync.resetService();
     UserSession.userToken = null;
     UserSession.currentUserID = null;
     UserSession.currentUserName = null;
@@ -4498,17 +4499,31 @@ class Dialog {
             if (messages.length === 0 && error === null) {
               SELF.hasMore = false;
             }
+            if (messages.length > 0) {
+              const cachedDialog = window.af.getDialog(dialog.id);
+              cachedDialog.earliestMessageID = messages[0].messageID;
+            }
             cb(messages, error);
           });
         } else {
-          console.log('loading');
           const messages = [];
-          Object.keys(dialog.messages).forEach(currentKey => {
-            if (dialog.messages[currentKey] < messageID) {
+          const allKeys = Object.keys(dialog.messages).sort((a, b) => b - a);
+          console.log('load private chat');
+          for (let i = 0; i < allKeys.length; i += 1) {
+            const currentKey = allKeys[i];
+            if (dialog.messages[currentKey] < messageID || fromBeginning) {
               messages.push(dialog.messages[currentKey]);
+              if (messages.length === 20) {
+                break;
+              }
             }
-          });
-          cb(messages, null);
+          }
+          const sortedMessages = messages.sort((a, b) => a.messageID - b.messageID);
+          if (sortedMessages.length > 0) {
+            const cachedDialog = window.af.getDialog(dialog.id);
+            cachedDialog.earliestMessageID = sortedMessages[0].messageID;
+          }
+          cb(sortedMessages, null);
         }
       };
     }(this);
@@ -8798,7 +8813,9 @@ class AFCore {
   */
   logout(callback) {
     this.Session.logout();
-    callback();
+    if (callback) {
+      callback();
+    }
   }
 
   /*
@@ -10080,14 +10097,20 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
   resetService() {
     this.pendingSyncKey = 0;
-    this.syncKeys = {};
+    const startKey = Date.now() - 24 * 3000 * 3600;
+    this.syncKeys = { m: startKey };
     if (this.syncingTimeout) {
       clearTimeout(this.syncingTimeout);
       this.syncingTimeout = null;
     }
+    this.firstSyncFlag = true;
     this.syncingFlag = false;
+    this.joinDialogUsers = {};
     // need to stop all polling
-    this.wssocket.closeConnection();
+    if (this.wssocket) {
+      this.wssocket.closeConnection();
+      this.wssocket = null;
+    }
   }
 
   startSyncingWithSocket() {
@@ -10147,10 +10170,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
             messages.push(messageObj);
           }
         });
-        if (messages.length > 0) {
-          const dialog = window.af.getDialog(channelID);
-          dialog.earliestMessageID = messages[0].messageID;
-        }
         if (callback) {
           callback(messages, null);
         }
@@ -10201,7 +10220,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       if (message.dialogType !== 's') {
         outReceipts.push({
           status: 'read',
-          sender_id: message.senderUser.id,
+          sender_id: message.sender.id,
           dialog_id: message.dialogID,
           id: message.tempID
         });
@@ -10223,6 +10242,14 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         const dialog = dialogCache[dialogID];
         if (dialog) {
           dialog.unreadMessageCount = SELF.getUnreadMessagesWithMessageID(dialogID, readMessageID);
+        }
+        if (!SELF.readMessagesIds[dialogID] || SELF.readMessagesIds[dialogID] < readMessageID) {
+          SELF.readMessagesIds[dialogID] = readMessageID;
+        }
+
+        if (dialog) {
+          dialog.lastReadMessageID = readMessageID;
+          SELF.notifyDialogReceiptUpdated(dialog);
         }
       }
       if (cb) {
@@ -10324,7 +10351,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           dialog.members.splice(memberIndex, 1);
           if (userCache[userID]) {
             // notify user leave dialog
-            SELF.notifyUserJoinDialog(dialog, userCache[userID]);
+            SELF.notifyUserLeftDialog(dialog, userCache[userID]);
           }
         }
       });
@@ -10488,11 +10515,13 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.CONNECTED:
         break;
       case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.DISCONNECTED:
-        break;
+        this.processStocketClose();
+        return;
       case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.DATA_RECV:
         break;
       case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.PEER_CLOSE:
-        break;
+        this.processStocketClose();
+        return;
       default:
         break;
     }
@@ -10501,6 +10530,17 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       console.log('WS data %o', data);
       this.processSyncData(JSON.parse(data));
     }
+  }
+
+  processStocketClose() {
+    if (!this.afCore.User.isLoggedIn()) {
+      return;
+    }
+    this.resetService();
+    const SELF = this;
+    setTimeout(() => {
+      SELF.startSyncingWithSocket();
+    }, 1000);
   }
 
   processSyncData(data) {
@@ -10711,6 +10751,16 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     });
   }
 
+  notifyDialogReceiptUpdated(dialog) {
+    const dialogHandlers = this.afCore.dialogHandlers;
+    Object.keys(dialogHandlers).forEach(handerID => {
+      const dialogHandler = dialogHandlers[handerID];
+      if (dialogHandler.onReadReceiptUpdated) {
+        dialogHandler.onReadReceiptUpdated(dialog);
+      }
+    });
+  }
+
   testSendReadMessages() {
     const dialogCache = this.afCore.Dialog.dialogs;
     Object.keys(dialogCache).forEach(dialogID => {
@@ -10769,18 +10819,15 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
   }
 
   batchSearchUsersWithIDs(userids, callback) {
-    console.log('Request users %o', userids);
     this.sendPostRequest(userids, '/users/batch_search', (response, err) => {
       if (!err) {
         const users = [];
-        console.log('Return users %o', response.data.users);
         response.data.users.forEach(user => {
           const userObj = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
           userObj.customData = user.custom_data;
           users.push(userObj);
         });
         if (callback) {
-          console.log('Return users %o', users);
           callback(users, null);
         }
       } else if (callback) {

@@ -654,11 +654,11 @@ class SBWidget {
       if (scrollEvent) {
         scrollEvent();
       }
-      this.setMessageItem(dialogSet.channel, target, messageItems, loadmore, scrollToBottom);
+      this.setMessageItem(dialogSet.dialog, target, messageItems, loadmore, scrollToBottom);
     });
   }
 
-  setMessageItem(channel, target, messageList, loadmore, scrollToBottom, lastMessage) {
+  setMessageItem(dialog, target, messageList, loadmore, scrollToBottom, lastMessage) {
     let firstChild = target.list.firstChild;
     let addScrollHeight = 0;
     let prevMessage;

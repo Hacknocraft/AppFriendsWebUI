@@ -135,7 +135,6 @@ class AFAdapter {
     }
     if (dialogSet.query.hasMore && !dialogSet.query.isLoading) {
       dialogSet.query.load(GET_MESSAGE_LIMIT, false, fromBeginning, function(messageList, error) {
-        console.log("load");
         if (error) {
           console.error(error);
           return;
