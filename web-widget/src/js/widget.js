@@ -277,6 +277,7 @@ class SBWidget {
 
   dialogUpdatedAction(dialog) {
 
+    console.log("dialog updated");
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();
@@ -301,6 +302,7 @@ class SBWidget {
 
   // message received function
   messageReceivedAction(dialog, message) {
+    console.log("message received");
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();

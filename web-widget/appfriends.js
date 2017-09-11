@@ -4453,9 +4453,7 @@ class Dialog {
   getDialogImage() {
     if (this.dialogType === Dialog.type.channel) {
       return this.coverImageURL;
-    } else if (typeof this.messages[this.lastMessageID] !== 'undefined' &&
-							 this.messages[this.lastMessageID] !== null &&
-      				 !this.messages[this.lastMessageID].isSystemMessage()) {
+    } else if (typeof this.messages[this.lastMessageID] !== 'undefined' && this.messages[this.lastMessageID] !== null) {
       return this.messages[this.lastMessageID].sender.avatar;
     }
     return null;
@@ -6275,8 +6273,8 @@ class Message {
     this.dialogID = messageData.dialogID;
     this.messageID = messageData.messageID;
     this.isSystem = messageData.isSystem;
-    this.receiveTime = messageData.receiveTime;
-    this.sentTime = messageData.sentTime;
+    this.receiveTime = parseInt(messageData.receiveTime);
+    this.sentTime = parseInt(messageData.sentTime);
     this.tempID = messageData.tempID;
     this.text = messageData.text;
     this.attachment = messageData.attachment;
