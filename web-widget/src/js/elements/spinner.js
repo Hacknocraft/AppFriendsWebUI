@@ -24,7 +24,7 @@ class Spinner extends Element {
   }
 
   remove(target) {
-    if (target.firstElementChild) {
+    if (this.self.parentNode === target && target.firstElementChild) {
       target.removeChild(this.self);
     }
   }

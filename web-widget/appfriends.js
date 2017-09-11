@@ -4453,7 +4453,9 @@ class Dialog {
   getDialogImage() {
     if (this.dialogType === Dialog.type.channel) {
       return this.coverImageURL;
-    } else if (typeof this.messages[this.lastMessageID] !== 'undefined' && this.messages[this.lastMessageID] !== null) {
+    } else if (typeof this.messages[this.lastMessageID] !== 'undefined' &&
+							 this.messages[this.lastMessageID] !== null &&
+      				 !this.messages[this.lastMessageID].isSystemMessage()) {
       return this.messages[this.lastMessageID].sender.avatar;
     }
     return null;
@@ -4511,7 +4513,7 @@ class Dialog {
           console.log('load private chat');
           for (let i = 0; i < allKeys.length; i += 1) {
             const currentKey = allKeys[i];
-            if (dialog.messages[currentKey] < messageID || fromBeginning) {
+            if (currentKey < messageID || fromBeginning) {
               messages.push(dialog.messages[currentKey]);
               if (messages.length === 20) {
                 break;
@@ -4522,6 +4524,10 @@ class Dialog {
           if (sortedMessages.length > 0) {
             const cachedDialog = window.af.getDialog(dialog.id);
             cachedDialog.earliestMessageID = sortedMessages[0].messageID;
+          }
+          SELF.isLoading = false;
+          if (sortedMessages.length < 20) {
+            SELF.hasMore = false;
           }
           cb(sortedMessages, null);
         }
