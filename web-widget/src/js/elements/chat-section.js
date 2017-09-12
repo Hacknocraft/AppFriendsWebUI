@@ -438,6 +438,7 @@ class ChatSection extends Element {
       this._setContent(itemText, _message);
     } else if (message.isAttachmentMessage()) {
       if (message.attachment.type.match(/^(image|gif)$/)) {
+        console.log("image/gif message");
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let image = this.createImg();
         this._setClass(image, [className.IMAGE]);
@@ -445,6 +446,7 @@ class ChatSection extends Element {
         this.setImageSize(image, message);
         itemText.appendChild(image);
       } else if (message.attachment.type.match(/^video\/.+$/)) {
+        console.log("video message");
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let video = this.createVideo();
         video.controls = true;

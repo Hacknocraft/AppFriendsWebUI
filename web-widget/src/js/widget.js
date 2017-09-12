@@ -699,7 +699,7 @@ class SBWidget {
       if (message.isTimeMessage && message.isTimeMessage()) {
         newMessage = this.chatSection.createMessageItemTime(message.time);
         prevMessage = null;
-      } else if (message.isUserMessage()){
+      } else if (message.isUserMessage() || message.isAttachmentMessage()){
         let isContinue = (prevMessage && prevMessage.sender) ? (message.sender.userId == prevMessage.sender.userId) : false;
         let isCurrentUser = this.afadapter.isCurrentUser(message.sender);
         let unreadCount = 0;

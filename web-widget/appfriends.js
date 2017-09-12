@@ -3278,9 +3278,13 @@ class BaseService {
     });
   }
 
-  sendGetRequest(path, cb) {
+  sendGetRequest(path, params, cb) {
     const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
-    return request.startRequest('GET', path).then(response => {
+    let fullPath = path;
+    if (params) {
+      fullPath = path + this.jsonToQueryString(params);
+    }
+    return request.startRequest('GET', fullPath).then(response => {
       if (response.data.error) {
         const error = response.data.error;
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
@@ -3312,6 +3316,10 @@ class BaseService {
         cb(null, afError);
       }
     });
+  }
+
+  jsonToQueryString(json) {
+    return `?${Object.keys(json).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`).join('&')}`;
   }
 }
 
@@ -4488,33 +4496,34 @@ class Dialog {
   }
 
   createPreviousMessageListQuery() {
-    return new function (dialog) {
+    const dialogSelf = this;
+    return new function () {
       this.isLoading = false;
       this.hasMore = true;
       const SELF = this;
       this.load = function (limit, reverse, fromBeginning = false, cb) {
         SELF.isLoading = true;
-        const messageID = fromBeginning ? null : dialog.earliestMessageID;
-        if (dialog.isPublicChannel()) {
-          window.af.MessageSync.fetchChannelMessagesHistory(dialog.id, messageID, (messages, error) => {
+        const messageID = fromBeginning ? null : dialogSelf.earliestMessageID;
+        if (dialogSelf.isPublicChannel()) {
+          window.af.MessageSync.fetchChannelMessagesHistory(dialogSelf.id, messageID, (messages, error) => {
             SELF.isLoading = false;
             if (messages.length === 0 && error === null) {
               SELF.hasMore = false;
             }
             if (messages.length > 0) {
-              const cachedDialog = window.af.getDialog(dialog.id);
+              const cachedDialog = window.af.getDialog(dialogSelf.id);
               cachedDialog.earliestMessageID = messages[0].messageID;
             }
             cb(messages, error);
           });
         } else {
           const messages = [];
-          const allKeys = Object.keys(dialog.messages).sort((a, b) => b - a);
+          const allKeys = Object.keys(dialogSelf.messages).sort((a, b) => b - a);
           console.log('load private chat');
           for (let i = 0; i < allKeys.length; i += 1) {
             const currentKey = allKeys[i];
             if (currentKey < messageID || fromBeginning) {
-              messages.push(dialog.messages[currentKey]);
+              messages.push(dialogSelf.messages[currentKey]);
               if (messages.length === 20) {
                 break;
               }
@@ -4522,7 +4531,7 @@ class Dialog {
           }
           const sortedMessages = messages.sort((a, b) => a.messageID - b.messageID);
           if (sortedMessages.length > 0) {
-            const cachedDialog = window.af.getDialog(dialog.id);
+            const cachedDialog = window.af.getDialog(dialogSelf.id);
             cachedDialog.earliestMessageID = sortedMessages[0].messageID;
           }
           SELF.isLoading = false;
@@ -8854,8 +8863,8 @@ class AFCore {
   Get total unread message count
   @param callback function(count)
   */
-  getTotalUnreadMessageCount(callback) {
-    callback(0);
+  getTotalUnreadMessageCount() {
+    return this.Dialog.getTotalUnreadMessageCount();
   }
 }
 
@@ -9824,7 +9833,7 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
       return null;
     }
 
-    return this.sendGetRequest(`/channels/${id}`, (response, err) => {
+    return this.sendGetRequest(`/channels/${id}`, null, (response, err) => {
       if (!err) {
         const channelData = response.data;
         const channel = new __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */](channelData.id, __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */].type.channel);
@@ -9848,7 +9857,7 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
   */
   fetchChannels(callback) {
     const SELF = this;
-    this.sendGetRequest('/channels', (response, err) => {
+    this.sendGetRequest('/channels', null, (response, err) => {
       if (!err) {
         const channels = [];
         for (let i = 0; i < response.data.length; i += 1) {
@@ -9909,10 +9918,15 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
 
   getDialogInfo(dialogID, cb) {
     const SELF = this;
-    this.sendGetRequest(`/dialogs/${dialogID}`, (response, err) => {
+    this.sendGetRequest(`/dialogs/${dialogID}`, null, (response, err) => {
       if (cb) {
         if (err === null) {
           const dialog = SELF.dialogObjectFromData(response.data);
+          if (this.dialogs[dialogID]) {
+            this.dialogs[dialogID].title = dialog.title;
+            cb(this.dialogs[dialogID], null);
+            return;
+          }
           SELF.dialogs[`${dialog.id}`] = dialog;
           cb(dialog, null);
         } else {
@@ -9922,9 +9936,50 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     });
   }
 
+  createPrivateDialogWitUserID(destUserID) {
+    if (this.afCore.User.users[destUserID]) {
+      this.createPrivateDialog(this.afCore.User.users[destUserID]);
+      return;
+    }
+
+    const SELF = this;
+    this.afCore.User.fetchUserInfo(destUserID, (user, err) => {
+      if (!err) {
+        SELF.createPrivateDialog(user);
+      }
+    });
+  }
+
+  createPrivateDialog(destUser) {
+    const dialogCache = this.dialogs;
+    const dialogID = destUser.id;
+    let dialog = null;
+    let newDialog = false;
+    if (dialogCache[dialogID]) {
+      dialog = dialogCache[dialogID];
+    } else {
+      newDialog = true;
+      dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](dialogID, __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual);
+      dialog.title = destUser.username;
+      dialogCache[dialogID] = dialog;
+      dialog.lastMessageText = '';
+      dialog.lastMessageTime = 0;
+      dialog.lastMessageID = 0;
+      dialog.unreadMessageCount = 0;
+      dialog.message = [];
+    }
+    if (newDialog) {
+      this.afCore.MessageSync.notifyDialogCreated(dialog);
+    } else {
+      this.afCore.MessageSync.notifyDialogUpdated(dialog);
+    }
+
+    return dialog;
+  }
+
   fetchAllDialogs(cb) {
     const SELF = this;
-    this.sendGetRequest('/dialogs', (response, err) => {
+    this.sendGetRequest('/dialogs', null, (response, err) => {
       if (cb) {
         if (err === null) {
           SELF.saveAllDialogs(response.data);
@@ -10059,8 +10114,22 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     });
   }
 
+  getTotalUnreadMessageCount() {
+    let totalUnreadMessageCount = 0;
+    Object.keys(this.dialogs).forEach(dialogID => {
+      const dialog = this.dialogs[dialogID];
+      totalUnreadMessageCount += dialog.unreadMessageCount;
+    });
+    return totalUnreadMessageCount;
+  }
+
   dumpDialogCache() {
     console.log('dialog cache %o', this.dialogs);
+  }
+
+  dumpUnreadMessageCount() {
+    const unreadMessageCount = this.getTotalUnreadMessageCount();
+    console.log(`!!!!! unread message count ${unreadMessageCount}`);
   }
 }
 
@@ -10163,7 +10232,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     console.log('fetch channel history');
     const messageID = fromMessageID !== null ? fromMessageID : Date.now();
     const SELF = this;
-    this.sendGetRequest(`/channels/${channelID}/messages/history?from_message_id=${messageID}`, (response, err) => {
+    this.sendGetRequest(`/channels/${channelID}/messages/history`, { from_message_id: messageID }, (response, err) => {
       if (err) {
         if (callback) {
           callback(null, err);
@@ -10268,7 +10337,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
   fetchReadMessages() {
     console.log('fetch read messages');
     const SELF = this;
-    this.sendGetRequest('/read_messages', (response, err) => {
+    this.sendGetRequest('/read_messages', null, (response, err) => {
       if (!err) {
         SELF.processReadMessages(response.data.read_messages);
       }
@@ -10649,6 +10718,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
         SELF.afCore.Dialog.dumpDialogCache();
         SELF.afCore.User.dumpUserCache();
+        SELF.afCore.Dialog.dumpUnreadMessageCount();
       });
     }
   }
@@ -10847,6 +10917,63 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
     });
   }
 
+  createUserListQuery() {
+    const userService = this;
+    return new function () {
+      this.hasNext = true;
+      this.page = 1;
+      this.isLoading = false;
+
+      const SELF = this;
+      this.next = function (cb) {
+        SELF.isLoading = true;
+        userService.searchUsers('', SELF.page, (data, err) => {
+          if (!err) {
+            SELF.isLoading = false;
+            const users = [];
+            if (data.total_page === data.current_page) {
+              SELF.hasNext = false;
+            }
+            SELF.page = data.page;
+
+            data.users.forEach(userItem => {
+              const user = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](userItem.id, userItem.user_name);
+              user.avatar = userItem.avatar;
+              user.customData = userItem.custom_data;
+              user.muted = userItem.muted;
+              user.blocked = userItem.blocked;
+              users.push(user);
+            });
+            if (cb) {
+              cb(users, null);
+            }
+          } else {
+            cb(null, err);
+          }
+        });
+      };
+    }();
+  }
+
+  searchUsers(searchKey, page, callback) {
+    const params = {};
+    if (searchKey) {
+      params.search = searchKey;
+    }
+    if (page !== undefined && page !== null) {
+      params.page = page;
+    }
+    this.sendGetRequest('/users', params, (response, err) => {
+      if (!err) {
+        if (callback) {
+          callback(response.data, null);
+        }
+      } else if (callback) {
+        callback(null, err);
+      }
+    });
+  }
+
   /*
   fetch user info from the server and save the user to `allUsers`
   */
@@ -10858,7 +10985,7 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
       }
       return;
     }
-    this.sendGetRequest(`/users/${userid}`, (response, err) => {
+    this.sendGetRequest(`/users/${userid}`, null, (response, err) => {
       if (!err) {
         const user = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](userid, response.data.user_name);
         user.avatar = response.data.avatar;
