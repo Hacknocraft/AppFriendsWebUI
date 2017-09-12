@@ -94,11 +94,13 @@ class AFAdapter {
   createNewChannel(userIds, action) {
     if (userIds.length == 1) {
       //private chat
-      this.af.Dialog.createPrivateDialogWitUserID(userIds[0]);
+      this.af.Dialog.createPrivateDialogWitUserID(userIds[0], function(channel){
+        action(channel);
+      });
     }
     else
     {
-      this.af.GroupChannel.createChannelWithUserIds(userIds, true, '', '', '', function(channel, error) {
+      this.af.Dialog.createGroupDialogWitMembers(userIds, '', function(channel, error) {
         if (error) {
           console.error(error);
           return;
@@ -183,6 +185,10 @@ class AFAdapter {
   getUserList(action) {
     if (!this.userListQuery) {
       this.userListQuery = this.af.User.createUserListQuery();
+    }
+    else
+    {
+      this.userListQuery.reset();
     }
     if (this.userListQuery.hasNext && !this.userListQuery.isLoading) {
       this.userListQuery.next((userList, error) => {
