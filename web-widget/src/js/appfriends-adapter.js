@@ -91,13 +91,21 @@ class AFAdapter {
   }
 
   createNewChannel(userIds, action) {
-    this.af.GroupChannel.createChannelWithUserIds(userIds, true, '', '', '', function(channel, error) {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      action(channel);
-    });
+    if (userIds.length == 1) {
+      //private chat
+      this.af.Dialog.createPrivateDialogWitUserID(userIds[0]);
+    }
+    else
+    {
+      this.af.GroupChannel.createChannelWithUserIds(userIds, true, '', '', '', function(channel, error) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        action(channel);
+      });
+    }
+
   }
 
   inviteMember(channel, userIds, action) {
@@ -173,7 +181,7 @@ class AFAdapter {
    */
   getUserList(action) {
     if (!this.userListQuery) {
-      this.userListQuery = this.af.createUserListQuery();
+      this.userListQuery = this.af.User.createUserListQuery();
     }
     if (this.userListQuery.hasNext && !this.userListQuery.isLoading) {
       this.userListQuery.next((userList, error) => {

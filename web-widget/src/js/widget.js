@@ -485,7 +485,7 @@ class SBWidget {
           }
           for (var i = 0 ; i < userList.length ; i++) {
             let user = userList[i];
-            if (memberIds.indexOf(user.userId) < 0) {
+            if (memberIds.indexOf(user.id) < 0) {
               let item = this.popup.createMemberItem(user, true);
               this.popup.addClickEvent(item, () => {
                 hasClass(item.select, className.ACTIVE) ? removeClass(item.select, className.ACTIVE) : addClass(item.select, className.ACTIVE);

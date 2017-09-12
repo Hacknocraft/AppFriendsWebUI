@@ -592,18 +592,18 @@ class ChatSection extends Element {
 
     var userSelect = this.createDiv();
     this._setClass(userSelect, [className.USER_SELECT]);
-    this._setDataset(userSelect, 'user-id', user.userId);
+    this._setDataset(userSelect, 'user-id', user.id);
     li.select = userSelect;
     userItem.appendChild(userSelect);
 
     var userProfile = this.createDiv();
     this._setClass(userProfile, [className.IMAGE]);
-    this._setBackgroundImage(userProfile, user.profileUrl);
+    this._setBackgroundImage(userProfile, user.avatar);
     userItem.appendChild(userProfile);
 
     var userNickname = this.createDiv();
     this._setClass(userNickname, [className.NICKNAME]);
-    this._setContent(userNickname, xssEscape(user.nickname));
+    this._setContent(userNickname, xssEscape(user.username));
     userItem.appendChild(userNickname);
 
     li.appendChild(userItem);
