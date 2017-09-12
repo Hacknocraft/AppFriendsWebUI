@@ -100,7 +100,7 @@ class AFAdapter {
     }
     else
     {
-      this.af.Dialog.createGroupDialogWitMembers(userIds, '', function(channel, error) {
+      this.af.Dialog.createGroupDialogWithMemberIDs(userIds, '', function(channel, error) {
         if (error) {
           console.error(error);
           return;
