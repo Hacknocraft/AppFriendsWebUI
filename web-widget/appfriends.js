@@ -4628,8 +4628,10 @@ class Dialog {
   }
 
   getDialogImage() {
-    if (this.dialogType === Dialog.type.channel) {
+    if (this.type === Dialog.type.channel) {
       return this.coverImageURL;
+    } else if (this.type === Dialog.type.group) {
+      return 'https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_group_black_24px.svg';
     } else if (typeof this.messages[this.lastMessageID] !== 'undefined' && this.messages[this.lastMessageID] !== null) {
       return this.messages[this.lastMessageID].sender.avatar;
     }
@@ -5991,9 +5993,9 @@ class Message {
     this.dialogType = messageData.dialogType;
     this.dialogID = messageData.dialogID;
     this.messageID = messageData.messageID;
-    this.isSystem = messageData.isSystem;
-    this.receiveTime = messageData.receiveTime;
-    this.sentTime = messageData.sentTime;
+    this.isSystem = messageData.dialogType === 's';
+    this.receiveTime = parseInt(messageData.receiveTime, 10);
+    this.sentTime = parseInt(messageData.sentTime, 10);
     this.tempID = messageData.tempID;
     this.text = messageData.text;
     this.attachment = messageData.attachment;
@@ -8574,10 +8576,7 @@ class AFCore {
   */
   getDialog(dialogID) {
     console.log('getDialog');
-    let dialog = this.Dialog.getCachedDialog(dialogID);
-    if (dialog === null) {
-      dialog = this.PublicChannel.getCachedChannel(dialogID);
-    }
+    const dialog = this.Dialog.getCachedDialog(dialogID);
     return dialog;
   }
 
@@ -9707,7 +9706,7 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
           const channel = new __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */](channelData.id, __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */].type.channel);
           channel.title = channelData.name;
           channel.enabled = channelData.enabled;
-          channel.coverImageUrl = channelData.cover_image_url;
+          channel.coverImageURL = channelData.cover_image_url;
           channel.customData = channelData.custom_data;
           SELF.insertChannelToLocalCache(channel);
           channels.push(channel);
@@ -9732,10 +9731,10 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return DialogService; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__service__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__usersession__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_location__ = __webpack_require__(31);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_message__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__datamodels_user__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_location__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_message__ = __webpack_require__(32);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_user__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__ = __webpack_require__(19);
 
 
 
@@ -9747,19 +9746,29 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   constructor(afCore) {
     super();
     this.dialogs = {};
+    this.dialogsIds = {};
     this.afCore = afCore;
   }
 
   getCachedDialog(dialogID) {
-    return this.dialogs[dialogID];
+    if (dialogID in this.dialogs) {
+      return this.dialogs[dialogID];
+    }
+    return null;
   }
 
   getDialogInfo(dialogID, cb) {
     const SELF = this;
+    if (this.dialogs[dialogID]) {
+      cb(this.dialogs[dialogID], null);
+      return;
+    }
     this.sendGetRequest(`/dialogs/${dialogID}`, null, (response, err) => {
       if (cb) {
-        if (!err) {
-          cb(SELF.dialogObjectFromData(response.data), null);
+        if (err === null) {
+          const dialog = SELF.dialogObjectFromData(response.data);
+          SELF.dialogs[`${dialog.id}`] = dialog;
+          cb(dialog, null);
         } else {
           cb(null, err);
         }
@@ -9767,26 +9776,21 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     });
   }
 
-  createPrivateDialogWitUserID(destUserID, cb) {
+  createPrivateDialogWitUserID(destUserID) {
     if (this.afCore.User.users[destUserID]) {
-      this.createPrivateDialog(this.afCore.User.users[destUserID], cb);
+      this.createPrivateDialog(this.afCore.User.users[destUserID]);
+      return;
     }
 
     const SELF = this;
     this.afCore.User.fetchUserInfo(destUserID, (user, err) => {
       if (!err) {
-        SELF.createPrivateDialog(user, cb);
-      }
-      else{
-		if (cb)
-		{
-			cb(null, err);
-		}
+        SELF.createPrivateDialog(user);
       }
     });
   }
 
-  createPrivateDialog(destUser, cb) {
+  createPrivateDialog(destUser) {
     const dialogCache = this.dialogs;
     const dialogID = destUser.id;
     let dialog = null;
@@ -9795,7 +9799,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
       dialog = dialogCache[dialogID];
     } else {
       newDialog = true;
-      dialog = new __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */](dialogID, __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.individual);
+      dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](dialogID, __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual);
       dialog.title = destUser.username;
       dialogCache[dialogID] = dialog;
       dialog.lastMessageText = '';
@@ -9810,20 +9814,16 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
       this.afCore.MessageSync.notifyDialogUpdated(dialog);
     }
 
-    if (cb)
-	{
-		cb(dialog, null);
-	}
-
+    return dialog;
   }
 
   fetchAllDialogs(cb) {
     const SELF = this;
     this.sendGetRequest('/dialogs', null, (response, err) => {
       if (cb) {
-        if (!err) {
+        if (err === null) {
           SELF.saveAllDialogs(response.data);
-          cb(SELF.dialogs, null);
+          cb(Object.values(SELF.dialogs), null);
         } else {
           cb(response, err);
         }
@@ -9834,8 +9834,6 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   saveAllDialogs(dialogsItems) {
     // clear all cached dialogs
     const SELF = this;
-    this.dialogs = {};
-    this.dialogsIds = {};
     if (dialogsItems) {
       dialogsItems.forEach(dialogItem => {
         const dialogObj = SELF.dialogObjectFromData(dialogItem);
@@ -9845,7 +9843,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   }
 
   dialogObjectFromData(dialogData) {
-    const dialogObj = new __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */](dialogData.id, __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.group);
+    const dialogObj = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](dialogData.id, __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group);
     dialogObj.title = dialogData.name;
     dialogObj.members = dialogData.members;
     dialogObj.muted = dialogData.muted;
@@ -9854,66 +9852,66 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   }
 
   sendTextMessage(text, customData, dialogID, dialogType, requireReceipt, mentionUsers, cb = null, sendPush = true) {
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.channel && requireReceipt) {
+    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && requireReceipt) {
       // Requiring receipt is not permitted in open channel
       return;
     }
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_5__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
+    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const textMessage = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers);
+    const textMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers);
     const messageJSON = textMessage.genTextMessageJSON(sendPush);
 
     this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
   }
 
   sendImageMessage(imageURL, thumbnailURL, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
+    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
       // Requiring receipt is not permitted in open channel
       return;
     }
 
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_5__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
+    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const imageMessage = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
+    const imageMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = imageMessage.genImageMessageJSON(sendPush);
     this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
   }
 
   sendVideoMessage(videoStreamURL, thumbnailURL, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
+    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
       // Requiring receipt is not permitted in open channel
       return;
     }
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_5__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
+    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const videoMessage = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
+    const videoMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = videoMessage.genVideoMessageJSON(sendPush);
     this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
   }
 
   sendGifMessage(gifURL, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_5__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
+    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const gifMessage = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt);
+    const gifMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = gifMessage.genGifMessageJSON(sendPush);
     this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
   }
 
   sendLocationMessage(latitude, longitude, title, subtitle, placemarkName, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
-    const location2D = new __WEBPACK_IMPORTED_MODULE_3__datamodels_location__["a" /* default */](latitude, longitude);
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_5__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
+    const location2D = new __WEBPACK_IMPORTED_MODULE_2__datamodels_location__["a" /* default */](latitude, longitude);
+    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const locationMessage = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt);
+    const locationMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = locationMessage.genLocationMessageJSON(sendPush);
     this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
   }
 
   sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb) {
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.group) {
+    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
       this.sendDialogMessage(dialogID, messageJSON, cb);
-    } else if (dialogType === __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.individual) {
+    } else if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
       this.sendPrivateMessage(dialogID, messageJSON, cb);
-    } else if (dialogType === __WEBPACK_IMPORTED_MODULE_2__datamodels_dialog__["a" /* default */].type.channel) {
+    } else if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel) {
       this.sendPublicChannelMessage(dialogID, messageJSON, cb);
     }
   }
@@ -9935,7 +9933,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     const path = `/users/${userID}/messages`;
     const SELF = this;
     this.sendPostRequest(messageJSON, path, (response, err) => {
-      if (err) {
+      if (err !== null) {
         cb(null, err);
       } else {
         const messageObj = SELF.afCore.MessageSync.saveSentMessage(response.data);
@@ -9947,10 +9945,10 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   sendPublicChannelMessage(channelID, messageJSON, cb) {
     const path = `/channels/${channelID}/messages`;
     this.sendPostRequest(messageJSON, path, (response, err) => {
-      if (err) {
+      if (err !== null) {
         cb(null, err);
       } else {
-        const message = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(response.data);
+        const message = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createMessageFromJSON(response.data);
         cb(message, null);
       }
     });
@@ -10213,7 +10211,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         const userID = member;
         if (!userCache[userID] && SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
           SELF.dialogUsersSearchQueue.push(userID);
-          console.log(`user need to be cache, ${dialogID} ${userID}`);
         }
       });
       dialog.members = messageObj.metaData.members;
@@ -10226,7 +10223,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         if (!userCache[userID]) {
           if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
             SELF.dialogUsersSearchQueue.push(userID);
-            console.log(`user need to be cache, ${dialogID} ${userID}`);
           }
           const joinDialogs = SELF.joinDialogUsers[userID];
           if (!joinDialogs) {
@@ -10234,7 +10230,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           } else {
             SELF.joinDialogUsers[userID].push(dialog.id);
           }
-          console.log('add user %s to dialog %s', userID, dialog.id);
         } else {
           // notify user join dialog
           SELF.notifyUserJoinDialog(dialog, userCache[userID]);
@@ -10372,6 +10367,13 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
     if (newDialog) {
       this.notifyDialogCreated(dialog);
+      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
+        this.afCore.Dialog.getDialogInfo(dialog.id, (fetchedDialog, error) => {
+          if (error === null) {
+            this.notifyDialogUpdated(fetchedDialog);
+          }
+        });
+      }
     } else {
       this.notifyDialogUpdated(dialog);
     }
@@ -10437,7 +10439,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
   }
 
   processStocketClose() {
-    if (!this.afCore.User.isLoggedIn()) {
+    if (!this.afCore.isLoggedIn()) {
       return;
     }
     this.resetService();

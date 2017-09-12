@@ -183,9 +183,6 @@ class SBWidget {
     this.widgetBtn.addClickEvent(() => {
       this.af.isLoggedIn() ? this.listBoard.showChannelList() : this.listBoard.showLoginForm();
       this.toggleBoard(true);
-      this.listBoard.addChannelListScrollEvent(() => {
-        this.getChannelList();
-      });
       this.chatSection.responsiveSize(false, this.responsiveChatSection.bind(this));
     });
 
@@ -265,29 +262,40 @@ class SBWidget {
       this.widgetBtn.toggleIcon(true);
       this.listBoard.showChannelList();
       this.spinner.insert(this.listBoard.list);
-      this.getChannelList();
+      this.getDialogsList();
 
       this.afadapter.createHandlerGlobal(
         this.messageReceivedAction.bind(this),
         this.dialogCreatedAction.bind(this),
-        this.dialogUpdatedAction.bind(this)
+        this.dialogUpdatedAction.bind(this),
+        this.dialogBadgeUpdated.bind(this),
+        this.dialogUserJoined.bind(this)
       )
     });
   }
 
+  dialogUserJoined(dialog, user) {
+
+  }
+
+  dialogBadgeUpdated() {
+
+  }
+
   dialogUpdatedAction(dialog) {
 
+    console.log("dialog updated");
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();
       target = this.createDialogItem(dialog);
     }
     this.listBoard.addListOnFirstIndex(target);
-
     this.listBoard.setChannelLastMessage(dialog.id, xssEscape(dialog.lastMessageText));
     this.listBoard.setChannelLastMessageTime(dialog.id,
                                              this.afadapter.getMessageTime(dialog.lastMessageTime));
     this.listBoard.setChannelAvatar(dialog.id, dialog.getDialogImage());
+    this.listBoard.setChannelTitle(dialog.id, this.afadapter.getDialogTitle(dialog));
   }
 
   dialogCreatedAction(dialog) {
@@ -301,6 +309,7 @@ class SBWidget {
 
   // message received function
   messageReceivedAction(dialog, message) {
+    console.log("message received");
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();
@@ -359,29 +368,40 @@ class SBWidget {
     });
   }
 
-  getChannelList() {
+  getChannelList(action) {
+    let _list = this.listBoard.list;
+    const SELF = this;
+    this.af.PublicChannel.fetchChannels((channelList, error) => {
+      action();
+    });
+  }
+
+  getDialogsList() {
     let _list = this.listBoard.list;
     let _spinner = this.spinner;
-    this.af.PublicChannel.fetchChannels((channelList, error) => {
-      if (_list.lastElementChild == _spinner.self) {
+    const SELF = this;
+    this.getChannelList(function() {
+      SELF.af.Dialog.fetchAllDialogs((dialogList, error) => {
         _spinner.remove(_list);
-      }
-      channelList.forEach((channel) => {
-        let item = this.createDialogItem(channel);
-        _list.appendChild(item);
+        if (error === null) {
+          dialogList.forEach((dialog) => {
+            let item = SELF.createDialogItem(dialog);
+            _list.appendChild(item);
+          });
+          SELF.listBoard.checkEmptyList();
+        }
       });
-      this.listBoard.checkEmptyList();
     });
   }
 
   createDialogItem(dialog) {
 
     const dialogImage = dialog.getDialogImage();
-
+    console.log(dialog.type);
     let item = this.listBoard.createChannelItem(
       dialog.id,
       dialogImage,
-      dialog.title,
+      this.afadapter.getDialogTitle(dialog),
       this.afadapter.getMessageTime(dialog.lastMessageTime),
       dialog.lastMessageText,
       0
@@ -536,17 +556,23 @@ class SBWidget {
     });
     this.spinner.insert(chatBoard.content);
     this.afadapter.getDialogInfo(dialog, (fetchedDialog, error) => {
-      this.updateChannelInfo(chatBoard, fetchedDialog);
-      let dialogSet = this.getDialogSet(dialog);
-      this.getMessageList(dialogSet, chatBoard, false, () => {
-        this.chatScrollEvent(chatBoard, dialogSet);
-      });
-      fetchedDialog.markAsRead();
-      this.updateUnreadMessageCount(fetchedDialog);
-      let listItem = this.listBoard.getChannelItem(fetchedDialog.id);
-      if (!listItem) {
-        listItem = this.createDialogItem(fetchedDialog);
-        this.listBoard.list.insertBefore(listItem, this.listBoard.list.firstChild);
+      this.spinner.remove(chatBoard.content);
+      if (fetchedDialog === null) {
+        console.log("fetched Dialog is null");
+      }
+      if (error === null) {
+        this.updateChannelInfo(chatBoard, fetchedDialog);
+        let dialogSet = this.getDialogSet(dialog);
+        this.getMessageList(dialogSet, chatBoard, false, () => {
+          this.chatScrollEvent(chatBoard, dialogSet);
+        });
+        fetchedDialog.markAsRead();
+        this.updateUnreadMessageCount(fetchedDialog);
+        let listItem = this.listBoard.getChannelItem(fetchedDialog.id);
+        if (!listItem) {
+          listItem = this.createDialogItem(fetchedDialog);
+          this.listBoard.list.insertBefore(listItem, this.listBoard.list.firstChild);
+        }
       }
     });
   }
@@ -654,11 +680,13 @@ class SBWidget {
       if (scrollEvent) {
         scrollEvent();
       }
+
       this.setMessageItem(dialogSet.dialog, target, messageItems, loadmore, scrollToBottom);
     });
   }
 
   setMessageItem(dialog, target, messageList, loadmore, scrollToBottom, lastMessage) {
+
     let firstChild = target.list.firstChild;
     let addScrollHeight = 0;
     let prevMessage;
@@ -671,12 +699,14 @@ class SBWidget {
       if (message.isTimeMessage && message.isTimeMessage()) {
         newMessage = this.chatSection.createMessageItemTime(message.time);
         prevMessage = null;
-      } else {
+      } else if (message.isUserMessage()){
         let isContinue = (prevMessage && prevMessage.sender) ? (message.sender.userId == prevMessage.sender.userId) : false;
         let isCurrentUser = this.afadapter.isCurrentUser(message.sender);
         let unreadCount = 0;
         newMessage = this.chatSection.createMessageItem(message, isCurrentUser, isContinue, unreadCount);
         prevMessage = message;
+      } else if (message.isSystemMessage()) {
+        newMessage = this.chatSection.createAdminMessageItem(message);
       }
 
       if (loadmore) {

@@ -438,7 +438,6 @@ class ChatSection extends Element {
       this._setContent(itemText, _message);
     } else if (message.isAttachmentMessage()) {
       if (message.attachment.type.match(/^(image|gif)$/)) {
-        console.log("this is gif");
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let image = this.createImg();
         this._setClass(image, [className.IMAGE]);
@@ -520,7 +519,7 @@ class ChatSection extends Element {
   createAdminMessageItem(message) {
     var admin = this.createDiv();
     this._setClass(admin, [className.MESSAGE_SET, className.ADMIN_MESSAGE]);
-    this._setContent(admin, xssEscape(message.message));
+    this._setContent(admin, xssEscape(message.text));
     return admin;
   }
 
