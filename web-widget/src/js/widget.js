@@ -269,7 +269,8 @@ class SBWidget {
         this.dialogCreatedAction.bind(this),
         this.dialogUpdatedAction.bind(this),
         this.dialogBadgeUpdated.bind(this),
-        this.dialogUserJoined.bind(this)
+        this.dialogUserJoined.bind(this),
+          this.dialogUserLeft.bind(this)
       )
     });
   }
@@ -280,6 +281,22 @@ class SBWidget {
 
   dialogBadgeUpdated() {
 
+  }
+
+  dialogUserLeft(dialog, user){
+    console.log("dialogUserLeft %o %o", dialog, user);
+    if (this.afadapter.isCurrentUser(user)) {
+      let item = this.listBoard.getChannelItem(dialog.id);
+      this.listBoard.list.removeChild(item);
+      this.listBoard.checkEmptyList();
+    } else {
+      this.listBoard.setChannelTitle(dialog.id, this.afadapter.getDialogTitle(dialog));
+      this.updateUnreadMessageCount(dialog);
+      let targetChatBoard = this.chatSection.getChatBoard(dialog.id);
+      if (targetChatBoard) {
+        this.updateChannelInfo(targetChatBoard, dialog);
+      }
+    }
   }
 
   dialogUpdatedAction(dialog) {
@@ -468,7 +485,8 @@ class SBWidget {
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
         let channelSet = this.getDialogSet(dialogID);
         if (channelSet) {
-          this.afadapter.channelLeave(channelSet.channel, () => {
+          console.log("channelSet %o", channelSet);
+          this.afadapter.channelLeave(channelSet.dialog, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
             removeClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
             chatBoard.leavePopup = null;

@@ -122,7 +122,8 @@ class AFAdapter {
   }
 
   channelLeave(channel, action) {
-    channel.leave((response, error) => {
+    console.log("!!! leave channel %o", channel);
+    this.af.Dialog.leaveDialog(channel, (channel, error) => {
       if (error) {
         console.error(error);
         return;
@@ -211,7 +212,7 @@ class AFAdapter {
     let badgeChangedFunc = args[3];
     let userJoinFunc = args[4];
     // let readReceiptFunc = args[4];
-    // let userLeftFunc = args[5];
+    let userLeftFunc = args[5];
 
     let DialogHandler = {
       onMessageReceived: (dialog, message) => {
@@ -228,8 +229,28 @@ class AFAdapter {
       },
       onUserJoined: (dialog, user) => {
         userJoinFunc(dialog, user);
+      },
+      onUserLeft: (dialog, user) =>
+      {
+        userLeftFunc(dialog, user);
       }
     };
+// channelHandler.onMessageReceived = function(channel, message) {
+//   messageReceivedFunc(channel, message);
+// };
+// channelHandler.onChannelChanged = function(channel) {
+//   ChannelChangedFunc(channel);
+// };
+// channelHandler.onTypingStatusUpdated = function(channel) {
+//   typingStatusFunc(channel);
+// };
+// channelHandler.onReadReceiptUpdated = function(channel) {
+//   readReceiptFunc(channel);
+// };
+// channelHandler.unc: (dialog, user) => {
+//  userLeftFunc
+//}
+  //  };
     // channelHandler.onMessageReceived = function(channel, message) {
     //   messageReceivedFunc(channel, message);
     // };

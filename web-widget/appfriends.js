@@ -3487,6 +3487,24 @@ class BaseService {
     });
   }
 
+  sendDeleteRequest(paramsJSON, path, cb) {
+    const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
+    return request.startRequest('DELETE', path, paramsJSON).then(response => {
+      if (response.data.error) {
+        const error = response.data.error;
+        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
+        cb(null, afError);
+      } else {
+        cb(response, null);
+      }
+    }).catch(error => {
+      if (cb && error) {
+        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
+        cb(null, afError);
+      }
+    });
+  }
+
   jsonToQueryString(json) {
     return `?${Object.keys(json).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`).join('&')}`;
   }
@@ -9877,6 +9895,25 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     });
   }
 
+  leaveDialog(dialog, cb) {
+    const userID = this.afCore.Session.currentUser().id;
+    console.log(`leave userID ${userID}`);
+    const SELF = this;
+    this.sendDeleteRequest({ members: [userID] }, `/dialogs/${dialog.id}/members`, (response, err) => {
+      if (cb) {
+        if (!err) {
+          if (SELF.dialogs[dialog.id]) {
+            delete SELF.dialogs[dialog.id];
+          }
+          SELF.afCore.MessageSync.notifyUserLeftDialog(dialog, SELF.afCore.Session.currentUser());
+          cb(dialog, null);
+        } else {
+          cb(null, err);
+        }
+      }
+    });
+  }
+
   saveAllDialogs(dialogsItems) {
     // clear all cached dialogs
     const SELF = this;
@@ -10303,6 +10340,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
     // Leave dialog
     if (messageObj.metaData && messageObj.metaData.action_type === 'l' && messageObj.metaData.users) {
+      console.log('Receive dialog');
+
       Object.keys(messageObj.metaData.users).forEach(userIndex => {
         const userID = messageObj.metaData.users[userIndex];
         const memberIndex = dialog.members.indexOf(userID);
@@ -10381,20 +10420,21 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     if (dialogCache[dialogID]) {
       dialog = dialogCache[dialogID];
     } else {
+      // group dialog not found then ignore this message
+      if (messageObj.dialogType !== __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
+        return null;
+      }
+
       newDialog = true;
       dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual ? __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual : __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group);
 
-      if (messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
-        if (!messageObj.isSystemMessage()) {
-          if (this.afCore.User.users[messageObj.dialogID]) {
-            dialog.title = this.afCore.User.users[messageObj.dialogID].username;
-          } else {
-            console.log(`user need to be cache, ${messageObj.dialogID} ${messageObj.sender.id}`);
-            this.dialogUsersSearchQueue.push(messageObj.dialogID);
-          }
+      if (!messageObj.isSystemMessage()) {
+        if (this.afCore.User.users[messageObj.dialogID]) {
+          dialog.title = this.afCore.User.users[messageObj.dialogID].username;
+        } else {
+          console.log(`user need to be cache, ${messageObj.dialogID} ${messageObj.sender.id}`);
+          this.dialogUsersSearchQueue.push(messageObj.dialogID);
         }
-      } else if (!dialog.title) {
-        dialog.title = '';
       }
       dialogCache[dialogID] = dialog;
     }
@@ -10881,7 +10921,6 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
         user.avatar = response.data.avatar;
         user.customData = response.data.custom_data;
         SELF.users[userid] = user;
-        console.log('fetch single user %o', user);
         if (callback) {
           callback(user, null);
         }
