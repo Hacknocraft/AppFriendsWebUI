@@ -95,10 +95,12 @@ class Popup extends Element {
     var li = this.createLi();
     var div = this.createDiv();
 
+    console.log("member %o", member);
+
     if (isInvite) {
       var userSelect = this.createDiv();
       this._setClass(userSelect, [className.USER_SELECT]);
-      this._setDataset(userSelect, 'user-id', member.userId);
+      this._setDataset(userSelect, 'user-id', member.id);
       li.select = userSelect;
       div.appendChild(userSelect);
     }
@@ -111,12 +113,12 @@ class Popup extends Element {
 
     var userProfile = this.createDiv();
     this._setClass(userProfile, [className.IMAGE]);
-    this._setBackgroundImage(userProfile, member.profileUrl);
+    this._setBackgroundImage(userProfile, member.avatar);
     div.appendChild(userProfile);
 
     var userNickname = this.createDiv();
     this._setClass(userNickname, [className.NICKNAME]);
-    this._setContent(userNickname, xssEscape(member.nickname));
+    this._setContent(userNickname, xssEscape(member.username));
     div.appendChild(userNickname);
 
     li.appendChild(div);

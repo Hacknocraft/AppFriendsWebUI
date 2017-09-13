@@ -4632,6 +4632,8 @@ class Dialog {
     this.title = '';
     this.muted = false;
     this.members = []; // [User]
+    this.memberIDs = [];
+    this.waitFetchMemberIDs = [];
     this.disabled = false;
     this.coverImageURL = ''; // url
     this.customData = '';
@@ -4733,6 +4735,25 @@ class Dialog {
 
   sendTextMessage(text, customData = '', requireReceipt = false, mentionUsers = [], sendPush = true, cb = null) {
     window.af.Dialog.sendTextMessage(text, customData, this.id, this.type, requireReceipt, mentionUsers, sendPush, cb);
+  }
+
+  removeMemberWithID(memberID) {
+    const memberIndex = this.memberIDs.indexOf(memberID);
+    if (memberIndex >= 0) {
+      this.memberIDs.splice(memberIndex, 1);
+    }
+
+    const waitFetchMemberIndex = this.waitFetchMemberIDs.indexOf(memberID);
+    if (waitFetchMemberIndex >= 0) {
+      this.waitFetchMemberIDs.splice(waitFetchMemberIndex, 1);
+    }
+
+    for (let i = 0; i < this.members.length; i += 1) {
+      if (this.members[i].id === memberID) {
+        this.members.splice(i, 1);
+        break;
+      }
+    }
   }
 
   startTyping() {}
@@ -6315,7 +6336,7 @@ exports.createError = function (message, code) {
   if (code) {
     error.code = code;
   }
-  console.log("error: " + code + " " + message + " " + error.stack);
+  //console.log("error: "+code+" "+message + " " + error.stack);
   return error;
 };
 
@@ -9767,6 +9788,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     this.dialogs = {};
     this.dialogsIds = {};
     this.afCore = afCore;
+    this.leaveDialogs = [];
   }
 
   getCachedDialog(dialogID) {
@@ -9928,7 +9950,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
   dialogObjectFromData(dialogData) {
     const dialogObj = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](dialogData.id, __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group);
     dialogObj.title = dialogData.name;
-    dialogObj.members = dialogData.members;
+    dialogObj.memberIDs = dialogData.members;
     dialogObj.muted = dialogData.muted;
     dialogObj.customData = dialogData.custom_data;
     return dialogObj;
@@ -10006,8 +10028,9 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
       if (err) {
         cb(null, err);
       } else {
-        const messageObj = SELF.afCore.MessageSync.saveSentMessage(response.data);
-        cb(messageObj, null);
+        SELF.afCore.MessageSync.saveSentMessage(response.data, messageObj => {
+          cb(messageObj, null);
+        });
       }
     });
   }
@@ -10019,8 +10042,9 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
       if (err !== null) {
         cb(null, err);
       } else {
-        const messageObj = SELF.afCore.MessageSync.saveSentMessage(response.data);
-        cb(messageObj, null);
+        SELF.afCore.MessageSync.saveSentMessage(response.data, messageObj => {
+          cb(messageObj, null);
+        });
       }
     });
   }
@@ -10092,6 +10116,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     this.readMessagesIds = {};
     this.dialogUsersSearchQueue = [];
     this.joinDialogUsers = {};
+    this.outReceipts = [];
   }
 
   resetService() {
@@ -10145,8 +10170,9 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       if (err) {
         SELF.postProcessAfterSync(false);
       } else {
-        SELF.saveSyncedMessages(response.data.messages);
-        SELF.updateSyncKeysFromSyncReply(response.data.sync_key);
+        SELF.saveSyncedMessages(response.data.messages, () => {
+          SELF.updateSyncKeysFromSyncReply(response.data.sync_key);
+        });
       }
     });
   }
@@ -10176,31 +10202,52 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     });
   }
 
-  saveSyncedMessages(messages) {
-    const SELF = this;
-    const outReceipts = [];
-    messages.forEach(message => {
-      const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-      if (message.dialog_type !== 's') {
-        outReceipts.push({
-          status: 'received',
-          sender_id: messageObj.sender.id,
-          dialog_id: message.dialog_id,
-          id: message.temp_id
-        });
-      } else {
-        SELF.processSystemMessage(messageObj);
-      }
-      SELF.saveDialog(messageObj);
-    });
-    // send recieve receipt
-    this.sendReciept(outReceipts);
+  saveSyncedMessages(messages, cb) {
+    this.outReceipts = [];
+    this.processSyncedMessage(messages, 0, messages.length, cb);
   }
 
-  saveSentMessage(message) {
+  processSyncedMessage(messages, currentIndex, maxIndex, cb) {
+    const SELF = this;
+    if (currentIndex >= maxIndex) {
+      this.sendReciept(this.outReceipts);
+      cb();
+      return;
+    }
+
+    const message = messages[currentIndex];
     const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-    this.saveDialog(messageObj);
-    return messageObj;
+    if (message.dialog_type !== 's') {
+      this.outReceipts.push({
+        status: 'received',
+        sender_id: messageObj.sender.id,
+        dialog_id: message.dialog_id,
+        id: message.temp_id
+      });
+    } else {
+      this.processSystemMessage(messageObj);
+    }
+
+    this.checkDialogExist(messageObj, (dialog, newDialog) => {
+      if (dialog) {
+        SELF.saveDialog(messageObj, newDialog);
+      }
+      const nextIndex = currentIndex + 1;
+      SELF.processSyncedMessage(messages, nextIndex, maxIndex, cb);
+    });
+  }
+
+  saveSentMessage(message, cb) {
+    const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
+    const SELF = this;
+    this.checkDialogExist(messageObj, (dialog, newDialog) => {
+      if (dialog) {
+        SELF.saveDialog(messageObj, newDialog);
+        if (cb) {
+          cb(messageObj);
+        }
+      }
+    });
   }
 
   sendReciept(receipts, cb) {
@@ -10293,7 +10340,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogID = `${messageObj.dialogID}`;
     const dialog = dialogCache[dialogID];
     if (!dialog) {
-      console.log('dialog not found');
+      // console.log('dialog not found');
       return;
     }
 
@@ -10304,13 +10351,19 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
     // process members
     if (messageObj.metaData && messageObj.metaData.members) {
+      dialog.members = [];
       messageObj.metaData.members.forEach(member => {
         const userID = member;
-        if (!userCache[userID] && SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
-          SELF.dialogUsersSearchQueue.push(userID);
+        if (!userCache[userID]) {
+          if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
+            SELF.dialogUsersSearchQueue.push(userID);
+          }
+          dialog.waitFetchMemberIDs.push(userID);
+        } else {
+          dialog.members.push(userCache[userID]);
         }
       });
-      dialog.members = messageObj.metaData.members;
+      dialog.memberIDs = messageObj.metaData.members;
     }
 
     // Join dialog
@@ -10320,6 +10373,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         if (!userCache[userID]) {
           if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
             SELF.dialogUsersSearchQueue.push(userID);
+            dialog.waitFetchMemberIDs.push(userID);
           }
           const joinDialogs = SELF.joinDialogUsers[userID];
           if (!joinDialogs) {
@@ -10328,12 +10382,13 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
             SELF.joinDialogUsers[userID].push(dialog.id);
           }
         } else {
+          dialog.members.push(userCache[userID]);
           // notify user join dialog
           SELF.notifyUserJoinDialog(dialog, userCache[userID]);
         }
 
-        if (dialog.members.indexOf(userID) === -1) {
-          dialog.members.push(userID);
+        if (dialog.memberIDs.indexOf(userID) === -1) {
+          dialog.memberIDs.push(userID);
         }
       });
     }
@@ -10344,9 +10399,9 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
       Object.keys(messageObj.metaData.users).forEach(userIndex => {
         const userID = messageObj.metaData.users[userIndex];
-        const memberIndex = dialog.members.indexOf(userID);
+        const memberIndex = dialog.memberIDs.indexOf(userID);
+        dialog.removeMemberWithID(userID);
         if (memberIndex >= 0) {
-          dialog.members.splice(memberIndex, 1);
           if (userCache[userID]) {
             // notify user leave dialog
             SELF.notifyUserLeftDialog(dialog, userCache[userID]);
@@ -10412,20 +10467,33 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     return messageObj.sender;
   }
 
-  saveDialog(messageObj) {
+  checkDialogExist(messageObj, cb) {
     const dialogCache = this.afCore.Dialog.dialogs;
     const dialogID = `${messageObj.dialogID}`;
     let dialog = null;
+    const SELF = this;
     let newDialog = false;
     if (dialogCache[dialogID]) {
       dialog = dialogCache[dialogID];
     } else {
-      // group dialog not found then ignore this message
+      newDialog = true;
       if (messageObj.dialogType !== __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
-        return null;
+        if (this.afCore.Dialog.leaveDialogs.indexOf(dialogID) >= 0) {
+          cb(null, newDialog);
+          return;
+        }
+        console.log('getDialogInfo %o %o', messageObj.dialogID, newDialog);
+        this.afCore.Dialog.getDialogInfo(dialogID, (returnedDialog, err) => {
+          if (err) {
+            SELF.afCore.Dialog.leaveDialogs.push(dialogID);
+            cb(null, newDialog);
+          } else {
+            cb(returnedDialog, newDialog);
+          }
+        });
+        return;
       }
 
-      newDialog = true;
       dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual ? __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual : __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group);
 
       if (!messageObj.isSystemMessage()) {
@@ -10438,6 +10506,13 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       }
       dialogCache[dialogID] = dialog;
     }
+    cb(dialog, newDialog);
+  }
+
+  saveDialog(messageObj, newDialog) {
+    const dialogCache = this.afCore.Dialog.dialogs;
+    const dialogID = `${messageObj.dialogID}`;
+    const dialog = dialogCache[dialogID];
 
     if (dialog.lastMessageTime < messageObj.receiveTime && !messageObj.isSystemMessage()) {
       dialog.lastMessageText = messageObj.text;
@@ -10463,13 +10538,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
     if (newDialog) {
       this.notifyDialogCreated(dialog);
-      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
-        this.afCore.Dialog.getDialogInfo(dialog.id, (fetchedDialog, error) => {
-          if (error === null) {
-            this.notifyDialogUpdated(fetchedDialog);
-          }
-        });
-      }
     } else {
       this.notifyDialogUpdated(dialog);
     }
@@ -10680,6 +10748,15 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           dialog.title = userCache[dialog.id].username;
           notifyDialogs.push(dialog);
         }
+      }
+
+      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
+        dialog.waitFetchMemberIDs.forEach(memberID => {
+          if (userCache[memberID]) {
+            dialog.members.push(userCache[memberID]);
+          }
+        });
+        dialog.waitFetchMemberIDs = [];
       }
     });
 

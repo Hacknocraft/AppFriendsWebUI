@@ -538,7 +538,7 @@ class ChatSection extends Element {
       for (var i = 0 ; i < items.length ; i++) {
         let item = items[i];
         if (item.id == message.messageId) {
-          this.setUnreadCount(item.unread, channelSet.channel.getReadReceipt(message));
+          this.setUnreadCount(item.unread, channelSet.dialog.getReadReceipt(message));
           break;
         }
       }
