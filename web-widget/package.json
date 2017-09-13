@@ -4,7 +4,9 @@
   "description": "SendBird Widget Sample",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "karma start --reporters html,dots",
+    "build": "webpack",
+    "dev": "webpack --progress --colors --watch"
   },
   "author": "SendBird",
   "license": "ISC",

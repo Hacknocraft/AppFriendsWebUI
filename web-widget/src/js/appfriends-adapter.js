@@ -92,13 +92,23 @@ class AFAdapter {
   }
 
   createNewChannel(userIds, action) {
-    this.af.GroupChannel.createChannelWithUserIds(userIds, true, '', '', '', function(channel, error) {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      action(channel);
-    });
+    if (userIds.length == 1) {
+      //private chat
+      this.af.Dialog.createPrivateDialogWitUserID(userIds[0], function(channel){
+        action(channel);
+      });
+    }
+    else
+    {
+      this.af.Dialog.createGroupDialogWithMemberIDs(userIds, '', function(channel, error) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        action(channel);
+      });
+    }
+
   }
 
   inviteMember(channel, userIds, action) {
@@ -112,7 +122,8 @@ class AFAdapter {
   }
 
   channelLeave(channel, action) {
-    channel.leave((response, error) => {
+    console.log("!!! leave channel %o", channel);
+    this.af.Dialog.leaveDialog(channel, (channel, error) => {
       if (error) {
         console.error(error);
         return;
@@ -174,7 +185,11 @@ class AFAdapter {
    */
   getUserList(action) {
     if (!this.userListQuery) {
-      this.userListQuery = this.af.createUserListQuery();
+      this.userListQuery = this.af.User.createUserListQuery();
+    }
+    else
+    {
+      this.userListQuery.reset();
     }
     if (this.userListQuery.hasNext && !this.userListQuery.isLoading) {
       this.userListQuery.next((userList, error) => {
@@ -197,7 +212,7 @@ class AFAdapter {
     let badgeChangedFunc = args[3];
     let userJoinFunc = args[4];
     // let readReceiptFunc = args[4];
-    // let userLeftFunc = args[5];
+    let userLeftFunc = args[5];
 
     let DialogHandler = {
       onMessageReceived: (dialog, message) => {
@@ -214,8 +229,28 @@ class AFAdapter {
       },
       onUserJoined: (dialog, user) => {
         userJoinFunc(dialog, user);
+      },
+      onUserLeft: (dialog, user) =>
+      {
+        userLeftFunc(dialog, user);
       }
     };
+// channelHandler.onMessageReceived = function(channel, message) {
+//   messageReceivedFunc(channel, message);
+// };
+// channelHandler.onChannelChanged = function(channel) {
+//   ChannelChangedFunc(channel);
+// };
+// channelHandler.onTypingStatusUpdated = function(channel) {
+//   typingStatusFunc(channel);
+// };
+// channelHandler.onReadReceiptUpdated = function(channel) {
+//   readReceiptFunc(channel);
+// };
+// channelHandler.unc: (dialog, user) => {
+//  userLeftFunc
+//}
+  //  };
     // channelHandler.onMessageReceived = function(channel, message) {
     //   messageReceivedFunc(channel, message);
     // };

@@ -121,7 +121,7 @@ class SBWidget {
     this.extraChannelSetList = [];
     for (var i = 0 ; i < this.activeChannelSetList.length ; i++) {
       let channelSet = this.activeChannelSetList[i];
-      let targetBoard = this.chatSection.getChatBoard(channelSet.channel.url);
+      let targetBoard = this.chatSection.getChatBoard(channelSet.dialog.id);
       if (targetBoard) {
         this.chatSection.closeChatBoard(targetBoard);
       }
@@ -269,7 +269,8 @@ class SBWidget {
         this.dialogCreatedAction.bind(this),
         this.dialogUpdatedAction.bind(this),
         this.dialogBadgeUpdated.bind(this),
-        this.dialogUserJoined.bind(this)
+        this.dialogUserJoined.bind(this),
+          this.dialogUserLeft.bind(this)
       )
     });
   }
@@ -280,6 +281,22 @@ class SBWidget {
 
   dialogBadgeUpdated() {
 
+  }
+
+  dialogUserLeft(dialog, user){
+    console.log("dialogUserLeft %o %o", dialog, user);
+    if (this.afadapter.isCurrentUser(user)) {
+      let item = this.listBoard.getChannelItem(dialog.id);
+      this.listBoard.list.removeChild(item);
+      this.listBoard.checkEmptyList();
+    } else {
+      this.listBoard.setChannelTitle(dialog.id, this.afadapter.getDialogTitle(dialog));
+      this.updateUnreadMessageCount(dialog);
+      let targetChatBoard = this.chatSection.getChatBoard(dialog.id);
+      if (targetChatBoard) {
+        this.updateChannelInfo(targetChatBoard, dialog);
+      }
+    }
   }
 
   dialogUpdatedAction(dialog) {
@@ -468,7 +485,8 @@ class SBWidget {
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
         let channelSet = this.getDialogSet(dialogID);
         if (channelSet) {
-          this.afadapter.channelLeave(channelSet.channel, () => {
+          console.log("channelSet %o", channelSet);
+          this.afadapter.channelLeave(channelSet.dialog, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
             removeClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
             chatBoard.leavePopup = null;
@@ -489,9 +507,9 @@ class SBWidget {
         let index = this.chatSection.indexOfChatBord(dialogID);
         this.popup.showMemberPopup(this.chatSection.self, index);
         let channelSet = this.getDialogSet(dialogID);
-        this.popup.updateCount(this.popup.memberPopup.count, channelSet.channel.memberCount);
-        for (var i = 0 ; i < channelSet.channel.members.length ; i++) {
-          let member = channelSet.channel.members[i];
+        this.popup.updateCount(this.popup.memberPopup.count, channelSet.dialog.members.length);
+        for (var i = 0 ; i < channelSet.dialog.members.length ; i++) {
+          let member = channelSet.dialog.members[i];
           let item = this.popup.createMemberItem(member, false, this.afadapter.isCurrentUser(member));
           this.popup.memberPopup.list.appendChild(item);
         }
@@ -505,7 +523,7 @@ class SBWidget {
           }
           for (var i = 0 ; i < userList.length ; i++) {
             let user = userList[i];
-            if (memberIds.indexOf(user.userId) < 0) {
+            if (memberIds.indexOf(user.id) < 0) {
               let item = this.popup.createMemberItem(user, true);
               this.popup.addClickEvent(item, () => {
                 hasClass(item.select, className.ACTIVE) ? removeClass(item.select, className.ACTIVE) : addClass(item.select, className.ACTIVE);
@@ -529,7 +547,7 @@ class SBWidget {
         this.popup.showInvitePopup(this.chatSection.self, index);
         this.spinner.insert(this.popup.invitePopup.list);
         let channelSet = this.getDialogSet(dialogID);
-        let memberIds = channelSet.channel.members.map((member) => {
+        let memberIds = channelSet.dialog.members.map((member) => {
           return member.userId;
         });
         _getUserList(memberIds);
@@ -540,11 +558,11 @@ class SBWidget {
             this.spinner.insert(this.popup.invitePopup.inviteBtn);
             let selectedUserIds = this.popup.getSelectedUserIds(this.popup.invitePopup.list);
             let channelSet = this.getDialogSet(dialogID);
-            this.afadapter.inviteMember(channelSet.channel, selectedUserIds, () => {
+            this.afadapter.inviteMember(channelSet.dialog, selectedUserIds, () => {
               this.spinner.remove(this.popup.invitePopup.inviteBtn);
               this.closeInvitePopup();
-              this.listBoard.setChannelTitle(channelSet.channel.url, this.afadapter.getNicknamesString(channelSet.channel));
-              this.updateChannelInfo(chatBoard, channelSet.channel);
+              this.listBoard.setChannelTitle(channelSet.dialog.url, this.afadapter.getNicknamesString(channelSet.dialog));
+              this.updateChannelInfo(chatBoard, channelSet.dialog);
             });
           }
         });
