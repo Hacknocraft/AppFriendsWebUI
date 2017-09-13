@@ -291,16 +291,27 @@ class AFAdapter {
     return nicknameList.toString();
   }
 
-  getDialogTitle(dialog) {
+  getDialogTitle(dialog, callback) {
     if (dialog.isPublicChannel()) {
-      return dialog.title;
+      return callback(dialog.title);
     } else if (dialog.isPrivateGroupChat()) {
       if (dialog.title === '') {
         return `Untitled group, ${dialog.getMemberCount()} users`;
       } else {
         return dialog.title;
       }
+    } else {
+      // private one on one chat, we should try fetch the user info
+      if (dialog.title === '') {
+        this.af.User.findUserWithID(dialog.id, (user, error) => {
+          if (user !== null) {
+            dialog.title = user.username;
+            return dialog.title;
+          }
+        });
+      }
     }
+
     return dialog.title;
   }
 
