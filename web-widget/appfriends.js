@@ -9936,6 +9936,18 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     });
   }
 
+  inviteWithMemberIds(dialog, memberIDs, cb) {
+    this.sendPostRequest({ members: memberIDs }, `/dialogs/${dialog.id}/members`, (response, err) => {
+      if (!err) {
+        if (cb) {
+          cb(dialog, null);
+        }
+      } else if (cb) {
+        cb(null, err);
+      }
+    });
+  }
+
   saveAllDialogs(dialogsItems) {
     // clear all cached dialogs
     const SELF = this;
@@ -10482,7 +10494,6 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           cb(null, newDialog);
           return;
         }
-        console.log('getDialogInfo %o %o', messageObj.dialogID, newDialog);
         this.afCore.Dialog.getDialogInfo(dialogID, (returnedDialog, err) => {
           if (err) {
             SELF.afCore.Dialog.leaveDialogs.push(dialogID);
@@ -10542,7 +10553,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       this.notifyDialogUpdated(dialog);
     }
 
-    if (!this.firstSyncFlag && messageObj.dialogType !== 's') {
+    if (!this.firstSyncFlag) {
       this.notifyMessageReceived(dialog, messageObj);
     }
 

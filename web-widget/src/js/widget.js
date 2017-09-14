@@ -548,7 +548,7 @@ class SBWidget {
         this.spinner.insert(this.popup.invitePopup.list);
         let channelSet = this.getDialogSet(dialogID);
         let memberIds = channelSet.dialog.members.map((member) => {
-          return member.userId;
+          return member.id;
         });
         _getUserList(memberIds);
 
@@ -561,7 +561,7 @@ class SBWidget {
             this.afadapter.inviteMember(channelSet.dialog, selectedUserIds, () => {
               this.spinner.remove(this.popup.invitePopup.inviteBtn);
               this.closeInvitePopup();
-              this.listBoard.setChannelTitle(channelSet.dialog.url, this.afadapter.getNicknamesString(channelSet.dialog));
+              this.listBoard.setChannelTitle(channelSet.dialog.id, this.afadapter.getNicknamesString(channelSet.dialog));
               this.updateChannelInfo(chatBoard, channelSet.dialog);
             });
           }
@@ -591,6 +591,21 @@ class SBWidget {
           listItem = this.createDialogItem(fetchedDialog);
           this.listBoard.list.insertBefore(listItem, this.listBoard.list.firstChild);
         }
+
+        if (dialog.type === 'i')
+        {
+          hide(chatBoard.leaveBtn);
+          hide(chatBoard.memberBtn);
+          hide(chatBoard.inviteBtn);
+        }
+        else
+        {
+          show(chatBoard.leaveBtn);
+          show(chatBoard.memberBtn);
+          show(chatBoard.inviteBtn);
+        }
+
+
       }
     });
   }

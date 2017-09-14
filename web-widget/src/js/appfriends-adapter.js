@@ -112,7 +112,7 @@ class AFAdapter {
   }
 
   inviteMember(channel, userIds, action) {
-    channel.inviteWithUserIds(userIds, (response, error) => {
+    this.af.Dialog.inviteWithMemberIds(channel, userIds, (response, error) => {
       if (error) {
         console.error(error);
         return;
