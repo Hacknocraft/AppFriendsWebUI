@@ -112,7 +112,7 @@ class AFAdapter {
   }
 
   inviteMember(channel, userIds, action) {
-    this.af.Dialog.inviteWithMemberIds(channel, userIds, (response, error) => {
+    this.af.Dialog.inviteWithMemberIds(channel.id, userIds, (response, error) => {
       if (error) {
         console.error(error);
         return;
@@ -123,7 +123,7 @@ class AFAdapter {
 
   channelLeave(channel, action) {
     console.log("!!! leave channel %o", channel);
-    this.af.Dialog.leaveDialog(channel, (channel, error) => {
+    this.af.Dialog.leaveDialog(channel.id, (channel, error) => {
       if (error) {
         console.error(error);
         return;
