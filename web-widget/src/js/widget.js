@@ -301,7 +301,6 @@ class SBWidget {
 
   dialogUpdatedAction(dialog) {
 
-    console.log("dialog updated");
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();
@@ -414,7 +413,6 @@ class SBWidget {
   createDialogItem(dialog) {
 
     const dialogImage = dialog.getDialogImage();
-    console.log(dialog.type);
     let item = this.listBoard.createChannelItem(
       dialog.id,
       dialogImage,
@@ -426,7 +424,6 @@ class SBWidget {
 
     this.listBoard.addChannelClickEvent(item, () => {
       this.closePopup();
-      console.log("open dialog");
       let channelID = item.getAttribute('data-channel-id');
       let openChatBoard = this.chatSection.getChatBoard(channelID);
       if (!openChatBoard) {
@@ -485,7 +482,6 @@ class SBWidget {
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
         let channelSet = this.getDialogSet(dialogID);
         if (channelSet) {
-          console.log("channelSet %o", channelSet);
           this.afadapter.channelLeave(channelSet.dialog, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
             removeClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
@@ -573,6 +569,7 @@ class SBWidget {
       }
     });
     this.spinner.insert(chatBoard.content);
+
     this.afadapter.getDialogInfo(dialog, (fetchedDialog, error) => {
       this.spinner.remove(chatBoard.content);
       if (fetchedDialog === null) {

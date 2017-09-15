@@ -95,8 +95,6 @@ class Popup extends Element {
     var li = this.createLi();
     var div = this.createDiv();
 
-    console.log("member %o", member);
-
     if (isInvite) {
       var userSelect = this.createDiv();
       this._setClass(userSelect, [className.USER_SELECT]);

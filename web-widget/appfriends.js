@@ -4763,7 +4763,6 @@ class Dialog {
         } else {
           const messages = [];
           const allKeys = Object.keys(dialogSelf.messages).sort((a, b) => b - a);
-          console.log('load private chat');
           for (let i = 0; i < allKeys.length; i += 1) {
             const currentKey = allKeys[i];
             if (currentKey < messageID || fromBeginning) {

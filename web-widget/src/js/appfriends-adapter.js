@@ -122,7 +122,6 @@ class AFAdapter {
   }
 
   channelLeave(channel, action) {
-    console.log("!!! leave channel %o", channel);
     this.af.Dialog.leaveDialog(channel.id, (channel, error) => {
       if (error) {
         console.error(error);
@@ -211,7 +210,6 @@ class AFAdapter {
     let dialogChangedFunc = args[2];
     let badgeChangedFunc = args[3];
     let userJoinFunc = args[4];
-    // let readReceiptFunc = args[4];
     let userLeftFunc = args[5];
 
     let DialogHandler = {
@@ -235,42 +233,6 @@ class AFAdapter {
         userLeftFunc(dialog, user);
       }
     };
-// channelHandler.onMessageReceived = function(channel, message) {
-//   messageReceivedFunc(channel, message);
-// };
-// channelHandler.onChannelChanged = function(channel) {
-//   ChannelChangedFunc(channel);
-// };
-// channelHandler.onTypingStatusUpdated = function(channel) {
-//   typingStatusFunc(channel);
-// };
-// channelHandler.onReadReceiptUpdated = function(channel) {
-//   readReceiptFunc(channel);
-// };
-// channelHandler.unc: (dialog, user) => {
-//  userLeftFunc
-//}
-  //  };
-    // channelHandler.onMessageReceived = function(channel, message) {
-    //   messageReceivedFunc(channel, message);
-    // };
-    // channelHandler.onChannelChanged = function(channel) {
-    //   ChannelChangedFunc(channel);
-    // };
-    // channelHandler.onTypingStatusUpdated = function(channel) {
-    //   typingStatusFunc(channel);
-    // };
-    // channelHandler.onReadReceiptUpdated = function(channel) {
-    //   readReceiptFunc(channel);
-    // };
-    // channelHandler.onUserLeft = function (channel, user) {
-    //   userLeftFunc(channel, user);
-    // };
-    // channelHandler.onUserJoined = function (channel, user) {
-    //   userJoinFunc(channel, user);
-    // };
-
-    console.log("add handler");
     this.af.addDialogHandler(GLOBAL_HANDLER, DialogHandler);
   }
 
