@@ -301,7 +301,6 @@ class SBWidget {
 
   dialogUpdatedAction(dialog) {
 
-    console.log("dialog updated");
     let target = this.listBoard.getChannelItem(dialog.id);
     if (!target) {
       this.listBoard.checkEmptyList();
@@ -313,6 +312,7 @@ class SBWidget {
                                              this.afadapter.getMessageTime(dialog.lastMessageTime));
     this.listBoard.setChannelAvatar(dialog.id, dialog.getDialogImage());
     this.listBoard.setChannelTitle(dialog.id, this.afadapter.getDialogTitle(dialog));
+    this.updateUnreadMessageCount(dialog);
   }
 
   dialogCreatedAction(dialog) {
@@ -420,7 +420,6 @@ class SBWidget {
   createDialogItem(dialog) {
 
     const dialogImage = dialog.getDialogImage();
-    console.log(dialog.type);
     let item = this.listBoard.createChannelItem(
       dialog.id,
       dialogImage,

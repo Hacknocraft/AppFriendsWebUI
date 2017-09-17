@@ -165,7 +165,7 @@ class AFAdapter {
 
   sendTextMessage(dialog, textMessage, action) {
     console.log("sendTextMessage");
-    dialog.sendTextMessage(textMessage, '', false, [], (message, error) => {
+    dialog.sendTextMessage(textMessage, '', false, [], true, (message, error) => {
       if (error) {
         console.error(error);
         return;

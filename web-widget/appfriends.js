@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 126);
+/******/ 	return __webpack_require__(__webpack_require__.s = 127);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1751,7 +1751,7 @@ module.exports = g;
 
 
 var bind = __webpack_require__(31);
-var isBuffer = __webpack_require__(115);
+var isBuffer = __webpack_require__(116);
 
 /*global toString:true*/
 
@@ -2780,15 +2780,15 @@ Emitter.prototype.hasListeners = function(event){
  * Module dependencies.
  */
 
-var keys = __webpack_require__(112);
+var keys = __webpack_require__(113);
 var hasBinary = __webpack_require__(41);
 var sliceBuffer = __webpack_require__(52);
 var after = __webpack_require__(51);
-var utf8 = __webpack_require__(113);
+var utf8 = __webpack_require__(114);
 
 var base64encoder;
 if (global && global.ArrayBuffer) {
-  base64encoder = __webpack_require__(79);
+  base64encoder = __webpack_require__(80);
 }
 
 /**
@@ -2846,7 +2846,7 @@ var err = { type: 'error', data: 'parser error' };
  * Create a blob api even for blob builder when vendor prefixes exist
  */
 
-var Blob = __webpack_require__(80);
+var Blob = __webpack_require__(81);
 
 /**
  * Encodes a packet.
@@ -3429,25 +3429,25 @@ class User {
 
 
 class BaseService {
-  sendPostRequest(paramsJSON, path, cb) {
+  sendPostRequest(paramsJSON, path, callback) {
     const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
     return request.startRequest('POST', path, paramsJSON).then(response => {
       if (response.data.error) {
         const error = response.data.error;
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        cb(null, afError);
+        callback(null, afError);
       } else {
-        cb(response, null);
+        callback(response, null);
       }
     }).catch(error => {
-      if (cb) {
+      if (callback) {
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        cb(null, afError);
+        callback(null, afError);
       }
     });
   }
 
-  sendGetRequest(path, params, cb) {
+  sendGetRequest(path, params, callback) {
     const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
     let fullPath = path;
     if (params) {
@@ -3457,50 +3457,50 @@ class BaseService {
       if (response.data.error) {
         const error = response.data.error;
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        cb(null, afError);
+        callback(null, afError);
       } else {
-        cb(response, null);
+        callback(response, null);
       }
     }).catch(error => {
-      if (cb) {
+      if (callback) {
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        cb(null, afError);
+        callback(null, afError);
       }
     });
   }
 
-  sendPutRequest(paramsJSON, path, cb) {
+  sendPutRequest(paramsJSON, path, callback) {
     const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
     return request.startRequest('PUT', path, paramsJSON).then(response => {
       if (response.data.error) {
         const error = response.data.error;
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        cb(null, afError);
+        callback(null, afError);
       } else {
-        cb(response, null);
+        callback(response, null);
       }
     }).catch(error => {
-      if (cb && error) {
+      if (callback && error) {
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        cb(null, afError);
+        callback(null, afError);
       }
     });
   }
 
-  sendDeleteRequest(paramsJSON, path, cb) {
+  sendDeleteRequest(paramsJSON, path, callback) {
     const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
     return request.startRequest('DELETE', path, paramsJSON).then(response => {
       if (response.data.error) {
         const error = response.data.error;
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        cb(null, afError);
+        callback(null, afError);
       } else {
-        cb(response, null);
+        callback(response, null);
       }
     }).catch(error => {
-      if (cb && error) {
+      if (callback && error) {
         const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        cb(null, afError);
+        callback(null, afError);
       }
     });
   }
@@ -3522,7 +3522,7 @@ class BaseService {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(105);
+exports = module.exports = __webpack_require__(106);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -4391,7 +4391,7 @@ process.umask = function() { return 0; };
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(120);
+exports = module.exports = __webpack_require__(121);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -4741,7 +4741,7 @@ class Dialog {
       this.isLoading = false;
       this.hasMore = true;
       const SELF = this;
-      this.load = function (limit, reverse, fromBeginning = false, cb) {
+      this.load = function (limit, reverse, fromBeginning = false, callback) {
         SELF.isLoading = true;
         const messageID = fromBeginning ? null : dialogSelf.earliestMessageID;
         if (dialogSelf.isPublicChannel()) {
@@ -4754,7 +4754,7 @@ class Dialog {
               const cachedDialog = window.af.getDialog(dialogSelf.id);
               cachedDialog.earliestMessageID = messages[0].messageID;
             }
-            cb(messages, error);
+            callback(messages, error);
           });
         } else {
           const messages = [];
@@ -4778,14 +4778,14 @@ class Dialog {
           if (sortedMessages.length < 20) {
             SELF.hasMore = false;
           }
-          cb(sortedMessages, null);
+          callback(sortedMessages, null);
         }
       };
     }(this);
   }
 
-  sendTextMessage(text, customData = '', requireReceipt = false, mentionUsers = [], sendPush = true, cb = null) {
-    window.af.Dialog.sendTextMessage(text, customData, this.id, this.type, requireReceipt, mentionUsers, sendPush, cb);
+  sendTextMessage(text, customData = '', requireReceipt = false, mentionUsers = [], sendPush = true, callback = null) {
+    window.af.Dialog.sendTextMessage(this, text, customData, requireReceipt, mentionUsers, sendPush, callback);
   }
 
   removeMemberWithID(memberID) {
@@ -5293,7 +5293,7 @@ Transport.prototype.onClose = function () {
 
 /* WEBPACK VAR INJECTION */(function(global) {// browser shim for xmlhttprequest module
 
-var hasCORS = __webpack_require__(114);
+var hasCORS = __webpack_require__(115);
 
 module.exports = function (opts) {
   var xdomain = opts.xdomain;
@@ -5386,7 +5386,7 @@ exports.decode = function(qs){
 var debug = __webpack_require__(11)('socket.io-parser');
 var Emitter = __webpack_require__(5);
 var hasBin = __webpack_require__(41);
-var binary = __webpack_require__(122);
+var binary = __webpack_require__(123);
 var isBuf = __webpack_require__(48);
 
 /**
@@ -6070,7 +6070,7 @@ class LocationCoordinate2D {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Message; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_id__ = __webpack_require__(76);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_id__ = __webpack_require__(77);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__user__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__attachment__ = __webpack_require__(71);
 
@@ -6399,7 +6399,7 @@ exports.createError = function (message, code) {
 
 module.exports = function (appSecret, userToken) {
 
-  var CryptoJS = __webpack_require__(84);
+  var CryptoJS = __webpack_require__(85);
   // Defining our token parts
   var header = {
     "alg": "HS256",
@@ -7013,9 +7013,9 @@ module.exports = function(obj, fn){
  */
 
 var XMLHttpRequest = __webpack_require__(24);
-var XHR = __webpack_require__(110);
-var JSONP = __webpack_require__(109);
-var websocket = __webpack_require__(111);
+var XHR = __webpack_require__(111);
+var JSONP = __webpack_require__(110);
+var websocket = __webpack_require__(112);
 
 /**
  * Export transports.
@@ -7464,7 +7464,7 @@ module.exports = function parseuri(str) {
  * Module dependencies.
  */
 
-var eio = __webpack_require__(106);
+var eio = __webpack_require__(107);
 var Socket = __webpack_require__(47);
 var Emitter = __webpack_require__(5);
 var parser = __webpack_require__(26);
@@ -7472,7 +7472,7 @@ var on = __webpack_require__(46);
 var bind = __webpack_require__(36);
 var debug = __webpack_require__(18)('socket.io-client:manager');
 var indexOf = __webpack_require__(42);
-var Backoff = __webpack_require__(78);
+var Backoff = __webpack_require__(79);
 
 /**
  * IE6+ hasOwnProperty
@@ -8075,7 +8075,7 @@ function on (obj, ev, fn) {
 
 var parser = __webpack_require__(26);
 var Emitter = __webpack_require__(5);
-var toArray = __webpack_require__(123);
+var toArray = __webpack_require__(124);
 var on = __webpack_require__(46);
 var bind = __webpack_require__(36);
 var debug = __webpack_require__(18)('socket.io-client:socket');
@@ -8587,12 +8587,12 @@ module.exports = yeast;
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AFCore; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__services_dialogservice__ = __webpack_require__(73);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_channelservice__ = __webpack_require__(72);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__services_dialogservice__ = __webpack_require__(74);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_channelservice__ = __webpack_require__(73);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_usersession__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_userservice__ = __webpack_require__(75);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_userservice__ = __webpack_require__(76);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__services_request__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__services_syncservice__ = __webpack_require__(74);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__services_syncservice__ = __webpack_require__(75);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__logger__ = __webpack_require__(12);
 
 
@@ -8617,7 +8617,7 @@ class AFCore {
     this.Logger = __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */];
     this.dialogHandlers = {};
 
-    this.Logger.setLogLevel(__WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].levels.TRACE);
+    this.Logger.setLogLevel(__WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].levels.ERROR);
   }
 
   addDialogHandler(id, handler) {
@@ -9727,6 +9727,22 @@ class AttachmentFactory {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Pager; });
+class Pager {
+  constructor(totalCounts, totalPage, currentPage) {
+    this.totalCounts = totalCounts;
+    this.totalPage = totalPage;
+    this.currentPage = currentPage;
+  }
+}
+
+
+
+/***/ }),
+/* 73 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ChannelService; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__service__ = __webpack_require__(10);
@@ -9818,7 +9834,7 @@ class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* defau
 
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9854,31 +9870,31 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     return null;
   }
 
-  getDialogInfo(dialogID, cb) {
+  getDialogInfo(dialogID, callback) {
     const SELF = this;
     this.sendGetRequest(`/dialogs/${dialogID}`, null, (response, err) => {
-      if (cb) {
+      if (callback) {
         if (err === null) {
           const dialog = SELF.dialogObjectFromData(response.data);
           if (this.dialogs[dialogID]) {
             this.dialogs[dialogID].title = dialog.title;
-            cb(this.dialogs[dialogID], null);
+            callback(this.dialogs[dialogID], null);
             return;
           }
           SELF.dialogs[`${dialog.id}`] = dialog;
-          cb(dialog, null);
+          callback(dialog, null);
         } else {
-          cb(null, err);
+          callback(null, err);
         }
       }
     });
   }
 
-  createPrivateDialogWitUserID(destUserID, cb) {
+  createPrivateDialogWitUserID(destUserID, callback) {
     if (this.afCore.User.users[destUserID]) {
       const dialog = this.createPrivateDialog(this.afCore.User.users[destUserID]);
-      if (cb) {
-        cb(dialog, null);
+      if (callback) {
+        callback(dialog, null);
       }
       return;
     }
@@ -9887,11 +9903,11 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     this.afCore.User.fetchUserInfo(destUserID, (user, err) => {
       if (!err) {
         const dialog = SELF.createPrivateDialog(user);
-        if (cb) {
-          cb(dialog, null);
+        if (callback) {
+          callback(dialog, null);
         }
-      } else if (cb) {
-        cb(null, err);
+      } else if (callback) {
+        callback(null, err);
       }
     });
   }
@@ -9923,7 +9939,7 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     return dialog;
   }
 
-  createGroupDialogWithMemberIDs(memberIDs, name, cb) {
+  createGroupDialogWithMemberIDs(memberIDs, name, callback) {
     const SELF = this;
     if (memberIDs.indexOf(this.afCore.Session.currentUser().id) < 0) {
       memberIDs.push(this.afCore.Session.currentUser().id);
@@ -9936,73 +9952,73 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
             userCache[user.id] = user;
           }
         });
-        SELF.createGroupDialog(memberIDs, name, cb);
+        SELF.createGroupDialog(memberIDs, name, callback);
       } else {
-        cb(null, err);
+        callback(null, err);
       }
     });
   }
 
-  createGroupDialog(members, name, cb) {
+  createGroupDialog(members, name, callback) {
     const SELF = this;
     this.sendPostRequest({ members, name }, '/dialogs', (response, err) => {
       if (!err) {
         const dialog = SELF.dialogObjectFromData(response.data);
         this.dialogs[dialog.id] = dialog;
         this.afCore.MessageSync.notifyDialogUpdated(dialog);
-        if (cb) {
-          cb(dialog, null);
+        if (callback) {
+          callback(dialog, null);
         }
-      } else if (cb) {
-        cb(null, err);
+      } else if (callback) {
+        callback(null, err);
       }
     });
   }
 
-  fetchAllDialogs(cb) {
+  fetchAllDialogs(callback) {
     const SELF = this;
     this.sendGetRequest('/dialogs', null, (response, err) => {
-      if (cb) {
+      if (callback) {
         if (err === null) {
           SELF.saveAllDialogs(response.data);
-          cb(Object.values(SELF.dialogs), null);
+          callback(Object.values(SELF.dialogs), null);
         } else {
-          cb(response, err);
+          callback(response, err);
         }
       }
     });
   }
 
-  leaveDialog(dialogID, cb) {
+  leaveDialog(dialogID, callback) {
     const userID = this.afCore.Session.currentUser().id;
     __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].debug(`leave userID ${userID}`);
     const SELF = this;
     this.sendDeleteRequest({ members: [userID] }, `/dialogs/${dialogID}/members`, (response, err) => {
-      if (cb) {
+      if (callback) {
         if (!err) {
           const dialog = SELF.dialogs[dialogID];
           if (SELF.dialogs[dialogID]) {
             delete SELF.dialogs[dialogID];
           }
           SELF.afCore.MessageSync.notifyUserLeftDialog(dialog, SELF.afCore.Session.currentUser());
-          cb(dialog, null);
+          callback(dialog, null);
         } else {
-          cb(null, err);
+          callback(null, err);
         }
       }
     });
   }
 
-  inviteWithMemberIds(dialogID, memberIDs, cb) {
+  inviteWithMemberIds(dialogID, memberIDs, callback) {
     const SELF = this;
     this.sendPostRequest({ members: memberIDs }, `/dialogs/${dialogID}/members`, (response, err) => {
       if (!err) {
-        if (cb) {
+        if (callback) {
           const dialog = SELF.dialogs[dialogID];
-          cb(dialog, null);
+          callback(dialog, null);
         }
-      } else if (cb) {
-        cb(null, err);
+      } else if (callback) {
+        callback(null, err);
       }
     });
   }
@@ -10027,7 +10043,10 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     return dialogObj;
   }
 
-  sendTextMessage(text, customData, dialogID, dialogType, requireReceipt, mentionUsers, cb = null, sendPush = true) {
+  // Send text message
+  sendTextMessage(dialog, text, customData, requireReceipt, mentionUsers, sendPush = true, callback = null) {
+    const dialogID = dialog.id;
+    const dialogType = dialog.type;
     if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && requireReceipt) {
       // Requiring receipt is not permitted in open channel
       return;
@@ -10037,10 +10056,12 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     const textMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers);
     const messageJSON = textMessage.genTextMessageJSON(sendPush);
 
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
+    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
   }
 
-  sendImageMessage(imageURL, thumbnailURL, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
+  sendImageMessage(dialog, imageURL, thumbnailURL, customData, requireReceipt, sendPush = true, callback = null) {
+    const dialogID = dialog.id;
+    const dialogType = dialog.type;
     if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
       // Requiring receipt is not permitted in open channel
       return;
@@ -10050,10 +10071,12 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
     const imageMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = imageMessage.genImageMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
+    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
   }
 
-  sendVideoMessage(videoStreamURL, thumbnailURL, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
+  sendVideoMessage(dialog, videoStreamURL, thumbnailURL, customData, requireReceipt, sendPush = true, callback = null) {
+    const dialogID = dialog.id;
+    const dialogType = dialog.type;
     if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
       // Requiring receipt is not permitted in open channel
       return;
@@ -10062,72 +10085,76 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
     const videoMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = videoMessage.genVideoMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
+    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
   }
 
-  sendGifMessage(gifURL, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
+  sendGifMessage(dialog, gifURL, customData, requireReceipt, sendPush = true, callback = null) {
+    const dialogID = dialog.id;
+    const dialogType = dialog.type;
     const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
     const gifMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = gifMessage.genGifMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
+    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
   }
 
-  sendLocationMessage(latitude, longitude, title, subtitle, placemarkName, customData, dialogID, dialogType, requireReceipt, cb = null, sendPush = true) {
+  sendLocationMessage(dialog, latitude, longitude, title, subtitle, placemarkName, customData, requireReceipt, sendPush = true, callback = null) {
+    const dialogID = dialog.id;
+    const dialogType = dialog.type;
     const location2D = new __WEBPACK_IMPORTED_MODULE_2__datamodels_location__["a" /* default */](latitude, longitude);
     const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
     senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
     const locationMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt);
     const messageJSON = locationMessage.genLocationMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb);
+    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
   }
 
-  sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, cb) {
+  sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback) {
     if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
-      this.sendDialogMessage(dialogID, messageJSON, cb);
+      this.sendDialogMessage(dialogID, messageJSON, callback);
     } else if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
-      this.sendPrivateMessage(dialogID, messageJSON, cb);
+      this.sendPrivateMessage(dialogID, messageJSON, callback);
     } else if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel) {
-      this.sendPublicChannelMessage(dialogID, messageJSON, cb);
+      this.sendPublicChannelMessage(dialogID, messageJSON, callback);
     }
   }
 
-  sendDialogMessage(dialogID, messageJSON, cb) {
+  sendDialogMessage(dialogID, messageJSON, callback) {
     const path = `/dialogs/${dialogID}/messages`;
     const SELF = this;
     this.sendPostRequest(messageJSON, path, (response, err) => {
       if (err) {
-        cb(null, err);
+        callback(null, err);
       } else {
         SELF.afCore.MessageSync.saveSentMessage(response.data, messageObj => {
-          cb(messageObj, null);
+          callback(messageObj, null);
         });
       }
     });
   }
 
-  sendPrivateMessage(userID, messageJSON, cb) {
+  sendPrivateMessage(userID, messageJSON, callback) {
     const path = `/users/${userID}/messages`;
     const SELF = this;
     this.sendPostRequest(messageJSON, path, (response, err) => {
       if (err !== null) {
-        cb(null, err);
+        callback(null, err);
       } else {
         SELF.afCore.MessageSync.saveSentMessage(response.data, messageObj => {
-          cb(messageObj, null);
+          callback(messageObj, null);
         });
       }
     });
   }
 
-  sendPublicChannelMessage(channelID, messageJSON, cb) {
+  sendPublicChannelMessage(channelID, messageJSON, callback) {
     const path = `/channels/${channelID}/messages`;
     this.sendPostRequest(messageJSON, path, (response, err) => {
       if (err !== null) {
-        cb(null, err);
+        callback(null, err);
       } else {
         const message = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createMessageFromJSON(response.data);
-        cb(message, null);
+        callback(message, null);
       }
     });
   }
@@ -10154,12 +10181,12 @@ class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* defaul
 
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SyncService; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__wssocket__ = __webpack_require__(77);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__wssocket__ = __webpack_require__(78);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__request__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__service__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_user__ = __webpack_require__(9);
@@ -10275,16 +10302,16 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     });
   }
 
-  saveSyncedMessages(messages, cb) {
+  saveSyncedMessages(messages, callback) {
     this.outReceipts = [];
-    this.processSyncedMessage(messages, 0, messages.length, cb);
+    this.processSyncedMessage(messages, 0, messages.length, callback);
   }
 
-  processSyncedMessage(messages, currentIndex, maxIndex, cb) {
+  processSyncedMessage(messages, currentIndex, maxIndex, callback) {
     const SELF = this;
     if (currentIndex >= maxIndex) {
       this.sendReciept(this.outReceipts);
-      cb();
+      callback();
       return;
     }
 
@@ -10306,34 +10333,34 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         SELF.saveDialog(messageObj, newDialog);
       }
       const nextIndex = currentIndex + 1;
-      SELF.processSyncedMessage(messages, nextIndex, maxIndex, cb);
+      SELF.processSyncedMessage(messages, nextIndex, maxIndex, callback);
     });
   }
 
-  saveSentMessage(message, cb) {
+  saveSentMessage(message, callback) {
     const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
     const SELF = this;
     this.checkDialogExist(messageObj, (dialog, newDialog) => {
       if (dialog) {
         SELF.saveDialog(messageObj, newDialog);
-        if (cb) {
-          cb(messageObj);
+        if (callback) {
+          callback(messageObj);
         }
       }
     });
   }
 
-  sendReciept(receipts, cb) {
+  sendReciept(receipts, callback) {
     const receiptsJSON = JSON.stringify(receipts);
     const path = '/messages/receipts';
     this.sendPostRequest(receiptsJSON, path, (response, error) => {
-      if (cb) {
-        cb(response, error);
+      if (callback) {
+        callback(response, error);
       }
     });
   }
 
-  sendReadReciepts(readMessages, cb) {
+  sendReadReciepts(readMessages, callback) {
     const outReceipts = [];
     readMessages.forEach(message => {
       if (message.dialogType !== 's') {
@@ -10346,24 +10373,24 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       }
     });
     // send read receipt
-    this.sendReciept(outReceipts, cb);
+    this.sendReciept(outReceipts, callback);
   }
 
-  markAsRead(dialogID, cb) {
+  markAsRead(dialogID, callback) {
     __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('mark as read');
     const dialogCache = this.afCore.Dialog.dialogs;
     const dialog = dialogCache[dialogID];
     if (!dialog) {
-      if (cb) {
-        cb();
+      if (callback) {
+        callback();
       }
       return;
     }
 
-    this.sendReadMessages(dialogID, dialog.lastMessageID, cb);
+    this.sendReadMessages(dialogID, dialog.lastMessageID, callback);
   }
 
-  sendReadMessages(dialogID, readMessageID, cb) {
+  sendReadMessages(dialogID, readMessageID, callback) {
     __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('sendReadMessages');
     const readMessagesObj = {};
     readMessagesObj[`${dialogID}`] = readMessageID;
@@ -10388,13 +10415,13 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
         __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('dialog after send read messages %o', dialog);
       }
-      if (cb) {
-        cb(response, err);
+      if (callback) {
+        callback(response, err);
       }
     });
   }
 
-  fetchReadMessages(cb) {
+  fetchReadMessages(callback) {
     __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('fetch read messages');
     const SELF = this;
     this.sendGetRequest('/read_messages', null, (response, err) => {
@@ -10402,8 +10429,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
         SELF.processReadMessages(response.data.read_messages);
       }
 
-      if (cb) {
-        cb();
+      if (callback) {
+        callback();
       }
     });
   }
@@ -10562,7 +10589,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     return messageObj.sender;
   }
 
-  checkDialogExist(messageObj, cb) {
+  checkDialogExist(messageObj, callback) {
     const dialogCache = this.afCore.Dialog.dialogs;
     const dialogID = `${messageObj.dialogID}`;
     let dialog = null;
@@ -10574,15 +10601,15 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       newDialog = true;
       if (messageObj.dialogType !== __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
         if (this.afCore.Dialog.leaveDialogs.indexOf(dialogID) >= 0) {
-          cb(null, newDialog);
+          callback(null, newDialog);
           return;
         }
         this.afCore.Dialog.getDialogInfo(dialogID, (returnedDialog, err) => {
           if (err) {
             SELF.afCore.Dialog.leaveDialogs.push(dialogID);
-            cb(null, newDialog);
+            callback(null, newDialog);
           } else {
-            cb(returnedDialog, newDialog);
+            callback(returnedDialog, newDialog);
           }
         });
         return;
@@ -10600,7 +10627,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       }
       dialogCache[dialogID] = dialog;
     }
-    cb(dialog, newDialog);
+    callback(dialog, newDialog);
   }
 
   saveDialog(messageObj, newDialog) {
@@ -10955,7 +10982,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10964,7 +10991,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__usersession__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_user__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__logger__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_pager__ = __webpack_require__(127);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_pager__ = __webpack_require__(72);
 
 
 
@@ -11033,7 +11060,7 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
         SELF.page = 1;
         SELF.isLoading = false;
       };
-      this.next = function (cb) {
+      this.next = function (callback) {
         SELF.isLoading = true;
         userService.searchUsersWithPager('', SELF.page, 10, (pager, users, err) => {
           if (!err) {
@@ -11041,11 +11068,11 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
             if (pager.totalPage === pager.currentPage) {
               SELF.hasNext = false;
             }
-            if (cb) {
-              cb(users, null);
+            if (callback) {
+              callback(users, null);
             }
           } else {
-            cb(null, err);
+            callback(null, err);
           }
         });
       };
@@ -11213,7 +11240,7 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
 
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -11246,12 +11273,12 @@ class IDUtil {
 
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AFWSSocket; });
-const io = __webpack_require__(118);
+const io = __webpack_require__(119);
 const jwtToken = __webpack_require__(35);
 
 class AFWSSocket {
@@ -11261,7 +11288,7 @@ class AFWSSocket {
     this.token = token;
   }
 
-  connect(cb) {
+  connect(callback) {
     const requestToken = jwtToken(this.appSecret, this.token);
     this.socket = io.connect('https://chat-staging.hacknocraft.com:8002', {
       transports: ['websocket'],
@@ -11277,26 +11304,26 @@ class AFWSSocket {
 
     const SELF = this;
     this.socket.on('connect', () => {
-      if (cb) {
-        cb(AFWSSocket.socketEvent.CONNECTED);
+      if (callback) {
+        callback(AFWSSocket.socketEvent.CONNECTED);
       }
 
       SELF.socket.on('sync', data => {
         const obj = JSON.parse(data);
         if (obj.close) {
-          if (cb) {
-            cb(AFWSSocket.socketEvent.PEER_CLOSE);
+          if (callback) {
+            callback(AFWSSocket.socketEvent.PEER_CLOSE);
           }
-        } else if (cb) {
-          cb(AFWSSocket.socketEvent.DATA_RECV, data);
+        } else if (callback) {
+          callback(AFWSSocket.socketEvent.DATA_RECV, data);
         }
       });
     });
 
     this.socket.on('disconnect', () => {
       console.log('on disconnect');
-      if (cb) {
-        cb(AFWSSocket.socketEvent.DISCONNECTED);
+      if (callback) {
+        callback(AFWSSocket.socketEvent.DISCONNECTED);
       }
     });
   }
@@ -11332,7 +11359,7 @@ AFWSSocket.socketEvent = {
 
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports) {
 
 
@@ -11423,7 +11450,7 @@ Backoff.prototype.setJitter = function(jitter){
 
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports) {
 
 /*
@@ -11496,7 +11523,7 @@ Backoff.prototype.setJitter = function(jitter){
 
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -11599,7 +11626,7 @@ module.exports = (function() {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -11836,7 +11863,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory) {
@@ -11990,7 +12017,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12061,13 +12088,13 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
 	if (true) {
 		// CommonJS
-		module.exports = exports = factory(__webpack_require__(0), __webpack_require__(16), __webpack_require__(85), __webpack_require__(82), __webpack_require__(6), __webpack_require__(7), __webpack_require__(22), __webpack_require__(37), __webpack_require__(101), __webpack_require__(38), __webpack_require__(103), __webpack_require__(102), __webpack_require__(100), __webpack_require__(21), __webpack_require__(96), __webpack_require__(4), __webpack_require__(1), __webpack_require__(86), __webpack_require__(88), __webpack_require__(87), __webpack_require__(90), __webpack_require__(89), __webpack_require__(91), __webpack_require__(92), __webpack_require__(93), __webpack_require__(95), __webpack_require__(94), __webpack_require__(83), __webpack_require__(81), __webpack_require__(104), __webpack_require__(99), __webpack_require__(98), __webpack_require__(97));
+		module.exports = exports = factory(__webpack_require__(0), __webpack_require__(16), __webpack_require__(86), __webpack_require__(83), __webpack_require__(6), __webpack_require__(7), __webpack_require__(22), __webpack_require__(37), __webpack_require__(102), __webpack_require__(38), __webpack_require__(104), __webpack_require__(103), __webpack_require__(101), __webpack_require__(21), __webpack_require__(97), __webpack_require__(4), __webpack_require__(1), __webpack_require__(87), __webpack_require__(89), __webpack_require__(88), __webpack_require__(91), __webpack_require__(90), __webpack_require__(92), __webpack_require__(93), __webpack_require__(94), __webpack_require__(96), __webpack_require__(95), __webpack_require__(84), __webpack_require__(82), __webpack_require__(105), __webpack_require__(100), __webpack_require__(99), __webpack_require__(98));
 	}
 	else if (typeof define === "function" && define.amd) {
 		// AMD
@@ -12084,7 +12111,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory) {
@@ -12165,7 +12192,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12248,7 +12275,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12369,7 +12396,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12432,7 +12459,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12477,7 +12504,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12536,7 +12563,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12590,7 +12617,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12639,7 +12666,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12684,7 +12711,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12719,7 +12746,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12769,7 +12796,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -12919,7 +12946,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -13114,7 +13141,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -13311,7 +13338,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -13455,7 +13482,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory) {
@@ -13727,7 +13754,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -13812,7 +13839,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -14140,7 +14167,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -14228,7 +14255,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 ;(function (root, factory, undef) {
@@ -15003,7 +15030,7 @@ module.exports = (function() {
 }));
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -15019,7 +15046,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(116);
+exports.humanize = __webpack_require__(117);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -15211,19 +15238,19 @@ function coerce(val) {
 
 
 /***/ }),
-/* 106 */
-/***/ (function(module, exports, __webpack_require__) {
-
-
-module.exports = __webpack_require__(107);
-
-
-/***/ }),
 /* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
 module.exports = __webpack_require__(108);
+
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+module.exports = __webpack_require__(109);
 
 /**
  * Exports parser
@@ -15235,7 +15262,7 @@ module.exports.parser = __webpack_require__(8);
 
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -15248,7 +15275,7 @@ var debug = __webpack_require__(11)('engine.io-client:socket');
 var index = __webpack_require__(42);
 var parser = __webpack_require__(8);
 var parseuri = __webpack_require__(44);
-var parsejson = __webpack_require__(117);
+var parsejson = __webpack_require__(118);
 var parseqs = __webpack_require__(25);
 
 /**
@@ -15986,7 +16013,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -16224,7 +16251,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -16644,7 +16671,7 @@ function unloadHandler () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -16661,7 +16688,7 @@ var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
 var NodeWebSocket;
 if (typeof window === 'undefined') {
   try {
-    NodeWebSocket = __webpack_require__(125);
+    NodeWebSocket = __webpack_require__(126);
   } catch (e) { }
 }
 
@@ -16937,7 +16964,7 @@ WS.prototype.check = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports) {
 
 
@@ -16962,7 +16989,7 @@ module.exports = Object.keys || function keys (obj){
 
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! https://mths.be/utf8js v2.1.2 by @mathias */
@@ -17220,10 +17247,10 @@ module.exports = Object.keys || function keys (obj){
 
 }(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(124)(module), __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(125)(module), __webpack_require__(2)))
 
 /***/ }),
-/* 114 */
+/* 115 */
 /***/ (function(module, exports) {
 
 
@@ -17246,7 +17273,7 @@ try {
 
 
 /***/ }),
-/* 115 */
+/* 116 */
 /***/ (function(module, exports) {
 
 /*!
@@ -17273,7 +17300,7 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 116 */
+/* 117 */
 /***/ (function(module, exports) {
 
 /**
@@ -17431,7 +17458,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 117 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -17469,7 +17496,7 @@ module.exports = function parsejson(data) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 118 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -17477,7 +17504,7 @@ module.exports = function parsejson(data) {
  * Module dependencies.
  */
 
-var url = __webpack_require__(119);
+var url = __webpack_require__(120);
 var parser = __webpack_require__(26);
 var Manager = __webpack_require__(45);
 var debug = __webpack_require__(18)('socket.io-client');
@@ -17584,7 +17611,7 @@ exports.Socket = __webpack_require__(47);
 
 
 /***/ }),
-/* 119 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -17666,7 +17693,7 @@ function url (uri, loc) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -17682,7 +17709,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(121);
+exports.humanize = __webpack_require__(122);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -17874,7 +17901,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports) {
 
 /**
@@ -18029,7 +18056,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/*global Blob,File*/
@@ -18177,7 +18204,7 @@ exports.removeBlobs = function(data, callback) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports) {
 
 module.exports = toArray
@@ -18196,7 +18223,7 @@ function toArray(list, index) {
 
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -18224,32 +18251,16 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(50);
-
-
-/***/ }),
-/* 127 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Pager; });
-class Pager {
-  constructor(totalCounts, totalPage, currentPage) {
-    this.totalCounts = totalCounts;
-    this.totalPage = totalPage;
-    this.currentPage = currentPage;
-  }
-}
-
 
 
 /***/ })
