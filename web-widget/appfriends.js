@@ -4727,10 +4727,6 @@ class Dialog {
     return null;
   }
 
-  markAsRead() {
-    this.lastReadTime = Date.now();
-  }
-
   isPrivateGroupChat() {
     return this.type === Dialog.type.group;
   }
@@ -8621,7 +8617,7 @@ class AFCore {
     this.Logger = __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */];
     this.dialogHandlers = {};
 
-    this.Logger.setLogLevel(__WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].levels.INFO);
+    this.Logger.setLogLevel(__WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].levels.TRACE);
   }
 
   addDialogHandler(id, handler) {
@@ -10353,7 +10349,22 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     this.sendReciept(outReceipts, cb);
   }
 
+  markAsRead(dialogID, cb) {
+    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('mark as read');
+    const dialogCache = this.afCore.Dialog.dialogs;
+    const dialog = dialogCache[dialogID];
+    if (!dialog) {
+      if (cb) {
+        cb();
+      }
+      return;
+    }
+
+    this.sendReadMessages(dialogID, dialog.lastMessageID, cb);
+  }
+
   sendReadMessages(dialogID, readMessageID, cb) {
+    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('sendReadMessages');
     const readMessagesObj = {};
     readMessagesObj[`${dialogID}`] = readMessageID;
     const readMessagesJSON = JSON.stringify(readMessagesObj);
@@ -10374,6 +10385,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           dialog.lastReadMessageID = readMessageID;
           SELF.notifyDialogReceiptUpdated(dialog);
         }
+
+        __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('dialog after send read messages %o', dialog);
       }
       if (cb) {
         cb(response, err);
@@ -10381,12 +10394,16 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     });
   }
 
-  fetchReadMessages() {
+  fetchReadMessages(cb) {
     __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('fetch read messages');
     const SELF = this;
     this.sendGetRequest('/read_messages', null, (response, err) => {
       if (!err) {
         SELF.processReadMessages(response.data.read_messages);
+      }
+
+      if (cb) {
+        cb();
       }
     });
   }
@@ -10521,9 +10538,10 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 
   getUnreadMessagesWithMessageID(dialogID, messageID) {
     const messageCache = this.afCore.Dialog.dialogs[dialogID].messages;
+    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('getUnreadMessagesWithMessageID %o', messageCache);
     if (messageCache && messageCache[messageID]) {
-      const messageIDs = messageCache.keys.sort();
-      const messageIndex = messageIDs.indexOf(messageID);
+      const messageIDs = Object.keys(messageCache);
+      const messageIndex = messageIDs.indexOf(`${messageID}`);
       if (messageIndex >= 0) {
         return messageIDs.length - messageIndex - 1;
       }
@@ -10611,6 +10629,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
       this.cacheSenderUserFromMessage(messageObj);
       messageCache[messageObj.messageID] = messageObj;
     }
+
+    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('update dialog %o', dialog);
 
     if (newDialog) {
       this.notifyDialogCreated(dialog);
@@ -10780,11 +10800,12 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
           SELF.dialogUsersSearchQueue = [];
         }
 
-        SELF.notifyBadgeUpdated();
-
-        SELF.afCore.Dialog.dumpDialogCache();
-        SELF.afCore.User.dumpUserCache();
-        SELF.afCore.Dialog.dumpUnreadMessageCount();
+        SELF.fetchReadMessages(() => {
+          SELF.notifyBadgeUpdated();
+          SELF.afCore.Dialog.dumpDialogCache();
+          SELF.afCore.User.dumpUserCache();
+          SELF.afCore.Dialog.dumpUnreadMessageCount();
+        });
       });
     }
   }
@@ -10863,7 +10884,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
+      if (typeof dialogHandler !== 'undefined' && dialogHandler.onDialogChanged) {
         dialogHandler.onDialogChanged(dialog);
       }
     });
@@ -10873,7 +10894,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
+      if (typeof dialogHandler !== 'undefined' && dialogHandler.onDialogCreated) {
         dialogHandler.onDialogCreated(dialog);
       }
     });
@@ -10883,7 +10904,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
+      if (typeof dialogHandler !== 'undefined' && dialogHandler.onBadgeUpdated) {
         dialogHandler.onBadgeUpdated();
       }
     });
@@ -10893,7 +10914,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
+      if (typeof dialogHandler !== 'undefined' && dialogHandler.topTenOnlineUsers) {
         dialogHandler.topTenOnlineUsers(usersList);
       }
     });
@@ -10903,7 +10924,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
+      if (typeof dialogHandler !== 'undefined' && dialogHandler.totalOnlineUsers) {
         dialogHandler.totalOnlineUsers(totalUsers);
       }
     });
@@ -10913,7 +10934,7 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
     const dialogHandlers = this.afCore.dialogHandlers;
     Object.keys(dialogHandlers).forEach(handerID => {
       const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onReadReceiptUpdated) {
+      if (dialogHandler.onReadReceiptUpdated && dialogHandler.onReadReceiptUpdated) {
         dialogHandler.onReadReceiptUpdated(dialog);
       }
     });
@@ -10943,6 +10964,8 @@ class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default 
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__usersession__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_user__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__logger__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_pager__ = __webpack_require__(127);
+
 
 
 
@@ -10956,9 +10979,9 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
   }
 
   /*
-  find the user first by searching local cached user, and if not found,
-  fetch from the server
-  */
+   find the user first by searching local cached user, and if not found,
+   fetch from the server
+   */
   findUserWithID(userid, callback) {
     const SELF = this;
     if (this.users[userid]) {
@@ -11012,23 +11035,12 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
       };
       this.next = function (cb) {
         SELF.isLoading = true;
-        userService.searchUsers('', SELF.page, (data, err) => {
+        userService.searchUsersWithPager('', SELF.page, 10, (pager, users, err) => {
           if (!err) {
             SELF.isLoading = false;
-            const users = [];
-            if (data.total_page === data.current_page) {
+            if (pager.totalPage === pager.currentPage) {
               SELF.hasNext = false;
             }
-            SELF.page = data.page;
-
-            data.users.forEach(userItem => {
-              const user = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](userItem.id, userItem.user_name);
-              user.avatar = userItem.avatar;
-              user.customData = userItem.custom_data;
-              user.muted = userItem.muted;
-              user.blocked = userItem.blocked;
-              users.push(user);
-            });
             if (cb) {
               cb(users, null);
             }
@@ -11040,7 +11052,7 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
     }();
   }
 
-  searchUsers(searchKey, page, callback) {
+  searchUsersWithPager(searchKey, page, perPage, callback) {
     const params = {};
     if (searchKey) {
       params.search = searchKey;
@@ -11048,20 +11060,36 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
     if (page !== undefined && page !== null) {
       params.page = page;
     }
+    if (perPage) {
+      params.per_page = perPage;
+    }
+
     this.sendGetRequest('/users', params, (response, err) => {
       if (!err) {
+        const data = response.data;
+        const users = [];
+        const pager = new __WEBPACK_IMPORTED_MODULE_4__datamodels_pager__["a" /* default */](data.total_count, data.total_page, data.current_page);
+        data.users.forEach(userItem => {
+          const user = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](userItem.id, userItem.user_name);
+          user.avatar = userItem.avatar;
+          user.customData = userItem.custom_data;
+          user.muted = userItem.muted;
+          user.blocked = userItem.blocked;
+          users.push(user);
+        });
+
         if (callback) {
-          callback(response.data, null);
+          callback(pager, users, null);
         }
       } else if (callback) {
-        callback(null, err);
+        callback(null, null, err);
       }
     });
   }
 
   /*
-  fetch user info from the server and save the user to `allUsers`
-  */
+   fetch user info from the server and save the user to `allUsers`
+   */
   fetchUserInfo(userid, callback) {
     const SELF = this;
     if (SELF.users[userid]) {
@@ -11085,6 +11113,30 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
     });
   }
 
+  blockUser(userID, callback) {
+    this.sendPostRequest(null, `/users/${userID}/block`, (response, err) => {
+      if (!err) {
+        if (callback) {
+          callback(null);
+        }
+      } else if (callback) {
+        callback(err);
+      }
+    });
+  }
+
+  unBlockUser(userID, callback) {
+    this.sendPostRequest(null, `/users/${userID}/unblock`, (response, err) => {
+      if (!err) {
+        if (callback) {
+          callback(null);
+        }
+      } else if (callback) {
+        callback(err);
+      }
+    });
+  }
+
   updateCurrentUserAvatar(avatar, callback) {
     this.sendPutRequest({ avatar }, `/users/${__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID}`, (response, err) => {
       if (!err) {
@@ -11097,6 +11149,30 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
     });
   }
 
+  followUser(userID, callback) {
+    this.sendPostRequest(null, `/users/${userID}/follow`, (response, err) => {
+      if (!err) {
+        if (callback) {
+          callback(null);
+        }
+      } else if (callback) {
+        callback(err);
+      }
+    });
+  }
+
+  unFollowUser(userID, callback) {
+    this.sendPostRequest(null, `/users/${userID}/unfollow`, (response, err) => {
+      if (!err) {
+        if (callback) {
+          callback(null);
+        }
+      } else if (callback) {
+        callback(err);
+      }
+    });
+  }
+
   updateCurrentUserName(name, callback) {
     this.sendPutRequest({ user_name: name }, `/users/${__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID}`, (response, err) => {
       if (!err) {
@@ -11105,6 +11181,26 @@ class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default 
 
       if (callback) {
         callback(response, err);
+      }
+    });
+  }
+
+  getFriends(callback) {
+    this.sendGetRequest('/users/friends', null, (response, err) => {
+      if (!err) {
+        const users = [];
+        response.data.users.forEach(user => {
+          const userObj = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
+          userObj.customData = user.custom_data;
+          userObj.muted = user.muted;
+          __WEBPACK_IMPORTED_MODULE_3__logger__["a" /* default */].debug('fetch user obj %o', userObj);
+          users.push(userObj);
+        });
+        if (callback) {
+          callback(users, null);
+        }
+      } else if (callback) {
+        callback(null, err);
       }
     });
   }
@@ -18138,6 +18234,22 @@ module.exports = function(module) {
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(50);
+
+
+/***/ }),
+/* 127 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Pager; });
+class Pager {
+  constructor(totalCounts, totalPage, currentPage) {
+    this.totalCounts = totalCounts;
+    this.totalPage = totalPage;
+    this.currentPage = currentPage;
+  }
+}
+
 
 
 /***/ })

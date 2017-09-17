@@ -91,6 +91,11 @@ class AFAdapter {
     }
   }
 
+  markAsRead(dialog, action)
+  {
+    this.af.MessageSync.markAsRead(dialog.id, action);
+  }
+
   createNewChannel(userIds, action) {
     if (userIds.length == 1) {
       //private chat
@@ -183,11 +188,12 @@ class AFAdapter {
   /*
   User
    */
-  getUserList(action) {
+  getUserList(action, resetFlag = false) {
     if (!this.userListQuery) {
       this.userListQuery = this.af.User.createUserListQuery();
     }
-    else
+
+    if (resetFlag)
     {
       this.userListQuery.reset();
     }

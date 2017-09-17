@@ -210,7 +210,7 @@ class SBWidget {
       this.afadapter.getUserList((userList) => {
         this.spinner.remove(chatBoard.userContent);
         this.setUserList(chatBoard, userList);
-      });
+      }, true);
 
       this.chatSection.addClickEvent(chatBoard.closeBtn, () => {
         this.chatSection.closeChatBoard(chatBoard);
@@ -280,7 +280,7 @@ class SBWidget {
   }
 
   dialogBadgeUpdated() {
-
+    console.log("badge changed");
   }
 
   dialogUserLeft(dialog, user){
@@ -346,9 +346,15 @@ class SBWidget {
         let lastMessage = getLastItem(dialogSet.message);
         dialogSet.message.push(message);
         this.setMessageItem(dialogSet.dialog, targetBoard, [message], false, isBottom, lastMessage);
-        dialog.markAsRead();
-        this.updateUnreadMessageCount(dialog);
+        const SELF = this;
+        this.afadapter.markAsRead(dialog, ()=>
+        {
+          SELF.updateUnreadMessageCount(dialog);
+        });
       }
+    }
+    else {
+      this.updateUnreadMessageCount(dialog);
     }
   }
 
@@ -534,7 +540,7 @@ class SBWidget {
               this.popup.invitePopup.list.appendChild(item);
             }
           }
-        });
+        }, true);
       };
 
       if (hasClass(chatBoard.inviteBtn, className.ACTIVE)) {
@@ -584,8 +590,10 @@ class SBWidget {
         this.getMessageList(dialogSet, chatBoard, false, () => {
           this.chatScrollEvent(chatBoard, dialogSet);
         });
-        fetchedDialog.markAsRead();
-        this.updateUnreadMessageCount(fetchedDialog);
+        const SELF = this;
+        this.afadapter.markAsRead(fetchedDialog, ()=>{
+          SELF.updateUnreadMessageCount(fetchedDialog);
+        });
         let listItem = this.listBoard.getChannelItem(fetchedDialog.id);
         if (!listItem) {
           listItem = this.createDialogItem(fetchedDialog);
@@ -622,7 +630,7 @@ class SBWidget {
     });
 
     if (channel) {
-      this.listBoard.setChannelUnread(channel.url, channel.unreadMessageCount);
+      this.listBoard.setChannelUnread(channel.id, channel.unreadMessageCount);
     }
   }
 

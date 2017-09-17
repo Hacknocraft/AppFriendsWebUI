@@ -7,7 +7,7 @@ const EMPTY_STRING = '';
 const OPTION_TOOLTIP_TEXT = 'Log out';
 const NEW_CHAT_TOOLTIP_TEXT = 'New Message';
 
-const TITLE_TOP_LOGIN = 'SendBird Widget';
+const TITLE_TOP_LOGIN = 'AppFriends Widget';
 const TITLE_TOP_CHANNEL = 'Conversations';
 const TITLE_LOGIN_USER_ID = 'USER ID';
 const TITLE_LOGIN_NICKNAME = 'NICKNAME';
