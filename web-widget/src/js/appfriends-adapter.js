@@ -91,6 +91,11 @@ class AFAdapter {
     }
   }
 
+  markAsRead(dialog, action)
+  {
+    this.af.MessageSync.markAsRead(dialog.id, action);
+  }
+
   createNewChannel(userIds, action) {
     if (userIds.length == 1) {
       //private chat
@@ -159,7 +164,7 @@ class AFAdapter {
 
   sendTextMessage(dialog, textMessage, action) {
     console.log("sendTextMessage");
-    dialog.sendTextMessage(textMessage, '', false, [], (message, error) => {
+    dialog.sendTextMessage(textMessage, '', false, [], true, (message, error) => {
       if (error) {
         console.error(error);
         return;
@@ -182,11 +187,12 @@ class AFAdapter {
   /*
   User
    */
-  getUserList(action) {
+  getUserList(action, resetFlag = false) {
     if (!this.userListQuery) {
       this.userListQuery = this.af.User.createUserListQuery();
     }
-    else
+
+    if (resetFlag)
     {
       this.userListQuery.reset();
     }

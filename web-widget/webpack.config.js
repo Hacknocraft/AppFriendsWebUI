@@ -5,7 +5,7 @@ module.exports = {
   },
   output: {
     path: __dirname + '/build',
-    filename: '[name].SendBird.js'
+    filename: '[name].AppFriends.js'
   },
   module: {
     rules: [
@@ -26,7 +26,7 @@ module.exports = {
       { // ESLint
         enforce: 'pre',
         test: /\.js$/,
-        exclude: /(node_modules|SendBird.min.js)/,
+        exclude: /(node_modules|AppFriends.min.js)/,
         use: [
           {
             loader: 'eslint-loader',

@@ -1,14 +1,14 @@
 {
   "name": "widget-sample",
   "version": "1.0.0",
-  "description": "SendBird Widget Sample",
+  "description": "AppFriends Widget Sample",
   "main": "index.js",
   "scripts": {
     "test": "karma start --reporters html,dots",
     "build": "webpack",
     "dev": "webpack --progress --colors --watch"
   },
-  "author": "SendBird",
+  "author": "AppFriends",
   "license": "ISC",
   "devDependencies": {
     "babel-core": "^6.24.0",

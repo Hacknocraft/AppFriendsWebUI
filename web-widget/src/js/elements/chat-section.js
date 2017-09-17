@@ -332,7 +332,7 @@ class ChatSection extends Element {
   }
 
   showTyping(channel, spinner) {
-    let targetBoard = this.getChatBoard(channel.url);
+    let targetBoard = this.getChatBoard(channel.id);
     let typing = targetBoard.typing;
     if (!channel.isTyping()) {
       this._setContent(typing, EMPTY_STRING);

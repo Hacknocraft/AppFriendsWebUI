@@ -30,8 +30,11 @@ class WidgetBtn extends Element {
 
   setUnreadCount(count) {
     count = parseInt(count);
+    count = 7;
+
     this._setContent(this.unread, count > 9 ? MAX_COUNT : count.toString());
-    (count > 0) ? show(this.unread) : hide(this.unread);
+    //(count > 0) ? show(this.unread) : hide(this.unread);
+    show(this.unread)
   }
 
   toggleIcon(isConnected) {
