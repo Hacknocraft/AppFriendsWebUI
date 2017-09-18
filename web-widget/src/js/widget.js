@@ -7,14 +7,14 @@ import AFAdapter from './appfriends-adapter.js';
 import { hide, show, addClass, removeClass, hasClass, getFullHeight, insertMessageInList, getLastItem, isEmptyString, xssEscape } from './utils.js';
 import { className, TYPE_STRING, MAX_COUNT } from './consts.js';
 
-const WIDGET_ID = 'sb_widget';
+const WIDGET_ID = 'af_widget';
 const TIME_STRING_TODAY = 'TODAY';
 const TIME_MESSAGE_TYPE = 'time';
 const NEW_CHAT_BOARD_ID = 'NEW_CHAT';
 const KEY_DOWN_ENTER = 13;
 const KEY_DOWN_KR = 229;
 const CHAT_BOARD_WIDTH = 300;
-const ERROR_MESSAGE = 'Please create "sb_widget" element on first.';
+const ERROR_MESSAGE = 'Please create "af_widget" element on first.';
 const ERROR_MESSAGE_SDK = 'Please import "AppFriends SDK" on first.';
 const EVENT_TYPE_CLICK = 'click';
 
@@ -431,7 +431,6 @@ class AFWidget {
 
     this.listBoard.addChannelClickEvent(item, () => {
       this.closePopup();
-      console.log("open dialog");
       let channelID = item.getAttribute('data-channel-id');
       let openChatBoard = this.chatSection.getChatBoard(channelID);
       if (!openChatBoard) {
@@ -490,7 +489,6 @@ class AFWidget {
         addClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
         let channelSet = this.getDialogSet(dialogID);
         if (channelSet) {
-          console.log("channelSet %o", channelSet);
           this.afadapter.channelLeave(channelSet.dialog, () => {
             chatBoard.removeChild(chatBoard.leavePopup);
             removeClass(chatBoard.leavePopup.leaveBtn, className.DISABLED);
@@ -578,6 +576,7 @@ class AFWidget {
       }
     });
     this.spinner.insert(chatBoard.content);
+
     this.afadapter.getDialogInfo(dialog, (fetchedDialog, error) => {
       this.spinner.remove(chatBoard.content);
       if (fetchedDialog === null) {

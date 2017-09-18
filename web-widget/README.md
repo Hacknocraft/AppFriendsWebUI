@@ -2,17 +2,17 @@
 This is a sample chat widget built using using the [AppFriends SDK](https://github.com/smilefam/SendBird-SDK-JavaScript). It can be used to add a functional chat widget to any website.  
 
 
-## [Demo](https://sample.sendbird.com/widget/)
+## [Demo](https://github.com/Hacknocraft/AppFriendsWebUI)
 
-You can try out a live demo from the link [here](https://sample.sendbird.com/widget/). Click on the button at the bottom-right corner of the webpage to try out the widget. Choose any 'User ID' and 'Nickname' to log in and participate in chats.
+You can try out a live demo from the link [here](https://github.com/Hacknocraft/AppFriendsWebUI). Click on the button at the bottom-right corner of the webpage to try out the widget. Choose any 'User ID' and 'Nickname' to log in and participate in chats.
 
 
 ## Setup
-1. The `body` must have a `div` element whose id is `sb_widget`.
+1. The `body` must have a `div` element whose id is `af_widget`.
   
 ```html
 <body>
-  <div id="sb_widget"></div>
+  <div id="af_widget"></div>
 </body>
 ```
 
@@ -22,21 +22,6 @@ You can try out a live demo from the link [here](https://sample.sendbird.com/wid
 <script src="AppFriends.min.js"></script>
 <script src="build/widget.AppFriends.js"></script>
 ```
-
-
-## Customizing the widget
-If you refresh your browser window, you need to reconnect to AppFriends. To retain connection on browser refresh, you must implement an appropriate `event handler`. 
-
-If you wish to issue an `access_token` for your user, modify the `connect function` in `src/sendbird.js`.  
-
-1. Install npm
-
-        npm install --save-dev
-
-2. Modify files.
-3. Create a bundle file.
-
-        webpack -p
 
 
 ## Advanced  
@@ -50,7 +35,8 @@ If you want to connect other application, you need to change variable `appId` in
   <script src="build/widget.AppFriends.js"></script>
   <script>
     var appId = '<APP_ID>';
-    afWidget.start(appId);
+    var secret = '<SECRET>';
+    sbWidget.start(appId, secret);
   </script>
 
 </html>
@@ -66,31 +52,26 @@ If you want to start this sample with user connect, you can using `startWithConn
   <script src="build/widget.AppFriends.js"></script>
   <script>
     var appId = '<APP_ID>';
+    var secret = '<SECRET>';
     var userId = '<USER_ID>';
     var nickname = '<NICKNAME>';
-    afWidget.startWithConnect(appId, userId, nickname, function() {
-      // do something...
-    });
+    
+    afWidget.startWithConnect(
+        appId,
+        secret,
+        userId,
+        nickname
+    );
   </script>
 
 </html>
-```
-
-### Show Channel  
-If you want to open chat, you can using `showChannel()`.  
-
-```javascript
-...
-var channelUrl = '<CHANNEL_URL>';
-afWidget.showChannel(channelUrl);
-...
 ```
 
 
 ## File Structure
 ```
     |-- build
-        |-- widget.AppFriends.js              - AppFriends Widget Bundle file
+        |-- widget.AppFriends.js              - SendBird Widget Bundle file
     |-- node_modules
         |-- ...                             - (node packages)
     |-- src
