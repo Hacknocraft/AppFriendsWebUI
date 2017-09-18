@@ -1,5 +1,5 @@
 # AppFriends JavaScript Widget Sample
-This is a sample chat widget built using using the [AppFriends SDK](https://github.com/smilefam/SendBird-SDK-JavaScript). It can be used to add a functional chat widget to any website.  
+This is a sample chat widget built using using the [AppFriends SDK](https://github.com/Hacknocraft/AppFriendsJavascript). It can be used to add a functional chat widget to any website.  
 
 
 ## [Demo](https://github.com/Hacknocraft/AppFriendsWebUI)
@@ -9,14 +9,14 @@ You can try out a live demo from the link [here](https://github.com/Hacknocraft/
 
 ## Setup
 1. The `body` must have a `div` element whose id is `af_widget`.
-  
+
 ```html
 <body>
   <div id="af_widget"></div>
 </body>
 ```
 
-2. Import the [`AppFriends SDK`](https://github.com/smilefam/SendBird-SDK-JavaScript).  
+2. Import the [`AppFriends SDK`](https://github.com/Hacknocraft/AppFriendsJavascript).  
 3. Import the `widget.AppFriends.js` file.
 ```javascript
 <script src="AppFriends.min.js"></script>
@@ -55,7 +55,7 @@ If you want to start this sample with user connect, you can using `startWithConn
     var secret = '<SECRET>';
     var userId = '<USER_ID>';
     var nickname = '<NICKNAME>';
-    
+
     afWidget.startWithConnect(
         appId,
         secret,
@@ -88,7 +88,7 @@ If you want to start this sample with user connect, you can using `startWithConn
             |-- sendbird.js                 - sendbird functions
             |-- widget.js                   - widget functions
         |-- scss
-            |-- mixins 
+            |-- mixins
                 |-- _border-radius.scss     - border radius mixin  
                 |-- _box-shadow.scss        - box shadow mixin
                 |-- _state.scss             - element state mixin
@@ -97,12 +97,12 @@ If you want to start this sample with user connect, you can using `startWithConn
             |-- _mixins.scss                - import mixin
             |-- _variables.scss             - css variables
             |-- _animation.scss             - animation
-            |-- _icons.scss                 - icon 
+            |-- _icons.scss                 - icon
             |-- widget.scss                 - main css  
-|-- .eslintrc.js                            - lint setting 
-|-- webpack.config.js                       - webpack setting 
-|-- package.json                            - npm package 
-|-- AppFriends.min.js                         - AppFriends SDK 
+|-- .eslintrc.js                            - lint setting
+|-- webpack.config.js                       - webpack setting
+|-- package.json                            - npm package
+|-- AppFriends.min.js                         - AppFriends SDK
 |-- index.html                              - sample file
 |-- README.md
 ```
