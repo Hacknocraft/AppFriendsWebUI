@@ -19,7 +19,7 @@ You can try out a live demo from the link [here](https://github.com/Hacknocraft/
 2. Import the [`AppFriends SDK`](https://github.com/smilefam/SendBird-SDK-JavaScript).  
 3. Import the `widget.AppFriends.js` file.
 ```javascript
-<script src="appfriends.min.js"></script>
+<script src="AppFriends.min.js"></script>
 <script src="build/widget.AppFriends.js"></script>
 ```
 
@@ -31,7 +31,7 @@ If you want to connect other application, you need to change variable `appId` in
 ```html
 ...
 
-  <script src="SendBird.min.js"></script>
+  <script src="AppFriends.min.js"></script>
   <script src="build/widget.AppFriends.js"></script>
   <script>
     var appId = '<APP_ID>';
@@ -48,7 +48,7 @@ If you want to start this sample with user connect, you can using `startWithConn
 ```html
 ...
 
-  <script src="appfriends.min.js"></script>
+  <script src="AppFriends.min.js"></script>
   <script src="build/widget.AppFriends.js"></script>
   <script>
     var appId = '<APP_ID>';
@@ -56,12 +56,12 @@ If you want to start this sample with user connect, you can using `startWithConn
     var userId = '<USER_ID>';
     var nickname = '<NICKNAME>';
     
-  sbWidget.startWithConnect(
-    appId,
-    secret,
-    userId,
-    nickname
-  );
+    afWidget.startWithConnect(
+        appId,
+        secret,
+        userId,
+        nickname
+    );
   </script>
 
 </html>
@@ -102,7 +102,7 @@ If you want to start this sample with user connect, you can using `startWithConn
 |-- .eslintrc.js                            - lint setting 
 |-- webpack.config.js                       - webpack setting 
 |-- package.json                            - npm package 
-|-- SendBird.min.js                         - SendBird SDK 
+|-- AppFriends.min.js                         - AppFriends SDK 
 |-- index.html                              - sample file
 |-- README.md
 ```
