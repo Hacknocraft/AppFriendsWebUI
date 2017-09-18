@@ -25,7 +25,7 @@ You can try out a live demo from the link [here](https://sample.sendbird.com/wid
 
 
 ## Customizing the widget
-If you refresh your browser window, you need to reconnect to SendBird. To retain connection on browser refresh, you must implement an appropriate `event handler`. 
+If you refresh your browser window, you need to reconnect to AppFriends. To retain connection on browser refresh, you must implement an appropriate `event handler`. 
 
 If you wish to issue an `access_token` for your user, modify the `connect function` in `src/sendbird.js`.  
 
