@@ -16,11 +16,11 @@ You can try out a live demo from the link [here](https://sample.sendbird.com/wid
 </body>
 ```
 
-2. Import the [`SendBird SDK`](https://github.com/smilefam/SendBird-SDK-JavaScript).  
-3. Import the `widget.SendBird.js` file.
+2. Import the [`AppFriends SDK`](https://github.com/smilefam/SendBird-SDK-JavaScript).  
+3. Import the `widget.AppFriends.js` file.
 ```javascript
-<script src="SendBird.min.js"></script>
-<script src="build/widget.SendBird.js"></script>
+<script src="AppFriends.min.js"></script>
+<script src="build/widget.AppFriends.js"></script>
 ```
 
 
@@ -46,11 +46,11 @@ If you want to connect other application, you need to change variable `appId` in
 ```html
 ...
 
-  <script src="SendBird.min.js"></script>
-  <script src="build/widget.SendBird.js"></script>
+  <script src="AppFriends.min.js"></script>
+  <script src="build/widget.AppFriends.js"></script>
   <script>
     var appId = '<APP_ID>';
-    sbWidget.start(appId);
+    afWidget.start(appId);
   </script>
 
 </html>
@@ -62,13 +62,13 @@ If you want to start this sample with user connect, you can using `startWithConn
 ```html
 ...
 
-  <script src="SendBird.min.js"></script>
-  <script src="build/widget.SendBird.js"></script>
+  <script src="AppFriends.min.js"></script>
+  <script src="build/widget.AppFriends.js"></script>
   <script>
     var appId = '<APP_ID>';
     var userId = '<USER_ID>';
     var nickname = '<NICKNAME>';
-    sbWidget.startWithConnect(appId, userId, nickname, function() {
+    afWidget.startWithConnect(appId, userId, nickname, function() {
       // do something...
     });
   </script>
@@ -82,7 +82,7 @@ If you want to open chat, you can using `showChannel()`.
 ```javascript
 ...
 var channelUrl = '<CHANNEL_URL>';
-sbWidget.showChannel(channelUrl);
+afWidget.showChannel(channelUrl);
 ...
 ```
 
@@ -90,7 +90,7 @@ sbWidget.showChannel(channelUrl);
 ## File Structure
 ```
     |-- build
-        |-- widget.SendBird.js              - SendBird Widget Bundle file
+        |-- widget.AppFriends.js              - AppFriends Widget Bundle file
     |-- node_modules
         |-- ...                             - (node packages)
     |-- src
@@ -121,7 +121,7 @@ sbWidget.showChannel(channelUrl);
 |-- .eslintrc.js                            - lint setting 
 |-- webpack.config.js                       - webpack setting 
 |-- package.json                            - npm package 
-|-- SendBird.min.js                         - SendBird SDK 
+|-- AppFriends.min.js                         - AppFriends SDK 
 |-- index.html                              - sample file
 |-- README.md
 ```

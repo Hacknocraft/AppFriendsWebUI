@@ -22,7 +22,7 @@ window.WebFontConfig = {
   google: { families: ['Lato:400,700'] }
 };
 
-class SBWidget {
+class AFWidget {
   constructor() {
   }
 
@@ -816,4 +816,4 @@ class SBWidget {
   }
 }
 
-window.sbWidget = new SBWidget();
+window.afWidget = new AFWidget();
