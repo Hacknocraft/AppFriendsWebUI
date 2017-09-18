@@ -408,10 +408,10 @@ class AFWidget {
         _spinner.remove(_list);
         if (error === null) {
           dialogList.forEach((dialog) => {
+            SELF.listBoard.checkEmptyList();
             let item = SELF.createDialogItem(dialog);
             _list.appendChild(item);
           });
-          SELF.listBoard.checkEmptyList();
         }
       });
     });
