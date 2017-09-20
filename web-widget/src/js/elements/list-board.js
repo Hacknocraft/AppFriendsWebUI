@@ -9,7 +9,8 @@ const NEW_CHAT_TOOLTIP_TEXT = 'New Message';
 
 const TITLE_TOP_LOGIN = 'AppFriends Widget';
 const TITLE_TOP_CHANNEL = 'Conversations';
-const TITLE_LOGIN_USER_ID = 'USER ID';
+//const TITLE_LOGIN_USER_ID = 'USER ID';
+const TITLE_LOGIN_USER_ID = 'YOUR EMAIL';
 const TITLE_LOGIN_NICKNAME = 'NICKNAME';
 const TITLE_LOGIN_BTN = 'Start Chat';
 const TITLE_EMPTY_ITEM = 'Click below to start';
@@ -25,7 +26,9 @@ class ListBoard extends Element {
     super();
     this._createBoard();
     widget.appendChild(this.self);
-
+    this.enableNewChatButtonFlag = widget.enableNewChatButton;
+    this.enableOptionButtonFlag = widget.enableOptionButton;
+    this.enableNickNameFlag = widget.enableNickName;
     this.createLoginForm();
     this.createChannelListBoard();
   }
@@ -62,10 +65,14 @@ class ListBoard extends Element {
     this.btnLogout.appendChild(logoutText);
 
     this.btnOption.appendChild(this.btnLogout);
-    boardTop.appendChild(this.btnOption);
+
+    if (this.enableOptionButtonFlag)
+    {
+      boardTop.appendChild(this.btnOption);
+    }
+
 
     this.addOptionClickEvent();
-
     this.btnNewChat = this.createDiv();
     this._setClass(this.btnNewChat, [className.BTN, className.IC_NEW_CHAT]);
 
@@ -73,7 +80,11 @@ class ListBoard extends Element {
     this._setClass(newChatTooltip, [className.TOOLTIP]);
     this._setContent(newChatTooltip, NEW_CHAT_TOOLTIP_TEXT);
     this.btnNewChat.appendChild(newChatTooltip);
-    boardTop.appendChild(this.btnNewChat);
+
+    if(this.enableNewChatButtonFlag)
+    {
+      boardTop.appendChild(this.btnNewChat);
+    }
 
     this.self.appendChild(boardTop);
   }
@@ -113,7 +124,10 @@ class ListBoard extends Element {
   }
 
   addNewChatClickEvent(action) {
-    this._setClickEvent(this.btnNewChat, action);
+    if (this.enableNewChatButtonFlag)
+    {
+      this._setClickEvent(this.btnNewChat, action);
+    }
   }
 
   createLoginForm() {
@@ -154,7 +168,10 @@ class ListBoard extends Element {
     this._setKeyupEvent(this.nickname, this._toggleLoginBtn.bind(this));
     this._setChangeEvent(this.nickname, this._toggleLoginBtn.bind(this));
     userNicknameEl.appendChild(this.nickname);
-    this.loginForm.appendChild(userNicknameEl);
+    if (this.enableNickNameFlag)
+    {
+      this.loginForm.appendChild(userNicknameEl);
+    }
 
     this.btnLogin = this.createDiv();
     this._setClass(this.btnLogin, [className.LOGIN_BTN]);
@@ -183,7 +200,7 @@ class ListBoard extends Element {
   }
 
   _toggleLoginBtn() {
-    if(!isEmptyString(removeWhiteSpace(this.userId.value)) && !isEmptyString(removeWhiteSpace(this.nickname.value))) {
+    if(!isEmptyString(removeWhiteSpace(this.userId.value))) {
       if (this.btnLogin.innerHTML == TITLE_LOGIN_BTN) {
         this.enabledToggle(this.btnLogin, true);
       }
@@ -195,13 +212,19 @@ class ListBoard extends Element {
   _setUserId(value) {
     this.userId.value = value;
   }
+
   getUserId() {
-    return this.userId.value;
+    var hash = require('object-hash');
+    return hash(this.userId.value);
   }
   _setNickname(value) {
     this.nickname.value = value;
   }
   getNickname() {
+    if (!this.nickname.value || this.nickname.value === '')
+    {
+      return this.userId.value;
+    }
     return this.nickname.value;
   }
 
@@ -299,6 +322,10 @@ class ListBoard extends Element {
   }
 
   checkEmptyList() {
+    if (!this.enableNewChatButtonFlag)
+    {
+      return;
+    }
     if (this.list.childNodes.length < 1) {
       this._createEmptyItem();
     } else {
@@ -318,8 +345,12 @@ class ListBoard extends Element {
     this._setContent(emptyTitle, TITLE_EMPTY_ITEM);
 
     var emptyBtn = this.createDiv();
+    const SELF = this;
     this._setClickEvent(emptyBtn, () => {
-      this.btnNewChat.click();
+      if (SELF.enableNewChatButtonFlag)
+      {
+        SELF.btnNewChat.click();
+      }
     });
     this._setClass(emptyBtn, [className.NEW_CHAT_BTN]);
     this._setContent(emptyBtn, TITLE_EMPTY_BTN);

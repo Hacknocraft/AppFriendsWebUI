@@ -87,9 +87,13 @@ class AFWidget {
 
   _init() {
     this.spinner = new Spinner();
+    this.widget.enableNewChatButton = false;
+    this.widget.enableOptionButton = false;
+    this.widget.enableNickName = false;
 
     this.widgetBtn = new WidgetBtn(this.widget);
     this.listBoard = new ListBoard(this.widget);
+
     this.chatSection = new ChatSection(this.widget);
     this.popup = new Popup();
 
@@ -174,6 +178,8 @@ class AFWidget {
   _start(appId, sercret) {
     this.af = window.af;
     this.af.initialize(appId, sercret);
+    this.af.setLogLevel(1);
+    this.af.setSyncStartTimestamp(Math.floor(Date.now() / 1000));
     this.afadapter = new AFAdapter();
 
     this.popup.addCloseBtnClickEvent(() => {
@@ -241,6 +247,18 @@ class AFWidget {
     });
 
     this.listBoard.addLoginClickEvent(() => {
+
+      function validateEmail(email) {
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+      }
+
+      if (!validateEmail(this.listBoard.getNickname()))
+      {
+        alert("Please enter valid email.")
+        return;
+      }
+
       if (!hasClass(this.listBoard.btnLogin, className.DISABLED)) {
         this.spinner.insert(this.listBoard.btnLogin);
         this.listBoard.enabledToggle(this.listBoard.btnLogin, false);

@@ -3387,12 +3387,25 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 
 /***/ }),
 /* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return User; });
-class User {
-  constructor(id, username, avatar = '') {
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var User = function () {
+  function User(id, username) {
+    var avatar = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+    _classCallCheck(this, User);
+
     this.id = id;
     this.username = username;
     this.email = '';
@@ -3403,114 +3416,150 @@ class User {
   }
 
   // process sender from a message's sender info
-  static getSenderFromMessageData(messageData) {
-    const senderUserString = messageData.sender;
-    if (!senderUserString || senderUserString === 'null') {
-      return null;
+
+
+  _createClass(User, null, [{
+    key: 'getSenderFromMessageData',
+    value: function getSenderFromMessageData(messageData) {
+      var senderUserString = messageData.sender;
+      if (!senderUserString || senderUserString === 'null') {
+        return null;
+      }
+      var senderUserJSONObj = JSON.parse(senderUserString);
+      var senderUser = new User(senderUserJSONObj.id, senderUserJSONObj.user_name, senderUserJSONObj.avatar);
+      return senderUser;
     }
-    const senderUserJSONObj = JSON.parse(senderUserString);
-    const senderUser = new User(senderUserJSONObj.id, senderUserJSONObj.user_name, senderUserJSONObj.avatar);
-    return senderUser;
-  }
-}
+  }]);
 
+  return User;
+}();
 
+exports.default = User;
 
 /***/ }),
 /* 10 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return BaseService; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__request__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__helper_error__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__helper_error___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__helper_error__);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
-class BaseService {
-  sendPostRequest(paramsJSON, path, callback) {
-    const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
-    return request.startRequest('POST', path, paramsJSON).then(response => {
-      if (response.data.error) {
-        const error = response.data.error;
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        callback(null, afError);
-      } else {
-        callback(response, null);
-      }
-    }).catch(error => {
-      if (callback) {
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        callback(null, afError);
-      }
-    });
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _request = __webpack_require__(13);
+
+var _request2 = _interopRequireDefault(_request);
+
+var _error = __webpack_require__(34);
+
+var _error2 = _interopRequireDefault(_error);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BaseService = function () {
+  function BaseService() {
+    _classCallCheck(this, BaseService);
   }
 
-  sendGetRequest(path, params, callback) {
-    const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
-    let fullPath = path;
-    if (params) {
-      fullPath = path + this.jsonToQueryString(params);
+  _createClass(BaseService, [{
+    key: 'sendPostRequest',
+    value: function sendPostRequest(paramsJSON, path, callback) {
+      var request = new _request2.default();
+      return request.startRequest('POST', path, paramsJSON).then(function (response) {
+        if (response.data.error) {
+          var error = response.data.error;
+          var afError = _error2.default.createError(error.reason, error.code);
+          callback(null, afError);
+        } else {
+          callback(response, null);
+        }
+      }).catch(function (error) {
+        if (callback) {
+          var afError = _error2.default.createError(error.message, error.code);
+          callback(null, afError);
+        }
+      });
     }
-    return request.startRequest('GET', fullPath).then(response => {
-      if (response.data.error) {
-        const error = response.data.error;
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        callback(null, afError);
-      } else {
-        callback(response, null);
+  }, {
+    key: 'sendGetRequest',
+    value: function sendGetRequest(path, params, callback) {
+      var request = new _request2.default();
+      var fullPath = path;
+      if (params) {
+        fullPath = path + this.jsonToQueryString(params);
       }
-    }).catch(error => {
-      if (callback) {
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        callback(null, afError);
-      }
-    });
-  }
+      return request.startRequest('GET', fullPath).then(function (response) {
+        if (response.data.error) {
+          var error = response.data.error;
+          var afError = _error2.default.createError(error.reason, error.code);
+          callback(null, afError);
+        } else {
+          callback(response, null);
+        }
+      }).catch(function (error) {
+        if (callback) {
+          var afError = _error2.default.createError(error.message, error.code);
+          callback(null, afError);
+        }
+      });
+    }
+  }, {
+    key: 'sendPutRequest',
+    value: function sendPutRequest(paramsJSON, path, callback) {
+      var request = new _request2.default();
+      return request.startRequest('PUT', path, paramsJSON).then(function (response) {
+        if (response.data.error) {
+          var error = response.data.error;
+          var afError = _error2.default.createError(error.reason, error.code);
+          callback(null, afError);
+        } else {
+          callback(response, null);
+        }
+      }).catch(function (error) {
+        if (callback && error) {
+          var afError = _error2.default.createError(error.message, error.code);
+          callback(null, afError);
+        }
+      });
+    }
+  }, {
+    key: 'sendDeleteRequest',
+    value: function sendDeleteRequest(paramsJSON, path, callback) {
+      var request = new _request2.default();
+      return request.startRequest('DELETE', path, paramsJSON).then(function (response) {
+        if (response.data.error) {
+          var error = response.data.error;
+          var afError = _error2.default.createError(error.reason, error.code);
+          callback(null, afError);
+        } else {
+          callback(response, null);
+        }
+      }).catch(function (error) {
+        if (callback && error) {
+          var afError = _error2.default.createError(error.message, error.code);
+          callback(null, afError);
+        }
+      });
+    }
+  }, {
+    key: 'jsonToQueryString',
+    value: function jsonToQueryString(json) {
+      return '?' + Object.keys(json).map(function (key) {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(json[key]);
+      }).join('&');
+    }
+  }]);
 
-  sendPutRequest(paramsJSON, path, callback) {
-    const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
-    return request.startRequest('PUT', path, paramsJSON).then(response => {
-      if (response.data.error) {
-        const error = response.data.error;
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        callback(null, afError);
-      } else {
-        callback(response, null);
-      }
-    }).catch(error => {
-      if (callback && error) {
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        callback(null, afError);
-      }
-    });
-  }
+  return BaseService;
+}();
 
-  sendDeleteRequest(paramsJSON, path, callback) {
-    const request = new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */]();
-    return request.startRequest('DELETE', path, paramsJSON).then(response => {
-      if (response.data.error) {
-        const error = response.data.error;
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.reason, error.code);
-        callback(null, afError);
-      } else {
-        callback(response, null);
-      }
-    }).catch(error => {
-      if (callback && error) {
-        const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError(error.message, error.code);
-        callback(null, afError);
-      }
-    });
-  }
-
-  jsonToQueryString(json) {
-    return `?${Object.keys(json).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`).join('&')}`;
-  }
-}
-
-
+exports.default = BaseService;
 
 /***/ }),
 /* 11 */
@@ -3706,47 +3755,90 @@ function localstorage() {
 
 /***/ }),
 /* 12 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Logger; });
-class Logger {
-  static trace(...args) {
-    if (Logger.logLevel <= Logger.levels.TRACE) {
-      console.trace(args);
-    }
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Logger = function () {
+  function Logger() {
+    _classCallCheck(this, Logger);
   }
 
-  static error(...args) {
-    if (Logger.logLevel <= Logger.levels.ERROR) {
-      console.error(args);
-    }
-  }
+  _createClass(Logger, null, [{
+    key: "trace",
+    value: function trace() {
+      if (Logger.logLevel <= Logger.levels.TRACE) {
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
 
-  static warn(...args) {
-    if (Logger.logLevel <= Logger.levels.WARN) {
-      console.warn(args);
+        console.trace(args);
+      }
     }
-  }
+  }, {
+    key: "error",
+    value: function error() {
+      if (Logger.logLevel <= Logger.levels.ERROR) {
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
+        }
 
-  static info(...args) {
-    if (Logger.logLevel <= Logger.levels.INFO) {
-      console.info(args);
+        console.error(args);
+      }
     }
-  }
+  }, {
+    key: "warn",
+    value: function warn() {
+      if (Logger.logLevel <= Logger.levels.WARN) {
+        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          args[_key3] = arguments[_key3];
+        }
 
-  static debug(...args) {
-    if (Logger.logLevel <= Logger.levels.DEBUG) {
-      console.debug(args);
+        console.warn(args);
+      }
     }
-  }
+  }, {
+    key: "info",
+    value: function info() {
+      if (Logger.logLevel <= Logger.levels.INFO) {
+        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+          args[_key4] = arguments[_key4];
+        }
 
-  static setLogLevel(logLevel) {
-    if (logLevel >= Logger.levels.TRACE && logLevel <= Logger.levels.SILENT) {
-      Logger.logLevel = logLevel;
+        console.info(args);
+      }
     }
-  }
-}
+  }, {
+    key: "debug",
+    value: function debug() {
+      if (Logger.logLevel <= Logger.levels.DEBUG) {
+        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+          args[_key5] = arguments[_key5];
+        }
+
+        console.debug(args);
+      }
+    }
+  }, {
+    key: "setLogLevel",
+    value: function setLogLevel(logLevel) {
+      if (logLevel >= Logger.levels.TRACE && logLevel <= Logger.levels.SILENT) {
+        Logger.logLevel = logLevel;
+      }
+    }
+  }]);
+
+  return Logger;
+}();
 
 Logger.levels = { TRACE: 0,
   DEBUG: 1,
@@ -3757,118 +3849,171 @@ Logger.levels = { TRACE: 0,
 
 Logger.logLevel = Logger.levels.ERROR;
 
-
+exports.default = Logger;
 
 /***/ }),
 /* 13 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Request; });
-const jwtToken = __webpack_require__(35);
-const axios = __webpack_require__(53);
 
-const apiVersion = 'v3';
 
-class Request {
-  constructor() {
-    axios.defaults.baseURL = Request.useSandBox ? `https://appfriends-staging-api.hacknocraft.com/api/${apiVersion}/` : `https://appfriends-api.hacknocraft.com/api/${apiVersion}/`;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var jwtToken = __webpack_require__(35);
+var axios = __webpack_require__(53);
+
+var apiVersion = 'v3';
+
+var Request = function () {
+  function Request() {
+    _classCallCheck(this, Request);
+
+    axios.defaults.baseURL = Request.useSandBox ? 'https://appfriends-staging-api.hacknocraft.com/api/' + apiVersion + '/' : 'https://appfriends-api.hacknocraft.com/api/' + apiVersion + '/';
   }
 
-  startRequest(method, path, data) {
-    return axios({
-      method,
-      url: path,
-      headers: {
-        APP_ID: Request.appKey,
-        CORE_VERSION: 2,
-        Authorization: `bearer ${jwtToken(Request.appSecret, Request.userToken)}` },
-      data
-    });
-  }
-
-  isRequestFailed(response) {
-    if (response.error) {
-      return response.error;
+  _createClass(Request, [{
+    key: 'startRequest',
+    value: function startRequest(method, path, data) {
+      return axios({
+        method: method,
+        url: path,
+        headers: {
+          APP_ID: Request.appKey,
+          CORE_VERSION: 2,
+          Authorization: 'bearer ' + jwtToken(Request.appSecret, Request.userToken) },
+        data: data
+      });
     }
-    return null;
-  }
-}
+  }, {
+    key: 'isRequestFailed',
+    value: function isRequestFailed(response) {
+      if (response.error) {
+        return response.error;
+      }
+      return null;
+    }
+  }]);
 
+  return Request;
+}();
 
+exports.default = Request;
 
 /***/ }),
 /* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return UserSession; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__request__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__helper_error__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__helper_error___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__helper_error__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_user__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__service__ = __webpack_require__(10);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _request = __webpack_require__(13);
 
-class UserSession extends __WEBPACK_IMPORTED_MODULE_3__service__["a" /* default */] {
-  constructor(afCore) {
-    super();
-    this.afCore = afCore;
+var _request2 = _interopRequireDefault(_request);
+
+var _error = __webpack_require__(34);
+
+var _error2 = _interopRequireDefault(_error);
+
+var _user = __webpack_require__(9);
+
+var _user2 = _interopRequireDefault(_user);
+
+var _service = __webpack_require__(10);
+
+var _service2 = _interopRequireDefault(_service);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var UserSession = function (_BaseService) {
+  _inherits(UserSession, _BaseService);
+
+  function UserSession(afCore) {
+    _classCallCheck(this, UserSession);
+
+    var _this = _possibleConstructorReturn(this, (UserSession.__proto__ || Object.getPrototypeOf(UserSession)).call(this));
+
+    _this.afCore = afCore;
+    return _this;
   }
 
-  isLoggedIn() {
-    if (UserSession.userToken) {
-      return true;
-    }
-    return false;
-  }
-
-  logout() {
-    this.afCore.MessageSync.resetService();
-    UserSession.userToken = null;
-    UserSession.currentUserID = null;
-    UserSession.currentUserName = null;
-    __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */].userToken = null;
-  }
-
-  login(userid, username, callback) {
-    if (this.isLoggedIn()) {
-      const afError = __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.createError("Can't call login again when there's already a user logged in. Please logout first.", __WEBPACK_IMPORTED_MODULE_1__helper_error___default.a.ErrorCode.userAlreadyLoggedIn);
-      if (callback) {
-        callback(null, afError);
+  _createClass(UserSession, [{
+    key: 'isLoggedIn',
+    value: function isLoggedIn() {
+      if (UserSession.userToken) {
+        return true;
       }
-    } else {
-      this.sendPostRequest({ id: userid, user_name: username }, '/login', (response, err) => {
-        if (!err) {
-          UserSession.userToken = response.data.token;
-          __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */].userToken = response.data.token;
-          UserSession.currentUserID = userid;
-          UserSession.currentUserName = username;
-          UserSession.currentUserAvatar = response.data.avatar;
-          if (callback) {
-            callback(response.data.token, null);
-          }
-        } else if (callback) {
-          callback(null, err);
+      return false;
+    }
+  }, {
+    key: 'logout',
+    value: function logout() {
+      this.afCore.MessageSync.resetService();
+      UserSession.userToken = null;
+      UserSession.currentUserID = null;
+      UserSession.currentUserName = null;
+      _request2.default.userToken = null;
+    }
+  }, {
+    key: 'login',
+    value: function login(userid, username, callback) {
+      if (this.isLoggedIn()) {
+        var afError = _error2.default.createError("Can't call login again when there's already a user logged in. Please logout first.", _error2.default.ErrorCode.userAlreadyLoggedIn);
+        if (callback) {
+          callback(null, afError);
         }
-      });
+      } else {
+        this.sendPostRequest({ id: userid, user_name: username }, '/login', function (response, err) {
+          if (!err) {
+            UserSession.userToken = response.data.token;
+            _request2.default.userToken = response.data.token;
+            UserSession.currentUserID = userid;
+            UserSession.currentUserName = username;
+            UserSession.currentUserAvatar = response.data.avatar;
+            if (callback) {
+              callback(response.data.token, null);
+            }
+          } else if (callback) {
+            callback(null, err);
+          }
+        });
+      }
     }
-  }
-
-  currentUser() {
-    if (!this.isLoggedIn()) {
-      return null;
+  }, {
+    key: 'currentUser',
+    value: function currentUser() {
+      if (!this.isLoggedIn()) {
+        return null;
+      }
+      var currentUser = new _user2.default(UserSession.currentUserID, UserSession.currentUserName);
+      currentUser.avatar = UserSession.currentUserAvatar;
+      return currentUser;
     }
-    const currentUser = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](UserSession.currentUserID, UserSession.currentUserName);
-    currentUser.avatar = UserSession.currentUserAvatar;
-    return currentUser;
-  }
-}
+  }]);
 
+  return UserSession;
+}(_service2.default);
 
+exports.default = UserSession;
 
 /***/ }),
 /* 15 */
@@ -4675,12 +4820,23 @@ module.exports = defaults;
 
 /***/ }),
 /* 20 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Dialog; });
-class Dialog {
-  constructor(dialogID, type) {
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Dialog = function () {
+  function Dialog(dialogID, type) {
+    _classCallCheck(this, Dialog);
+
     this.id = dialogID;
     this.type = type;
     this.createTime = Date.now();
@@ -4702,114 +4858,142 @@ class Dialog {
     this.messages = {}; // [Message]
   }
 
-  getDialogImage() {
-    if (this.type === Dialog.type.channel) {
-      return this.coverImageURL;
-    } else if (this.type === Dialog.type.group) {
-      return 'https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_group_black_24px.svg';
-    } else if (typeof this.messages[this.lastMessageID] !== 'undefined' && this.messages[this.lastMessageID] !== null) {
-      return this.messages[this.lastMessageID].sender.avatar;
+  _createClass(Dialog, [{
+    key: 'getDialogImage',
+    value: function getDialogImage() {
+      if (this.type === Dialog.type.channel) {
+        return this.coverImageURL;
+      } else if (this.type === Dialog.type.group) {
+        return 'https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_group_black_24px.svg';
+      } else if (typeof this.messages[this.lastMessageID] !== 'undefined' && this.messages[this.lastMessageID] !== null) {
+        return this.messages[this.lastMessageID].sender.avatar;
+      }
+      return null;
     }
-    return null;
-  }
-
-  getLastMessageTime() {
-    if (this.lastMessageText !== '') {
-      return this.lastMessageTime;
+  }, {
+    key: 'getLastMessageTime',
+    value: function getLastMessageTime() {
+      if (this.lastMessageText !== '') {
+        return this.lastMessageTime;
+      }
+      return null;
     }
-    return null;
-  }
-
-  getMemberCount() {
-    if (this.type === Dialog.type.group) {
-      return this.members.length;
+  }, {
+    key: 'getMemberCount',
+    value: function getMemberCount() {
+      if (this.type === Dialog.type.group) {
+        return this.members.length;
+      }
+      return null;
     }
-    return null;
-  }
+  }, {
+    key: 'isPrivateGroupChat',
+    value: function isPrivateGroupChat() {
+      return this.type === Dialog.type.group;
+    }
+  }, {
+    key: 'isPublicChannel',
+    value: function isPublicChannel() {
+      return this.type === Dialog.type.channel;
+    }
+  }, {
+    key: 'createPreviousMessageListQuery',
+    value: function createPreviousMessageListQuery() {
+      var dialogSelf = this;
+      return new function () {
+        this.isLoading = false;
+        this.hasMore = true;
+        var SELF = this;
+        this.load = function (limit, reverse) {
+          var fromBeginning = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+          var callback = arguments[3];
 
-  isPrivateGroupChat() {
-    return this.type === Dialog.type.group;
-  }
-
-  isPublicChannel() {
-    return this.type === Dialog.type.channel;
-  }
-
-  createPreviousMessageListQuery() {
-    const dialogSelf = this;
-    return new function () {
-      this.isLoading = false;
-      this.hasMore = true;
-      const SELF = this;
-      this.load = function (limit, reverse, fromBeginning = false, callback) {
-        SELF.isLoading = true;
-        const messageID = fromBeginning ? null : dialogSelf.earliestMessageID;
-        if (dialogSelf.isPublicChannel()) {
-          window.af.MessageSync.fetchChannelMessagesHistory(dialogSelf.id, messageID, (messages, error) => {
-            SELF.isLoading = false;
-            if (messages.length === 0 && error === null) {
-              SELF.hasMore = false;
-            }
-            if (messages.length > 0) {
-              const cachedDialog = window.af.getDialog(dialogSelf.id);
-              cachedDialog.earliestMessageID = messages[0].messageID;
-            }
-            callback(messages, error);
-          });
-        } else {
-          const messages = [];
-          const allKeys = Object.keys(dialogSelf.messages).sort((a, b) => b - a);
-          for (let i = 0; i < allKeys.length; i += 1) {
-            const currentKey = allKeys[i];
-            if (currentKey < messageID || fromBeginning) {
-              messages.push(dialogSelf.messages[currentKey]);
-              if (messages.length === 20) {
-                break;
+          SELF.isLoading = true;
+          var messageID = fromBeginning ? null : dialogSelf.earliestMessageID;
+          if (dialogSelf.isPublicChannel()) {
+            window.af.MessageSync.fetchChannelMessagesHistory(dialogSelf.id, messageID, function (messages, error) {
+              SELF.isLoading = false;
+              if (messages.length === 0 && error === null) {
+                SELF.hasMore = false;
+              }
+              if (messages.length > 0) {
+                var cachedDialog = window.af.getDialog(dialogSelf.id);
+                cachedDialog.earliestMessageID = messages[0].messageID;
+              }
+              callback(messages, error);
+            });
+          } else {
+            var messages = [];
+            var allKeys = Object.keys(dialogSelf.messages).sort(function (a, b) {
+              return b - a;
+            });
+            console.log('load private chat');
+            for (var i = 0; i < allKeys.length; i += 1) {
+              var currentKey = allKeys[i];
+              if (currentKey < messageID || fromBeginning) {
+                messages.push(dialogSelf.messages[currentKey]);
+                if (messages.length === 20) {
+                  break;
+                }
               }
             }
+            var sortedMessages = messages.sort(function (a, b) {
+              return a.messageID - b.messageID;
+            });
+            if (sortedMessages.length > 0) {
+              var cachedDialog = window.af.getDialog(dialogSelf.id);
+              cachedDialog.earliestMessageID = sortedMessages[0].messageID;
+            }
+            SELF.isLoading = false;
+            if (sortedMessages.length < 20) {
+              SELF.hasMore = false;
+            }
+            callback(sortedMessages, null);
           }
-          const sortedMessages = messages.sort((a, b) => a.messageID - b.messageID);
-          if (sortedMessages.length > 0) {
-            const cachedDialog = window.af.getDialog(dialogSelf.id);
-            cachedDialog.earliestMessageID = sortedMessages[0].messageID;
-          }
-          SELF.isLoading = false;
-          if (sortedMessages.length < 20) {
-            SELF.hasMore = false;
-          }
-          callback(sortedMessages, null);
+        };
+      }(this);
+    }
+  }, {
+    key: 'sendTextMessage',
+    value: function sendTextMessage(text) {
+      var customData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+      var requireReceipt = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      var mentionUsers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
+      var sendPush = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+      var callback = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
+
+      window.af.Dialog.sendTextMessage(this, text, customData, requireReceipt, mentionUsers, sendPush, callback);
+    }
+  }, {
+    key: 'removeMemberWithID',
+    value: function removeMemberWithID(memberID) {
+      var memberIndex = this.memberIDs.indexOf(memberID);
+      if (memberIndex >= 0) {
+        this.memberIDs.splice(memberIndex, 1);
+      }
+
+      var waitFetchMemberIndex = this.waitFetchMemberIDs.indexOf(memberID);
+      if (waitFetchMemberIndex >= 0) {
+        this.waitFetchMemberIDs.splice(waitFetchMemberIndex, 1);
+      }
+
+      for (var i = 0; i < this.members.length; i += 1) {
+        if (this.members[i].id === memberID) {
+          this.members.splice(i, 1);
+          break;
         }
-      };
-    }(this);
-  }
-
-  sendTextMessage(text, customData = '', requireReceipt = false, mentionUsers = [], sendPush = true, callback = null) {
-    window.af.Dialog.sendTextMessage(this, text, customData, requireReceipt, mentionUsers, sendPush, callback);
-  }
-
-  removeMemberWithID(memberID) {
-    const memberIndex = this.memberIDs.indexOf(memberID);
-    if (memberIndex >= 0) {
-      this.memberIDs.splice(memberIndex, 1);
-    }
-
-    const waitFetchMemberIndex = this.waitFetchMemberIDs.indexOf(memberID);
-    if (waitFetchMemberIndex >= 0) {
-      this.waitFetchMemberIDs.splice(waitFetchMemberIndex, 1);
-    }
-
-    for (let i = 0; i < this.members.length; i += 1) {
-      if (this.members[i].id === memberID) {
-        this.members.splice(i, 1);
-        break;
       }
     }
-  }
+  }, {
+    key: 'startTyping',
+    value: function startTyping() {}
+  }, {
+    key: 'endTyping',
+    value: function endTyping() {}
+  }]);
 
-  startTyping() {}
-
-  endTyping() {}
-}
+  return Dialog;
+}();
 
 Dialog.type = {
   unknown: 'unknown',
@@ -4818,7 +5002,7 @@ Dialog.type = {
   channel: 'c'
 };
 
-
+exports.default = Dialog;
 
 /***/ }),
 /* 21 */
@@ -6050,35 +6234,58 @@ module.exports = function bind(fn, thisArg) {
 
 /***/ }),
 /* 32 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LocationCoordinate2D; });
-class LocationCoordinate2D {
-  constructor(latitude, longitude) {
-    this.latitude = latitude;
-    this.longitude = longitude;
-  }
-}
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LocationCoordinate2D = function LocationCoordinate2D(latitude, longitude) {
+  _classCallCheck(this, LocationCoordinate2D);
+
+  this.latitude = latitude;
+  this.longitude = longitude;
+};
+
+exports.default = LocationCoordinate2D;
 
 /***/ }),
 /* 33 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Message; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_id__ = __webpack_require__(77);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__user__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__attachment__ = __webpack_require__(71);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _id = __webpack_require__(77);
 
-class Message {
-  constructor(messageData) {
+var _id2 = _interopRequireDefault(_id);
+
+var _user = __webpack_require__(9);
+
+var _user2 = _interopRequireDefault(_user);
+
+var _attachment = __webpack_require__(71);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Message = function () {
+  function Message(messageData) {
+    _classCallCheck(this, Message);
+
     this.sender = messageData.senderUser;
     this.dialogType = messageData.dialogType;
     this.dialogID = messageData.dialogID;
@@ -6096,265 +6303,299 @@ class Message {
     this.receiptRequired = messageData.receiptRequired;
   }
 
-  isSystemMessage() {
-    return this.isSystem ? this.isSystem : false;
-  }
-
-  isUserMessage() {
-    return !this.isSystem && !this.isAttachmentMessage();
-  }
-
-  isAttachmentMessage() {
-    const hasAttachment = this.attachment !== null && (this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.image || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.gif || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.video || this.attachment.type === __WEBPACK_IMPORTED_MODULE_2__attachment__["a" /* Attachment */].attachmentType.location);
-    return hasAttachment;
-  }
-
-  basicMessageJSON() {
-    return {
-      temp_id: this.tempID,
-      sent_time: Date.now(),
-      receive_time: Date.now(),
-      dialog_id: this.dialogID,
-      text: this.text,
-      version: 2
-    };
-  }
-
-  genSenderJSON() {
-    return {
-      id: this.sender.id,
-      user_name: this.sender.username,
-      avatar: this.sender.avatar ? this.sender.avatar : ''
-    };
-  }
-
-  genTextMessageJSON(sendPush = true) {
-    const messageJSON = this.basicMessageJSON();
-    const senderJSON = this.genSenderJSON();
-    messageJSON.sender = JSON.stringify(senderJSON);
-    messageJSON.custom_data = this.customData ? this.customData : '';
-    messageJSON.send_push = sendPush;
-    if (this.mentionUsers) {
-      messageJSON.mentions = this.mentionUsers;
+  _createClass(Message, [{
+    key: 'isSystemMessage',
+    value: function isSystemMessage() {
+      return this.isSystem ? this.isSystem : false;
     }
-    messageJSON.receipt_required = this.receiptRequired;
-    return messageJSON;
-  }
+  }, {
+    key: 'isUserMessage',
+    value: function isUserMessage() {
+      return !this.isSystem && !this.isAttachmentMessage();
+    }
+  }, {
+    key: 'isAttachmentMessage',
+    value: function isAttachmentMessage() {
+      var hasAttachment = this.attachment !== null && (this.attachment.type === _attachment.Attachment.attachmentType.image || this.attachment.type === _attachment.Attachment.attachmentType.gif || this.attachment.type === _attachment.Attachment.attachmentType.video || this.attachment.type === _attachment.Attachment.attachmentType.location);
+      return hasAttachment;
+    }
+  }, {
+    key: 'basicMessageJSON',
+    value: function basicMessageJSON() {
+      return {
+        temp_id: this.tempID,
+        sent_time: Date.now(),
+        receive_time: Date.now(),
+        dialog_id: this.dialogID,
+        text: this.text,
+        version: 2
+      };
+    }
+  }, {
+    key: 'genSenderJSON',
+    value: function genSenderJSON() {
+      return {
+        id: this.sender.id,
+        user_name: this.sender.username,
+        avatar: this.sender.avatar ? this.sender.avatar : ''
+      };
+    }
+  }, {
+    key: 'genTextMessageJSON',
+    value: function genTextMessageJSON() {
+      var sendPush = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
-  genLocationPayloadJSON() {
-    const placeholder = 'http://res.cloudinary.com/hacknocraft-appfriends/image/upload/v1489872990/attachment_unknown_apritb.jpg';
-    const attachmentJSON = {};
-    attachmentJSON.type = 'location';
-    attachmentJSON.payload = { title: this.attachment.title,
-      url: placeholder,
-      description: this.attachment.subtitle,
-      lat: this.attachment.location2D.latitude,
-      long: this.attachment.location2D.longitude };
+      var messageJSON = this.basicMessageJSON();
+      var senderJSON = this.genSenderJSON();
+      messageJSON.sender = JSON.stringify(senderJSON);
+      messageJSON.custom_data = this.customData ? this.customData : '';
+      messageJSON.send_push = sendPush;
+      if (this.mentionUsers) {
+        messageJSON.mentions = this.mentionUsers;
+      }
+      messageJSON.receipt_required = this.receiptRequired;
+      return messageJSON;
+    }
+  }, {
+    key: 'genLocationPayloadJSON',
+    value: function genLocationPayloadJSON() {
+      var placeholder = 'http://res.cloudinary.com/hacknocraft-appfriends/image/upload/v1489872990/attachment_unknown_apritb.jpg';
+      var attachmentJSON = {};
+      attachmentJSON.type = 'location';
+      attachmentJSON.payload = { title: this.attachment.title,
+        url: placeholder,
+        description: this.attachment.subtitle,
+        lat: this.attachment.location2D.latitude,
+        long: this.attachment.location2D.longitude };
 
-    return attachmentJSON;
-  }
-
-  genLocationMessageJSON(sendPush = true) {
-    const messageJSON = this.basicMessageJSON();
-    const senderJSON = this.genSenderJSON();
-    messageJSON.sender = JSON.stringify(senderJSON);
-    messageJSON.custom_data = this.customData ? this.customData : '';
-    messageJSON.send_push = sendPush;
-    messageJSON.attachment = JSON.stringify(this.genLocationPayloadJSON());
-    messageJSON.receipt_required = this.receiptRequired;
-    return messageJSON;
-  }
-
-  genVideoPayloadJSON() {
-    return {
-      type: 'video',
-      payload: { url: this.attachment.streamingURL, thumbnail: this.attachment.thumbnailURL }
-    };
-  }
-
-  genVideoMessageJSON(sendPush = true) {
-    const messageJSON = this.basicMessageJSON();
-    const senderJSON = this.genSenderJSON();
-    const attachmentJSON = this.genVideoPayloadJSON();
-    messageJSON.sender = JSON.stringify(senderJSON);
-    messageJSON.attachment = JSON.stringify(attachmentJSON);
-    messageJSON.custom_data = this.customData ? this.customData : '';
-    messageJSON.send_push = sendPush;
-    messageJSON.receipt_required = this.receiptRequired;
-    return messageJSON;
-  }
-
-  genImagePayloadJSON() {
-    const attachmentJSON = { type: 'image' };
-    if (!this.attachment) {
       return attachmentJSON;
     }
-    if (this.attachment.thumbnailURL) {
-      attachmentJSON.payload = { url: this.attachment.url,
-        thumbnail: this.attachment.thumbnailURL };
-    } else {
-      attachmentJSON.payload = { url: this.attachment.url,
-        thumbnail: this.attachment.url };
+  }, {
+    key: 'genLocationMessageJSON',
+    value: function genLocationMessageJSON() {
+      var sendPush = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      var messageJSON = this.basicMessageJSON();
+      var senderJSON = this.genSenderJSON();
+      messageJSON.sender = JSON.stringify(senderJSON);
+      messageJSON.custom_data = this.customData ? this.customData : '';
+      messageJSON.send_push = sendPush;
+      messageJSON.attachment = JSON.stringify(this.genLocationPayloadJSON());
+      messageJSON.receipt_required = this.receiptRequired;
+      return messageJSON;
     }
-
-    return attachmentJSON;
-  }
-
-  genImageMessageJSON(sendPush = true) {
-    const messageJSON = this.basicMessageJSON();
-    const senderJSON = this.genSenderJSON();
-    const attachmentJSON = this.genImagePayloadJSON();
-    messageJSON.sender = JSON.stringify(senderJSON);
-    messageJSON.attachment = JSON.stringify(attachmentJSON);
-    messageJSON.custom_data = this.customData ? this.customData : '';
-    messageJSON.send_push = sendPush;
-    messageJSON.receipt_required = this.receiptRequired;
-    return messageJSON;
-  }
-
-  genGifPayloadJSON() {
-    return {
-      type: 'gif',
-      payload: { url: this.attachment.url }
-    };
-  }
-
-  genGifMessageJSON(sendPush = true) {
-    const messageJSON = this.basicMessageJSON();
-    const senderJSON = this.genSenderJSON();
-    const attachmentJSON = this.genGifPayloadJSON();
-    messageJSON.sender = JSON.stringify(senderJSON);
-    messageJSON.attachment = JSON.stringify(attachmentJSON);
-    messageJSON.custom_data = this.customData || '';
-    messageJSON.send_push = sendPush;
-    messageJSON.receipt_required = this.receiptRequired;
-    return messageJSON;
-  }
-
-  static createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers) {
-    const messageData = {
-      senderUser,
-      dialogType,
-      dialogID,
-      tempID: __WEBPACK_IMPORTED_MODULE_0__utils_id__["a" /* default */].createUniqueID(),
-      text,
-      receiveTime: Date.now(),
-      sentTime: Date.now(),
-      isSystem: false,
-      customData,
-      mentionUsers,
-      receiptRequired: requireReceipt,
-      attachment: null
-    };
-    return new Message(messageData);
-  }
-
-  static createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt) {
-    const imageAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createImageAttachment(imageURL, thumbnailURL);
-    const messageData = {
-      senderUser,
-      dialogType,
-      dialogID,
-      tempID: __WEBPACK_IMPORTED_MODULE_0__utils_id__["a" /* default */].createUniqueID(),
-      text: '[image]',
-      receiveTime: Date.now(),
-      sentTime: Date.now(),
-      isSystem: false,
-      customData,
-      receiptRequired: requireReceipt,
-      attachment: imageAttachment
-    };
-    return new Message(messageData);
-  }
-
-  static createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt) {
-    const videoAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createVideoAttachment(videoStreamURL, thumbnailURL);
-    const messageData = {
-      senderUser,
-      dialogType,
-      dialogID,
-      tempID: __WEBPACK_IMPORTED_MODULE_0__utils_id__["a" /* default */].createUniqueID(),
-      text: '[video]',
-      receiveTime: Date.now(),
-      sentTime: Date.now(),
-      isSystem: false,
-      customData,
-      receiptRequired: requireReceipt,
-      attachment: videoAttachment
-    };
-    return new Message(messageData);
-  }
-
-  static createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt) {
-    const gifAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createGifAttachment(gifURL);
-    const messageData = {
-      senderUser,
-      dialogType,
-      dialogID,
-      tempID: __WEBPACK_IMPORTED_MODULE_0__utils_id__["a" /* default */].createUniqueID(),
-      text: '[gif]',
-      receiveTime: Date.now(),
-      sentTime: Date.now(),
-      isSystem: false,
-      customData,
-      receiptRequired: requireReceipt,
-      attachment: gifAttachment
-    };
-    return new Message(messageData);
-  }
-
-  static createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt) {
-    const locationAttachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createLocationAttachment(location2D, title, subtitle, placemarkName);
-    const messageData = {
-      senderUser,
-      dialogType,
-      dialogID,
-      tempID: __WEBPACK_IMPORTED_MODULE_0__utils_id__["a" /* default */].createUniqueID(),
-      text: '[map]',
-      receiveTime: Date.now(),
-      sentTime: Date.now(),
-      isSystem: false,
-      customData,
-      receiptRequired: requireReceipt,
-      attachment: locationAttachment
-    };
-    return new Message(messageData);
-  }
-
-  static createMessageFromJSON(message) {
-    let senderUser = __WEBPACK_IMPORTED_MODULE_1__user__["a" /* default */].getSenderFromMessageData(message);
-    if (message.dialog_type !== 's' && senderUser === null) {
-      const customData = JSON.parse(message.custom_data);
-      if (customData.sender) {
-        senderUser = new __WEBPACK_IMPORTED_MODULE_1__user__["a" /* default */](customData.sender.id, customData.sender.user_name, customData.sender.avatar);
-      }
-      if (senderUser === null) {
-        return null;
-      }
+  }, {
+    key: 'genVideoPayloadJSON',
+    value: function genVideoPayloadJSON() {
+      return {
+        type: 'video',
+        payload: { url: this.attachment.streamingURL, thumbnail: this.attachment.thumbnailURL }
+      };
     }
-    const attachment = __WEBPACK_IMPORTED_MODULE_2__attachment__["b" /* AttachmentFactory */].createAttachment(message.attachment);
-    const customData = JSON.parse(message.custom_data);
-    const metaData = message.meta_data;
+  }, {
+    key: 'genVideoMessageJSON',
+    value: function genVideoMessageJSON() {
+      var sendPush = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
-    const messageData = {
-      senderUser,
-      dialogType: message.dialog_type,
-      dialogID: message.dialog_id,
-      tempID: message.temp_id,
-      text: message.text,
-      receiveTime: message.receive_time,
-      sentTime: message.sent_time,
-      isSystem: message.dialog_type === 's',
-      customData,
-      metaData,
-      messageID: message.id,
-      receiptRequired: true,
-      attachment
-    };
+      var messageJSON = this.basicMessageJSON();
+      var senderJSON = this.genSenderJSON();
+      var attachmentJSON = this.genVideoPayloadJSON();
+      messageJSON.sender = JSON.stringify(senderJSON);
+      messageJSON.attachment = JSON.stringify(attachmentJSON);
+      messageJSON.custom_data = this.customData ? this.customData : '';
+      messageJSON.send_push = sendPush;
+      messageJSON.receipt_required = this.receiptRequired;
+      return messageJSON;
+    }
+  }, {
+    key: 'genImagePayloadJSON',
+    value: function genImagePayloadJSON() {
+      var attachmentJSON = { type: 'image' };
+      if (!this.attachment) {
+        return attachmentJSON;
+      }
+      if (this.attachment.thumbnailURL) {
+        attachmentJSON.payload = { url: this.attachment.url,
+          thumbnail: this.attachment.thumbnailURL };
+      } else {
+        attachmentJSON.payload = { url: this.attachment.url,
+          thumbnail: this.attachment.url };
+      }
 
-    return new Message(messageData);
-  }
-}
+      return attachmentJSON;
+    }
+  }, {
+    key: 'genImageMessageJSON',
+    value: function genImageMessageJSON() {
+      var sendPush = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      var messageJSON = this.basicMessageJSON();
+      var senderJSON = this.genSenderJSON();
+      var attachmentJSON = this.genImagePayloadJSON();
+      messageJSON.sender = JSON.stringify(senderJSON);
+      messageJSON.attachment = JSON.stringify(attachmentJSON);
+      messageJSON.custom_data = this.customData ? this.customData : '';
+      messageJSON.send_push = sendPush;
+      messageJSON.receipt_required = this.receiptRequired;
+      return messageJSON;
+    }
+  }, {
+    key: 'genGifPayloadJSON',
+    value: function genGifPayloadJSON() {
+      return {
+        type: 'gif',
+        payload: { url: this.attachment.url }
+      };
+    }
+  }, {
+    key: 'genGifMessageJSON',
+    value: function genGifMessageJSON() {
+      var sendPush = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      var messageJSON = this.basicMessageJSON();
+      var senderJSON = this.genSenderJSON();
+      var attachmentJSON = this.genGifPayloadJSON();
+      messageJSON.sender = JSON.stringify(senderJSON);
+      messageJSON.attachment = JSON.stringify(attachmentJSON);
+      messageJSON.custom_data = this.customData || '';
+      messageJSON.send_push = sendPush;
+      messageJSON.receipt_required = this.receiptRequired;
+      return messageJSON;
+    }
+  }], [{
+    key: 'createTextMessage',
+    value: function createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers) {
+      var messageData = {
+        senderUser: senderUser,
+        dialogType: dialogType,
+        dialogID: dialogID,
+        tempID: _id2.default.createUniqueID(),
+        text: text,
+        receiveTime: Date.now(),
+        sentTime: Date.now(),
+        isSystem: false,
+        customData: customData,
+        mentionUsers: mentionUsers,
+        receiptRequired: requireReceipt,
+        attachment: null
+      };
+      return new Message(messageData);
+    }
+  }, {
+    key: 'createImageMessage',
+    value: function createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt) {
+      var imageAttachment = _attachment.AttachmentFactory.createImageAttachment(imageURL, thumbnailURL);
+      var messageData = {
+        senderUser: senderUser,
+        dialogType: dialogType,
+        dialogID: dialogID,
+        tempID: _id2.default.createUniqueID(),
+        text: '[image]',
+        receiveTime: Date.now(),
+        sentTime: Date.now(),
+        isSystem: false,
+        customData: customData,
+        receiptRequired: requireReceipt,
+        attachment: imageAttachment
+      };
+      return new Message(messageData);
+    }
+  }, {
+    key: 'createVideoMessage',
+    value: function createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt) {
+      var videoAttachment = _attachment.AttachmentFactory.createVideoAttachment(videoStreamURL, thumbnailURL);
+      var messageData = {
+        senderUser: senderUser,
+        dialogType: dialogType,
+        dialogID: dialogID,
+        tempID: _id2.default.createUniqueID(),
+        text: '[video]',
+        receiveTime: Date.now(),
+        sentTime: Date.now(),
+        isSystem: false,
+        customData: customData,
+        receiptRequired: requireReceipt,
+        attachment: videoAttachment
+      };
+      return new Message(messageData);
+    }
+  }, {
+    key: 'createGifMessage',
+    value: function createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt) {
+      var gifAttachment = _attachment.AttachmentFactory.createGifAttachment(gifURL);
+      var messageData = {
+        senderUser: senderUser,
+        dialogType: dialogType,
+        dialogID: dialogID,
+        tempID: _id2.default.createUniqueID(),
+        text: '[gif]',
+        receiveTime: Date.now(),
+        sentTime: Date.now(),
+        isSystem: false,
+        customData: customData,
+        receiptRequired: requireReceipt,
+        attachment: gifAttachment
+      };
+      return new Message(messageData);
+    }
+  }, {
+    key: 'createLocationMessage',
+    value: function createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt) {
+      var locationAttachment = _attachment.AttachmentFactory.createLocationAttachment(location2D, title, subtitle, placemarkName);
+      var messageData = {
+        senderUser: senderUser,
+        dialogType: dialogType,
+        dialogID: dialogID,
+        tempID: _id2.default.createUniqueID(),
+        text: '[map]',
+        receiveTime: Date.now(),
+        sentTime: Date.now(),
+        isSystem: false,
+        customData: customData,
+        receiptRequired: requireReceipt,
+        attachment: locationAttachment
+      };
+      return new Message(messageData);
+    }
+  }, {
+    key: 'createMessageFromJSON',
+    value: function createMessageFromJSON(message) {
+      var senderUser = _user2.default.getSenderFromMessageData(message);
+      if (message.dialog_type !== 's' && senderUser === null) {
+        var _customData = JSON.parse(message.custom_data);
+        if (_customData.sender) {
+          senderUser = new _user2.default(_customData.sender.id, _customData.sender.user_name, _customData.sender.avatar);
+        }
+        if (senderUser === null) {
+          return null;
+        }
+      }
+      var attachment = _attachment.AttachmentFactory.createAttachment(message.attachment);
+      var customData = JSON.parse(message.custom_data);
+      var metaData = message.meta_data;
+
+      var messageData = {
+        senderUser: senderUser,
+        dialogType: message.dialog_type,
+        dialogID: message.dialog_id,
+        tempID: message.temp_id,
+        text: message.text,
+        receiveTime: message.receive_time,
+        sentTime: message.sent_time,
+        isSystem: message.dialog_type === 's',
+        customData: customData,
+        metaData: metaData,
+        messageID: message.id,
+        receiptRequired: true,
+        attachment: attachment
+      };
+
+      return new Message(messageData);
+    }
+  }]);
+
+  return Message;
+}();
 
 Message.sendingStatus = {
   sending: 0,
@@ -6362,11 +6603,14 @@ Message.sendingStatus = {
   failed: 2
 };
 
-
+exports.default = Message;
 
 /***/ }),
 /* 34 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 
 exports.ErrorCode = {
   unknownError: 90000, // An unknown error has occurred
@@ -6393,6 +6637,9 @@ exports.createError = function (message, code) {
 /***/ }),
 /* 35 */
 /***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 
 // Create the JWT token, which is needed to make request to AF server.
 
@@ -8581,107 +8828,167 @@ module.exports = yeast;
 
 /***/ }),
 /* 50 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AFCore; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__services_dialogservice__ = __webpack_require__(74);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_channelservice__ = __webpack_require__(73);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_usersession__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_userservice__ = __webpack_require__(76);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__services_request__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__services_syncservice__ = __webpack_require__(75);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__logger__ = __webpack_require__(12);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _dialogservice = __webpack_require__(74);
 
+var _dialogservice2 = _interopRequireDefault(_dialogservice);
 
+var _channelservice = __webpack_require__(73);
 
+var _channelservice2 = _interopRequireDefault(_channelservice);
 
-class AFCore {
-  initialize(appKey, appSecret) {
-    __WEBPACK_IMPORTED_MODULE_4__services_request__["a" /* default */].appKey = appKey;
-    __WEBPACK_IMPORTED_MODULE_4__services_request__["a" /* default */].appSecret = appSecret;
-    __WEBPACK_IMPORTED_MODULE_4__services_request__["a" /* default */].useSandBox = true;
+var _usersession = __webpack_require__(14);
 
-    // initialize API accessors
-    this.PublicChannel = new __WEBPACK_IMPORTED_MODULE_1__services_channelservice__["a" /* default */](this);
-    this.User = new __WEBPACK_IMPORTED_MODULE_3__services_userservice__["a" /* default */](this);
-    this.Dialog = new __WEBPACK_IMPORTED_MODULE_0__services_dialogservice__["a" /* default */](this);
-    this.Session = new __WEBPACK_IMPORTED_MODULE_2__services_usersession__["a" /* default */](this);
-    this.MessageSync = new __WEBPACK_IMPORTED_MODULE_5__services_syncservice__["a" /* default */](this);
-    this.Logger = __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */];
-    this.dialogHandlers = {};
+var _usersession2 = _interopRequireDefault(_usersession);
 
-    this.Logger.setLogLevel(__WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].levels.ERROR);
+var _userservice = __webpack_require__(76);
+
+var _userservice2 = _interopRequireDefault(_userservice);
+
+var _request = __webpack_require__(13);
+
+var _request2 = _interopRequireDefault(_request);
+
+var _syncservice = __webpack_require__(75);
+
+var _syncservice2 = _interopRequireDefault(_syncservice);
+
+var _logger = __webpack_require__(12);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var AFCore = function () {
+  function AFCore() {
+    _classCallCheck(this, AFCore);
   }
 
-  addDialogHandler(id, handler) {
-    this.dialogHandlers[id] = handler;
-  }
+  _createClass(AFCore, [{
+    key: 'initialize',
+    value: function initialize(appKey, appSecret) {
+      _request2.default.appKey = appKey;
+      _request2.default.appSecret = appSecret;
+      _request2.default.useSandBox = true;
 
-  removeDialogHandler(id) {
-    delete this.dialogHandlers[id];
-  }
-
-  removeAllDialogHandlers() {
-    this.dialogHandlers = {};
-  }
-
-  /*
-   Check if there's an active user session
-  */
-  isLoggedIn() {
-    return this.Session.isLoggedIn();
-  }
-
-  /*
-  log out the current user
-  */
-  logout(callback) {
-    this.Session.logout();
-    if (callback) {
-      callback();
+      // initialize API accessors
+      this.PublicChannel = new _channelservice2.default(this);
+      this.User = new _userservice2.default(this);
+      this.Dialog = new _dialogservice2.default(this);
+      this.Session = new _usersession2.default(this);
+      this.MessageSync = new _syncservice2.default(this);
+      this.Logger = _logger2.default;
+      this.dialogHandlers = {};
     }
-  }
+  }, {
+    key: 'setSyncStartTimestamp',
+    value: function setSyncStartTimestamp(startTimestamp) {
+      this.MessageSync.syncKeys = { m: startTimestamp * 1000 };
+    }
+  }, {
+    key: 'setLogLevel',
+    value: function setLogLevel(logLevel) {
+      this.Logger.setLogLevel(logLevel);
+    }
+  }, {
+    key: 'addDialogHandler',
+    value: function addDialogHandler(id, handler) {
+      this.dialogHandlers[id] = handler;
+    }
+  }, {
+    key: 'removeDialogHandler',
+    value: function removeDialogHandler(id) {
+      delete this.dialogHandlers[id];
+    }
+  }, {
+    key: 'removeAllDialogHandlers',
+    value: function removeAllDialogHandlers() {
+      this.dialogHandlers = {};
+    }
 
-  /*
-   Login to AppFriends providing an userid and a username
-   @param callback function(userToken, error)
-   */
-  login(userid, username, callback) {
-    const SELF = this;
-    this.Session.login(userid, username, (token, error) => {
-      if (!error) {
-        SELF.MessageSync.startSyncingWithSocket();
-      }
+    /*
+     Check if there's an active user session
+    */
+
+  }, {
+    key: 'isLoggedIn',
+    value: function isLoggedIn() {
+      return this.Session.isLoggedIn();
+    }
+
+    /*
+    log out the current user
+    */
+
+  }, {
+    key: 'logout',
+    value: function logout(callback) {
+      this.Session.logout();
       if (callback) {
-        callback(token, error);
+        callback();
       }
-    });
-  }
+    }
 
-  /*
-  Fetch the local cached dialog
-  @return dialog if found one with the same id
-  */
-  getDialog(dialogID) {
-    const dialog = this.Dialog.getCachedDialog(dialogID);
-    return dialog;
-  }
+    /*
+     Login to AppFriends providing an userid and a username
+     @param callback function(userToken, error)
+     */
 
-  /*
-  Get total unread message count
-  @param callback function(count)
-  */
-  getTotalUnreadMessageCount() {
-    return this.Dialog.getTotalUnreadMessageCount();
-  }
-}
+  }, {
+    key: 'login',
+    value: function login(userid, username, callback) {
+      var SELF = this;
+      this.Session.login(userid, username, function (token, error) {
+        if (!error) {
+          SELF.MessageSync.startSyncingWithSocket();
+        }
+        if (callback) {
+          callback(token, error);
+        }
+      });
+    }
 
+    /*
+    Fetch the local cached dialog
+    @return dialog if found one with the same id
+    */
+
+  }, {
+    key: 'getDialog',
+    value: function getDialog(dialogID) {
+      var dialog = this.Dialog.getCachedDialog(dialogID);
+      return dialog;
+    }
+
+    /*
+    Get total unread message count
+    @param callback function(count)
+    */
+
+  }, {
+    key: 'getTotalUnreadMessageCount',
+    value: function getTotalUnreadMessageCount() {
+      return this.Dialog.getTotalUnreadMessageCount();
+    }
+  }]);
+
+  return AFCore;
+}();
+
+exports.default = AFCore;
 
 window.af = new AFCore();
 
@@ -9603,20 +9910,35 @@ module.exports = function spread(callback) {
 
 /***/ }),
 /* 71 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* unused harmony export default */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__location__ = __webpack_require__(32);
 
 
-class Attachment {
-  constructor(type) {
-    this.type = type;
-  }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Attachment;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = exports.AttachmentFactory = exports.Attachment = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _location = __webpack_require__(32);
+
+var _location2 = _interopRequireDefault(_location);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Attachment = exports.Attachment = function Attachment(type) {
+  _classCallCheck(this, Attachment);
+
+  this.type = type;
+};
 
 Attachment.attachmentType = {
   image: 'image',
@@ -9625,1728 +9947,2115 @@ Attachment.attachmentType = {
   location: 'location'
 };
 
-class ImageAttachment extends Attachment {
-  constructor(fullSizeURL, thumbnailURL) {
-    super(Attachment.attachmentType.image);
-    this.url = fullSizeURL;
-    this.thumbnailURL = thumbnailURL;
-  }
-}
+var ImageAttachment = function (_Attachment) {
+  _inherits(ImageAttachment, _Attachment);
 
-class VideoAttachment extends Attachment {
-  constructor(streamingURL, thumbnailURL) {
-    super(Attachment.attachmentType.video);
-    this.streamingURL = streamingURL;
-    this.thumbnailURL = thumbnailURL;
-  }
-}
+  function ImageAttachment(fullSizeURL, thumbnailURL) {
+    _classCallCheck(this, ImageAttachment);
 
-class GifAttachment extends Attachment {
-  constructor(gifUrl) {
-    super(Attachment.attachmentType.gif);
-    this.url = gifUrl;
-  }
-}
+    var _this = _possibleConstructorReturn(this, (ImageAttachment.__proto__ || Object.getPrototypeOf(ImageAttachment)).call(this, Attachment.attachmentType.image));
 
-class LocationAttachment extends Attachment {
-  constructor(location2D, title, subtitle, placemarkName) {
-    super(Attachment.attachmentType.location);
-    this.location2D = location2D;
-    this.title = title;
-    this.subtitle = subtitle;
-    this.placemarkName = placemarkName;
+    _this.url = fullSizeURL;
+    _this.thumbnailURL = thumbnailURL;
+    return _this;
   }
-}
 
-class AttachmentFactory {
-  static createAttachment(attachmentString) {
-    if (!attachmentString) {
-      return null;
+  return ImageAttachment;
+}(Attachment);
+
+var VideoAttachment = function (_Attachment2) {
+  _inherits(VideoAttachment, _Attachment2);
+
+  function VideoAttachment(streamingURL, thumbnailURL) {
+    _classCallCheck(this, VideoAttachment);
+
+    var _this2 = _possibleConstructorReturn(this, (VideoAttachment.__proto__ || Object.getPrototypeOf(VideoAttachment)).call(this, Attachment.attachmentType.video));
+
+    _this2.streamingURL = streamingURL;
+    _this2.thumbnailURL = thumbnailURL;
+    return _this2;
+  }
+
+  return VideoAttachment;
+}(Attachment);
+
+var GifAttachment = function (_Attachment3) {
+  _inherits(GifAttachment, _Attachment3);
+
+  function GifAttachment(gifUrl) {
+    _classCallCheck(this, GifAttachment);
+
+    var _this3 = _possibleConstructorReturn(this, (GifAttachment.__proto__ || Object.getPrototypeOf(GifAttachment)).call(this, Attachment.attachmentType.gif));
+
+    _this3.url = gifUrl;
+    return _this3;
+  }
+
+  return GifAttachment;
+}(Attachment);
+
+var LocationAttachment = function (_Attachment4) {
+  _inherits(LocationAttachment, _Attachment4);
+
+  function LocationAttachment(location2D, title, subtitle, placemarkName) {
+    _classCallCheck(this, LocationAttachment);
+
+    var _this4 = _possibleConstructorReturn(this, (LocationAttachment.__proto__ || Object.getPrototypeOf(LocationAttachment)).call(this, Attachment.attachmentType.location));
+
+    _this4.location2D = location2D;
+    _this4.title = title;
+    _this4.subtitle = subtitle;
+    _this4.placemarkName = placemarkName;
+    return _this4;
+  }
+
+  return LocationAttachment;
+}(Attachment);
+
+var AttachmentFactory = exports.AttachmentFactory = function () {
+  function AttachmentFactory() {
+    _classCallCheck(this, AttachmentFactory);
+  }
+
+  _createClass(AttachmentFactory, null, [{
+    key: 'createAttachment',
+    value: function createAttachment(attachmentString) {
+      if (!attachmentString) {
+        return null;
+      }
+      var attachmentInfo = JSON.parse(attachmentString);
+      var attachmentType = attachmentInfo.type;
+      var payload = attachmentInfo.payload;
+      if (!payload) {
+        console.log(attachmentString);
+        return null;
+      }
+      var url = payload ? payload.url : '';
+
+      var attachment = null;
+      switch (attachmentType) {
+        case Attachment.attachmentType.image:
+          attachment = new ImageAttachment(url, payload.thumbnail);
+          break;
+        case Attachment.attachmentType.video:
+          attachment = new VideoAttachment(url, payload.thumbnail);
+          break;
+        case Attachment.attachmentType.gif:
+          attachment = new GifAttachment(url);
+          break;
+        case Attachment.attachmentType.location:
+          {
+            var title = payload.title;
+            var description = payload.description;
+            var lat = payload.lat;
+            var long = payload.long;
+            var locationCoordinate2D = new _location2.default(lat, long);
+            attachment = new LocationAttachment(locationCoordinate2D, title, description);
+          }
+          break;
+        default:
+          break;
+      }
+
+      return attachment;
     }
-    const attachmentInfo = JSON.parse(attachmentString);
-    const attachmentType = attachmentInfo.type;
-    const payload = attachmentInfo.payload;
-    if (!payload) {
-      console.log(attachmentString);
-      return null;
+  }, {
+    key: 'createImageAttachment',
+    value: function createImageAttachment(fullSizeURL, thumbnailURL) {
+      return new ImageAttachment(fullSizeURL, thumbnailURL);
     }
-    const url = payload ? payload.url : '';
-
-    let attachment = null;
-    switch (attachmentType) {
-      case Attachment.attachmentType.image:
-        attachment = new ImageAttachment(url, payload.thumbnail);
-        break;
-      case Attachment.attachmentType.video:
-        attachment = new VideoAttachment(url, payload.thumbnail);
-        break;
-      case Attachment.attachmentType.gif:
-        attachment = new GifAttachment(url);
-        break;
-      case Attachment.attachmentType.location:
-        {
-          const title = payload.title;
-          const description = payload.description;
-          const lat = payload.lat;
-          const long = payload.long;
-          const locationCoordinate2D = new __WEBPACK_IMPORTED_MODULE_0__location__["a" /* default */](lat, long);
-          attachment = new LocationAttachment(locationCoordinate2D, title, description);
-        }
-        break;
-      default:
-        break;
+  }, {
+    key: 'createVideoAttachment',
+    value: function createVideoAttachment(streamingURL, thumbnailURL) {
+      return new VideoAttachment(streamingURL, thumbnailURL);
     }
+  }, {
+    key: 'createGifAttachment',
+    value: function createGifAttachment(gifUrl) {
+      return new GifAttachment(gifUrl);
+    }
+  }, {
+    key: 'createLocationAttachment',
+    value: function createLocationAttachment(location2D, title, subtitle, placemarkName) {
+      return new LocationAttachment(location2D, title, subtitle, placemarkName);
+    }
+  }]);
 
-    return attachment;
-  }
+  return AttachmentFactory;
+}();
 
-  static createImageAttachment(fullSizeURL, thumbnailURL) {
-    return new ImageAttachment(fullSizeURL, thumbnailURL);
-  }
-
-  static createVideoAttachment(streamingURL, thumbnailURL) {
-    return new VideoAttachment(streamingURL, thumbnailURL);
-  }
-
-  static createGifAttachment(gifUrl) {
-    return new GifAttachment(gifUrl);
-  }
-
-  static createLocationAttachment(location2D, title, subtitle, placemarkName) {
-    return new LocationAttachment(location2D, title, subtitle, placemarkName);
-  }
-}
-/* harmony export (immutable) */ __webpack_exports__["b"] = AttachmentFactory;
-
-
-
+exports.default = AttachmentFactory;
 
 /***/ }),
 /* 72 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Pager; });
-class Pager {
-  constructor(totalCounts, totalPage, currentPage) {
-    this.totalCounts = totalCounts;
-    this.totalPage = totalPage;
-    this.currentPage = currentPage;
-  }
-}
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Pager = function Pager(totalCounts, totalPage, currentPage) {
+  _classCallCheck(this, Pager);
+
+  this.totalCounts = totalCounts;
+  this.totalPage = totalPage;
+  this.currentPage = currentPage;
+};
+
+exports.default = Pager;
 
 /***/ }),
 /* 73 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ChannelService; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__service__ = __webpack_require__(10);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
-class ChannelService extends __WEBPACK_IMPORTED_MODULE_1__service__["a" /* default */] {
-  constructor(afCore) {
-    super();
-    this.afCore = afCore;
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _dialog = __webpack_require__(20);
+
+var _dialog2 = _interopRequireDefault(_dialog);
+
+var _service = __webpack_require__(10);
+
+var _service2 = _interopRequireDefault(_service);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ChannelService = function (_BaseService) {
+  _inherits(ChannelService, _BaseService);
+
+  function ChannelService(afCore) {
+    _classCallCheck(this, ChannelService);
+
+    var _this = _possibleConstructorReturn(this, (ChannelService.__proto__ || Object.getPrototypeOf(ChannelService)).call(this));
+
+    _this.afCore = afCore;
+    return _this;
   }
 
-  getCachedChannel(dialogID) {
-    const dialogCache = this.afCore.Dialog.dialogs;
-    return dialogCache[dialogID];
-  }
-
-  insertChannelToLocalCache(channel) {
-    const dialogCache = this.afCore.Dialog.dialogs;
-    if (!dialogCache[channel.id]) {
-      dialogCache[channel.id] = channel;
+  _createClass(ChannelService, [{
+    key: 'getCachedChannel',
+    value: function getCachedChannel(dialogID) {
+      var dialogCache = this.afCore.Dialog.dialogs;
+      return dialogCache[dialogID];
     }
-  }
-
-  channelFromLocalCache(channelID) {
-    const dialogCache = this.afCore.Dialog.dialogs;
-    return dialogCache[channelID];
-  }
-
-  /*
-  fetch info of one channel
-  @param id is the channel's id
-  @param callback function(channel, error)
-  */
-  getChannelInfo(id, callback) {
-    const cachedChannel = this.channelFromLocalCache(id);
-    if (cachedChannel) {
-      callback(cachedChannel, null);
-      return null;
-    }
-
-    return this.sendGetRequest(`/channels/${id}`, null, (response, err) => {
-      if (!err) {
-        const channelData = response.data;
-        const channel = new __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */](channelData.id, __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */].type.channel);
-        channel.title = channelData.name;
-        channel.enabled = channelData.enabled;
-        channel.coverImageUrl = channelData.cover_image_url;
-        channel.customData = channelData.custom_data;
-        this.insertChannelToLocalCache(channel);
-        if (callback) {
-          callback(channel, null);
-        }
-      } else if (callback) {
-        callback(null, err);
+  }, {
+    key: 'insertChannelToLocalCache',
+    value: function insertChannelToLocalCache(channel) {
+      var dialogCache = this.afCore.Dialog.dialogs;
+      if (!dialogCache[channel.id]) {
+        dialogCache[channel.id] = channel;
       }
-    });
-  }
+    }
+  }, {
+    key: 'channelFromLocalCache',
+    value: function channelFromLocalCache(channelID) {
+      var dialogCache = this.afCore.Dialog.dialogs;
+      return dialogCache[channelID];
+    }
 
-  /*
-  fetch all the public channels
-  @param callback function([channel], error)
-  */
-  fetchChannels(callback) {
-    const SELF = this;
-    this.sendGetRequest('/channels', null, (response, err) => {
-      if (!err) {
-        const channels = [];
-        for (let i = 0; i < response.data.length; i += 1) {
-          const channelData = response.data[i];
-          const channel = new __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */](channelData.id, __WEBPACK_IMPORTED_MODULE_0__datamodels_dialog__["a" /* default */].type.channel);
+    /*
+    fetch info of one channel
+    @param id is the channel's id
+    @param callback function(channel, error)
+    */
+
+  }, {
+    key: 'getChannelInfo',
+    value: function getChannelInfo(id, callback) {
+      var _this2 = this;
+
+      var cachedChannel = this.channelFromLocalCache(id);
+      if (cachedChannel) {
+        callback(cachedChannel, null);
+        return null;
+      }
+
+      return this.sendGetRequest('/channels/' + id, null, function (response, err) {
+        if (!err) {
+          var channelData = response.data;
+          var channel = new _dialog2.default(channelData.id, _dialog2.default.type.channel);
           channel.title = channelData.name;
           channel.enabled = channelData.enabled;
-          channel.coverImageURL = channelData.cover_image_url;
+          channel.coverImageUrl = channelData.cover_image_url;
           channel.customData = channelData.custom_data;
-          SELF.insertChannelToLocalCache(channel);
-          channels.push(channel);
+          _this2.insertChannelToLocalCache(channel);
+          if (callback) {
+            callback(channel, null);
+          }
+        } else if (callback) {
+          callback(null, err);
         }
-        if (callback) {
-          callback(channels, null);
+      });
+    }
+
+    /*
+    fetch all the public channels
+    @param callback function([channel], error)
+    */
+
+  }, {
+    key: 'fetchChannels',
+    value: function fetchChannels(callback) {
+      var SELF = this;
+      this.sendGetRequest('/channels', null, function (response, err) {
+        if (!err) {
+          var channels = [];
+          for (var i = 0; i < response.data.length; i += 1) {
+            var channelData = response.data[i];
+            var channel = new _dialog2.default(channelData.id, _dialog2.default.type.channel);
+            channel.title = channelData.name;
+            channel.enabled = channelData.enabled;
+            channel.coverImageURL = channelData.cover_image_url;
+            channel.customData = channelData.custom_data;
+            SELF.insertChannelToLocalCache(channel);
+            channels.push(channel);
+          }
+          if (callback) {
+            callback(channels, null);
+          }
+        } else if (callback) {
+          callback(null, err);
         }
-      } else if (callback) {
-        callback(null, err);
-      }
-    });
-  }
-}
+      });
+    }
+  }]);
 
+  return ChannelService;
+}(_service2.default);
 
+exports.default = ChannelService;
 
 /***/ }),
 /* 74 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return DialogService; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__service__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__usersession__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_location__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_message__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_user__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__logger__ = __webpack_require__(12);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _service = __webpack_require__(10);
 
+var _service2 = _interopRequireDefault(_service);
 
+var _usersession = __webpack_require__(14);
 
+var _usersession2 = _interopRequireDefault(_usersession);
 
-class DialogService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default */] {
-  constructor(afCore) {
-    super();
-    this.dialogs = {};
-    this.dialogsIds = {};
-    this.afCore = afCore;
-    this.leaveDialogs = [];
+var _location = __webpack_require__(32);
+
+var _location2 = _interopRequireDefault(_location);
+
+var _message = __webpack_require__(33);
+
+var _message2 = _interopRequireDefault(_message);
+
+var _user = __webpack_require__(9);
+
+var _user2 = _interopRequireDefault(_user);
+
+var _dialog2 = __webpack_require__(20);
+
+var _dialog3 = _interopRequireDefault(_dialog2);
+
+var _logger = __webpack_require__(12);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var DialogService = function (_BaseService) {
+  _inherits(DialogService, _BaseService);
+
+  function DialogService(afCore) {
+    _classCallCheck(this, DialogService);
+
+    var _this = _possibleConstructorReturn(this, (DialogService.__proto__ || Object.getPrototypeOf(DialogService)).call(this));
+
+    _this.dialogs = {};
+    _this.dialogsIds = {};
+    _this.afCore = afCore;
+    _this.leaveDialogs = [];
+    return _this;
   }
 
-  getCachedDialog(dialogID) {
-    if (dialogID in this.dialogs) {
-      return this.dialogs[dialogID];
-    }
-    return null;
-  }
-
-  getDialogInfo(dialogID, callback) {
-    const SELF = this;
-    this.sendGetRequest(`/dialogs/${dialogID}`, null, (response, err) => {
-      if (callback) {
-        if (err === null) {
-          const dialog = SELF.dialogObjectFromData(response.data);
-          if (this.dialogs[dialogID]) {
-            this.dialogs[dialogID].title = dialog.title;
-            callback(this.dialogs[dialogID], null);
-            return;
-          }
-          SELF.dialogs[`${dialog.id}`] = dialog;
-          callback(dialog, null);
-        } else {
-          callback(null, err);
-        }
+  _createClass(DialogService, [{
+    key: 'getCachedDialog',
+    value: function getCachedDialog(dialogID) {
+      if (dialogID in this.dialogs) {
+        return this.dialogs[dialogID];
       }
-    });
-  }
-
-  createPrivateDialogWitUserID(destUserID, callback) {
-    if (this.afCore.User.users[destUserID]) {
-      const dialog = this.createPrivateDialog(this.afCore.User.users[destUserID]);
-      if (callback) {
-        callback(dialog, null);
-      }
-      return;
+      return null;
     }
+  }, {
+    key: 'getDialogInfo',
+    value: function getDialogInfo(dialogID, callback) {
+      var _this2 = this;
 
-    const SELF = this;
-    this.afCore.User.fetchUserInfo(destUserID, (user, err) => {
-      if (!err) {
-        const dialog = SELF.createPrivateDialog(user);
+      var SELF = this;
+      this.sendGetRequest('/dialogs/' + dialogID, null, function (response, err) {
         if (callback) {
-          callback(dialog, null);
-        }
-      } else if (callback) {
-        callback(null, err);
-      }
-    });
-  }
-
-  createPrivateDialog(destUser) {
-    const dialogCache = this.dialogs;
-    const dialogID = destUser.id;
-    let dialog = null;
-    let newDialog = false;
-    if (dialogCache[dialogID]) {
-      dialog = dialogCache[dialogID];
-    } else {
-      newDialog = true;
-      dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](dialogID, __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual);
-      dialog.title = destUser.username;
-      dialogCache[dialogID] = dialog;
-      dialog.lastMessageText = '';
-      dialog.lastMessageTime = 0;
-      dialog.lastMessageID = 0;
-      dialog.unreadMessageCount = 0;
-      dialog.message = [];
-    }
-    if (newDialog) {
-      this.afCore.MessageSync.notifyDialogCreated(dialog);
-    } else {
-      this.afCore.MessageSync.notifyDialogUpdated(dialog);
-    }
-
-    return dialog;
-  }
-
-  createGroupDialogWithMemberIDs(memberIDs, name, callback) {
-    const SELF = this;
-    if (memberIDs.indexOf(this.afCore.Session.currentUser().id) < 0) {
-      memberIDs.push(this.afCore.Session.currentUser().id);
-    }
-    this.afCore.User.batchSearchUsersWithIDs(memberIDs, (users, err) => {
-      if (!err) {
-        const userCache = SELF.afCore.User.users;
-        users.forEach(user => {
-          if (!userCache[user.id]) {
-            userCache[user.id] = user;
+          if (err === null) {
+            var dialog = SELF.dialogObjectFromData(response.data);
+            if (_this2.dialogs[dialogID]) {
+              _this2.dialogs[dialogID].title = dialog.title;
+              callback(_this2.dialogs[dialogID], null);
+              return;
+            }
+            SELF.dialogs['' + dialog.id] = dialog;
+            callback(dialog, null);
+          } else {
+            callback(null, err);
           }
-        });
-        SELF.createGroupDialog(memberIDs, name, callback);
-      } else {
-        callback(null, err);
-      }
-    });
-  }
-
-  createGroupDialog(members, name, callback) {
-    const SELF = this;
-    this.sendPostRequest({ members, name }, '/dialogs', (response, err) => {
-      if (!err) {
-        const dialog = SELF.dialogObjectFromData(response.data);
-        this.dialogs[dialog.id] = dialog;
-        this.afCore.MessageSync.notifyDialogUpdated(dialog);
-        if (callback) {
-          callback(dialog, null);
         }
-      } else if (callback) {
-        callback(null, err);
-      }
-    });
-  }
-
-  fetchAllDialogs(callback) {
-    const SELF = this;
-    this.sendGetRequest('/dialogs', null, (response, err) => {
-      if (callback) {
-        if (err === null) {
-          SELF.saveAllDialogs(response.data);
-          callback(Object.values(SELF.dialogs), null);
-        } else {
-          callback(response, err);
-        }
-      }
-    });
-  }
-
-  leaveDialog(dialogID, callback) {
-    const userID = this.afCore.Session.currentUser().id;
-    __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].debug(`leave userID ${userID}`);
-    const SELF = this;
-    this.sendDeleteRequest({ members: [userID] }, `/dialogs/${dialogID}/members`, (response, err) => {
-      if (callback) {
-        if (!err) {
-          const dialog = SELF.dialogs[dialogID];
-          if (SELF.dialogs[dialogID]) {
-            delete SELF.dialogs[dialogID];
-          }
-          SELF.afCore.MessageSync.notifyUserLeftDialog(dialog, SELF.afCore.Session.currentUser());
-          callback(dialog, null);
-        } else {
-          callback(null, err);
-        }
-      }
-    });
-  }
-
-  inviteWithMemberIds(dialogID, memberIDs, callback) {
-    const SELF = this;
-    this.sendPostRequest({ members: memberIDs }, `/dialogs/${dialogID}/members`, (response, err) => {
-      if (!err) {
-        if (callback) {
-          const dialog = SELF.dialogs[dialogID];
-          callback(dialog, null);
-        }
-      } else if (callback) {
-        callback(null, err);
-      }
-    });
-  }
-
-  saveAllDialogs(dialogsItems) {
-    // clear all cached dialogs
-    const SELF = this;
-    if (dialogsItems) {
-      dialogsItems.forEach(dialogItem => {
-        const dialogObj = SELF.dialogObjectFromData(dialogItem);
-        SELF.dialogs[`${dialogObj.id}`] = dialogObj;
       });
     }
-  }
+  }, {
+    key: 'createPrivateDialogWitUserID',
+    value: function createPrivateDialogWitUserID(destUserID, callback) {
+      if (this.afCore.User.users[destUserID]) {
+        var dialog = this.createPrivateDialog(this.afCore.User.users[destUserID]);
+        if (callback) {
+          callback(dialog, null);
+        }
+        return;
+      }
 
-  dialogObjectFromData(dialogData) {
-    const dialogObj = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](dialogData.id, __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group);
-    dialogObj.title = dialogData.name;
-    dialogObj.memberIDs = dialogData.members;
-    dialogObj.muted = dialogData.muted;
-    dialogObj.customData = dialogData.custom_data;
-    return dialogObj;
-  }
-
-  // Send text message
-  sendTextMessage(dialog, text, customData, requireReceipt, mentionUsers, sendPush = true, callback = null) {
-    const dialogID = dialog.id;
-    const dialogType = dialog.type;
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && requireReceipt) {
-      // Requiring receipt is not permitted in open channel
-      return;
+      var SELF = this;
+      this.afCore.User.fetchUserInfo(destUserID, function (user, err) {
+        if (!err) {
+          var _dialog = SELF.createPrivateDialog(user);
+          if (callback) {
+            callback(_dialog, null);
+          }
+        } else if (callback) {
+          callback(null, err);
+        }
+      });
     }
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
-    senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const textMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers);
-    const messageJSON = textMessage.genTextMessageJSON(sendPush);
-
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
-  }
-
-  sendImageMessage(dialog, imageURL, thumbnailURL, customData, requireReceipt, sendPush = true, callback = null) {
-    const dialogID = dialog.id;
-    const dialogType = dialog.type;
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
-      // Requiring receipt is not permitted in open channel
-      return;
-    }
-
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
-    senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const imageMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
-    const messageJSON = imageMessage.genImageMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
-  }
-
-  sendVideoMessage(dialog, videoStreamURL, thumbnailURL, customData, requireReceipt, sendPush = true, callback = null) {
-    const dialogID = dialog.id;
-    const dialogType = dialog.type;
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel && sendPush) {
-      // Requiring receipt is not permitted in open channel
-      return;
-    }
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
-    senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const videoMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
-    const messageJSON = videoMessage.genVideoMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
-  }
-
-  sendGifMessage(dialog, gifURL, customData, requireReceipt, sendPush = true, callback = null) {
-    const dialogID = dialog.id;
-    const dialogType = dialog.type;
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
-    senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const gifMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt);
-    const messageJSON = gifMessage.genGifMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
-  }
-
-  sendLocationMessage(dialog, latitude, longitude, title, subtitle, placemarkName, customData, requireReceipt, sendPush = true, callback = null) {
-    const dialogID = dialog.id;
-    const dialogType = dialog.type;
-    const location2D = new __WEBPACK_IMPORTED_MODULE_2__datamodels_location__["a" /* default */](latitude, longitude);
-    const senderUser = new __WEBPACK_IMPORTED_MODULE_4__datamodels_user__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID, __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName);
-    senderUser.avatar = __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar;
-    const locationMessage = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt);
-    const messageJSON = locationMessage.genLocationMessageJSON(sendPush);
-    this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
-  }
-
-  sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback) {
-    if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
-      this.sendDialogMessage(dialogID, messageJSON, callback);
-    } else if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
-      this.sendPrivateMessage(dialogID, messageJSON, callback);
-    } else if (dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.channel) {
-      this.sendPublicChannelMessage(dialogID, messageJSON, callback);
-    }
-  }
-
-  sendDialogMessage(dialogID, messageJSON, callback) {
-    const path = `/dialogs/${dialogID}/messages`;
-    const SELF = this;
-    this.sendPostRequest(messageJSON, path, (response, err) => {
-      if (err) {
-        callback(null, err);
+  }, {
+    key: 'createPrivateDialog',
+    value: function createPrivateDialog(destUser) {
+      var dialogCache = this.dialogs;
+      var dialogID = destUser.id;
+      var dialog = null;
+      var newDialog = false;
+      if (dialogCache[dialogID]) {
+        dialog = dialogCache[dialogID];
       } else {
-        SELF.afCore.MessageSync.saveSentMessage(response.data, messageObj => {
-          callback(messageObj, null);
+        newDialog = true;
+        dialog = new _dialog3.default(dialogID, _dialog3.default.type.individual);
+        dialog.title = destUser.username;
+        dialogCache[dialogID] = dialog;
+        dialog.lastMessageText = '';
+        dialog.lastMessageTime = 0;
+        dialog.lastMessageID = 0;
+        dialog.unreadMessageCount = 0;
+        dialog.message = [];
+      }
+      if (newDialog) {
+        this.afCore.MessageSync.notifyDialogCreated(dialog);
+      } else {
+        this.afCore.MessageSync.notifyDialogUpdated(dialog);
+      }
+
+      return dialog;
+    }
+  }, {
+    key: 'createGroupDialogWithMemberIDs',
+    value: function createGroupDialogWithMemberIDs(memberIDs, name, callback) {
+      var SELF = this;
+      if (memberIDs.indexOf(this.afCore.Session.currentUser().id) < 0) {
+        memberIDs.push(this.afCore.Session.currentUser().id);
+      }
+      this.afCore.User.batchSearchUsersWithIDs(memberIDs, function (users, err) {
+        if (!err) {
+          var userCache = SELF.afCore.User.users;
+          users.forEach(function (user) {
+            if (!userCache[user.id]) {
+              userCache[user.id] = user;
+            }
+          });
+          SELF.createGroupDialog(memberIDs, name, callback);
+        } else {
+          callback(null, err);
+        }
+      });
+    }
+  }, {
+    key: 'createGroupDialog',
+    value: function createGroupDialog(members, name, callback) {
+      var _this3 = this;
+
+      var SELF = this;
+      this.sendPostRequest({ members: members, name: name }, '/dialogs', function (response, err) {
+        if (!err) {
+          var dialog = SELF.dialogObjectFromData(response.data);
+          _this3.dialogs[dialog.id] = dialog;
+          _this3.afCore.MessageSync.notifyDialogUpdated(dialog);
+          if (callback) {
+            callback(dialog, null);
+          }
+        } else if (callback) {
+          callback(null, err);
+        }
+      });
+    }
+  }, {
+    key: 'fetchAllDialogs',
+    value: function fetchAllDialogs(callback) {
+      var SELF = this;
+      this.sendGetRequest('/dialogs', null, function (response, err) {
+        if (callback) {
+          if (err === null) {
+            SELF.saveAllDialogs(response.data);
+            callback(Object.values(SELF.dialogs), null);
+          } else {
+            callback(response, err);
+          }
+        }
+      });
+    }
+  }, {
+    key: 'leaveDialog',
+    value: function leaveDialog(dialogID, callback) {
+      var userID = this.afCore.Session.currentUser().id;
+      _logger2.default.debug('leave userID ' + userID);
+      var SELF = this;
+      this.sendDeleteRequest({ members: [userID] }, '/dialogs/' + dialogID + '/members', function (response, err) {
+        if (callback) {
+          if (!err) {
+            var dialog = SELF.dialogs[dialogID];
+            if (SELF.dialogs[dialogID]) {
+              delete SELF.dialogs[dialogID];
+            }
+            SELF.afCore.MessageSync.notifyUserLeftDialog(dialog, SELF.afCore.Session.currentUser());
+            callback(dialog, null);
+          } else {
+            callback(null, err);
+          }
+        }
+      });
+    }
+  }, {
+    key: 'inviteWithMemberIds',
+    value: function inviteWithMemberIds(dialogID, memberIDs, callback) {
+      var SELF = this;
+      this.sendPostRequest({ members: memberIDs }, '/dialogs/' + dialogID + '/members', function (response, err) {
+        if (!err) {
+          if (callback) {
+            var dialog = SELF.dialogs[dialogID];
+            callback(dialog, null);
+          }
+        } else if (callback) {
+          callback(null, err);
+        }
+      });
+    }
+  }, {
+    key: 'saveAllDialogs',
+    value: function saveAllDialogs(dialogsItems) {
+      // clear all cached dialogs
+      var SELF = this;
+      if (dialogsItems) {
+        dialogsItems.forEach(function (dialogItem) {
+          var dialogObj = SELF.dialogObjectFromData(dialogItem);
+          SELF.dialogs['' + dialogObj.id] = dialogObj;
         });
       }
-    });
-  }
+    }
+  }, {
+    key: 'dialogObjectFromData',
+    value: function dialogObjectFromData(dialogData) {
+      var dialogObj = new _dialog3.default(dialogData.id, _dialog3.default.type.group);
+      dialogObj.title = dialogData.name;
+      dialogObj.memberIDs = dialogData.members;
+      dialogObj.muted = dialogData.muted;
+      dialogObj.customData = dialogData.custom_data;
+      return dialogObj;
+    }
 
-  sendPrivateMessage(userID, messageJSON, callback) {
-    const path = `/users/${userID}/messages`;
-    const SELF = this;
-    this.sendPostRequest(messageJSON, path, (response, err) => {
-      if (err !== null) {
-        callback(null, err);
-      } else {
-        SELF.afCore.MessageSync.saveSentMessage(response.data, messageObj => {
-          callback(messageObj, null);
-        });
+    // Send text message
+
+  }, {
+    key: 'sendTextMessage',
+    value: function sendTextMessage(dialog, text, customData, requireReceipt, mentionUsers) {
+      var sendPush = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+      var callback = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
+
+      var dialogID = dialog.id;
+      var dialogType = dialog.type;
+      if (dialogType === _dialog3.default.type.channel && requireReceipt) {
+        // Requiring receipt is not permitted in open channel
+        return;
       }
-    });
-  }
+      var senderUser = new _user2.default(_usersession2.default.currentUserID, _usersession2.default.currentUserName);
+      senderUser.avatar = _usersession2.default.currentUserAvatar;
+      var textMessage = _message2.default.createTextMessage(senderUser, text, customData, dialogType, dialogID, requireReceipt, mentionUsers);
+      var messageJSON = textMessage.genTextMessageJSON(sendPush);
 
-  sendPublicChannelMessage(channelID, messageJSON, callback) {
-    const path = `/channels/${channelID}/messages`;
-    this.sendPostRequest(messageJSON, path, (response, err) => {
-      if (err !== null) {
-        callback(null, err);
-      } else {
-        const message = __WEBPACK_IMPORTED_MODULE_3__datamodels_message__["a" /* default */].createMessageFromJSON(response.data);
-        callback(message, null);
+      this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
+    }
+  }, {
+    key: 'sendImageMessage',
+    value: function sendImageMessage(dialog, imageURL, thumbnailURL, customData, requireReceipt) {
+      var sendPush = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+      var callback = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
+
+      var dialogID = dialog.id;
+      var dialogType = dialog.type;
+      if (dialogType === _dialog3.default.type.channel && sendPush) {
+        // Requiring receipt is not permitted in open channel
+        return;
       }
-    });
-  }
 
-  getTotalUnreadMessageCount() {
-    let totalUnreadMessageCount = 0;
-    Object.keys(this.dialogs).forEach(dialogID => {
-      const dialog = this.dialogs[dialogID];
-      totalUnreadMessageCount += dialog.unreadMessageCount;
-    });
-    return totalUnreadMessageCount;
-  }
+      var senderUser = new _user2.default(_usersession2.default.currentUserID, _usersession2.default.currentUserName);
+      senderUser.avatar = _usersession2.default.currentUserAvatar;
+      var imageMessage = _message2.default.createImageMessage(senderUser, imageURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
+      var messageJSON = imageMessage.genImageMessageJSON(sendPush);
+      this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
+    }
+  }, {
+    key: 'sendVideoMessage',
+    value: function sendVideoMessage(dialog, videoStreamURL, thumbnailURL, customData, requireReceipt) {
+      var sendPush = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : true;
+      var callback = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
 
-  dumpDialogCache() {
-    __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].debug('dialog cache %o', this.dialogs);
-  }
+      var dialogID = dialog.id;
+      var dialogType = dialog.type;
+      if (dialogType === _dialog3.default.type.channel && sendPush) {
+        // Requiring receipt is not permitted in open channel
+        return;
+      }
+      var senderUser = new _user2.default(_usersession2.default.currentUserID, _usersession2.default.currentUserName);
+      senderUser.avatar = _usersession2.default.currentUserAvatar;
+      var videoMessage = _message2.default.createVideoMessage(senderUser, videoStreamURL, thumbnailURL, customData, dialogType, dialogID, requireReceipt);
+      var messageJSON = videoMessage.genVideoMessageJSON(sendPush);
+      this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
+    }
+  }, {
+    key: 'sendGifMessage',
+    value: function sendGifMessage(dialog, gifURL, customData, requireReceipt) {
+      var sendPush = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+      var callback = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
 
-  dumpUnreadMessageCount() {
-    const unreadMessageCount = this.getTotalUnreadMessageCount();
-    __WEBPACK_IMPORTED_MODULE_6__logger__["a" /* default */].debug(`!!!!! unread message count ${unreadMessageCount}`);
-  }
-}
+      var dialogID = dialog.id;
+      var dialogType = dialog.type;
+      var senderUser = new _user2.default(_usersession2.default.currentUserID, _usersession2.default.currentUserName);
+      senderUser.avatar = _usersession2.default.currentUserAvatar;
+      var gifMessage = _message2.default.createGifMessage(senderUser, gifURL, customData, dialogType, dialogID, requireReceipt);
+      var messageJSON = gifMessage.genGifMessageJSON(sendPush);
+      this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
+    }
+  }, {
+    key: 'sendLocationMessage',
+    value: function sendLocationMessage(dialog, latitude, longitude, title, subtitle, placemarkName, customData, requireReceipt) {
+      var sendPush = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : true;
+      var callback = arguments.length > 9 && arguments[9] !== undefined ? arguments[9] : null;
 
+      var dialogID = dialog.id;
+      var dialogType = dialog.type;
+      var location2D = new _location2.default(latitude, longitude);
+      var senderUser = new _user2.default(_usersession2.default.currentUserID, _usersession2.default.currentUserName);
+      senderUser.avatar = _usersession2.default.currentUserAvatar;
+      var locationMessage = _message2.default.createLocationMessage(senderUser, location2D, title, subtitle, placemarkName, customData, dialogType, dialogID, requireReceipt);
+      var messageJSON = locationMessage.genLocationMessageJSON(sendPush);
+      this.sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback);
+    }
+  }, {
+    key: 'sendJSONMessage',
+    value: function sendJSONMessage(senderUser, messageJSON, dialogID, dialogType, callback) {
+      if (dialogType === _dialog3.default.type.group) {
+        this.sendDialogMessage(dialogID, messageJSON, callback);
+      } else if (dialogType === _dialog3.default.type.individual) {
+        this.sendPrivateMessage(dialogID, messageJSON, callback);
+      } else if (dialogType === _dialog3.default.type.channel) {
+        this.sendPublicChannelMessage(dialogID, messageJSON, callback);
+      }
+    }
+  }, {
+    key: 'sendDialogMessage',
+    value: function sendDialogMessage(dialogID, messageJSON, callback) {
+      var path = '/dialogs/' + dialogID + '/messages';
+      var SELF = this;
+      this.sendPostRequest(messageJSON, path, function (response, err) {
+        if (err) {
+          callback(null, err);
+        } else {
+          SELF.afCore.MessageSync.saveSentMessage(response.data, function (messageObj) {
+            callback(messageObj, null);
+          });
+        }
+      });
+    }
+  }, {
+    key: 'sendPrivateMessage',
+    value: function sendPrivateMessage(userID, messageJSON, callback) {
+      var path = '/users/' + userID + '/messages';
+      var SELF = this;
+      this.sendPostRequest(messageJSON, path, function (response, err) {
+        if (err !== null) {
+          callback(null, err);
+        } else {
+          SELF.afCore.MessageSync.saveSentMessage(response.data, function (messageObj) {
+            callback(messageObj, null);
+          });
+        }
+      });
+    }
+  }, {
+    key: 'sendPublicChannelMessage',
+    value: function sendPublicChannelMessage(channelID, messageJSON, callback) {
+      var path = '/channels/' + channelID + '/messages';
+      this.sendPostRequest(messageJSON, path, function (response, err) {
+        if (err !== null) {
+          callback(null, err);
+        } else {
+          var message = _message2.default.createMessageFromJSON(response.data);
+          callback(message, null);
+        }
+      });
+    }
+  }, {
+    key: 'getTotalUnreadMessageCount',
+    value: function getTotalUnreadMessageCount() {
+      var _this4 = this;
 
+      var totalUnreadMessageCount = 0;
+      Object.keys(this.dialogs).forEach(function (dialogID) {
+        var dialog = _this4.dialogs[dialogID];
+        totalUnreadMessageCount += dialog.unreadMessageCount;
+      });
+      return totalUnreadMessageCount;
+    }
+  }, {
+    key: 'dumpDialogCache',
+    value: function dumpDialogCache() {
+      _logger2.default.debug('dialog cache %o', this.dialogs);
+    }
+  }, {
+    key: 'dumpUnreadMessageCount',
+    value: function dumpUnreadMessageCount() {
+      var unreadMessageCount = this.getTotalUnreadMessageCount();
+      _logger2.default.debug('unread message count ' + unreadMessageCount);
+    }
+  }]);
+
+  return DialogService;
+}(_service2.default);
+
+exports.default = DialogService;
 
 /***/ }),
 /* 75 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SyncService; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__wssocket__ = __webpack_require__(78);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__request__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__service__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__datamodels_user__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_message__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__usersession__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__logger__ = __webpack_require__(12);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _wssocket = __webpack_require__(78);
 
+var _wssocket2 = _interopRequireDefault(_wssocket);
 
+var _request = __webpack_require__(13);
 
+var _request2 = _interopRequireDefault(_request);
 
+var _service = __webpack_require__(10);
 
-class SyncService extends __WEBPACK_IMPORTED_MODULE_2__service__["a" /* default */] {
-  constructor(afCore) {
-    super();
-    this.pendingSyncKey = 0;
-    const startKey = Date.now() - 24 * 3000 * 3600;
-    this.syncKeys = { m: startKey };
-    this.afCore = afCore;
-    this.syncingFlag = false;
-    this.syncingTimeout = null;
-    this.firstSyncFlag = true;
-    this.readMessagesIds = {};
-    this.dialogUsersSearchQueue = [];
-    this.joinDialogUsers = {};
-    this.outReceipts = [];
+var _service2 = _interopRequireDefault(_service);
+
+var _user = __webpack_require__(9);
+
+var _user2 = _interopRequireDefault(_user);
+
+var _message = __webpack_require__(33);
+
+var _message2 = _interopRequireDefault(_message);
+
+var _dialog = __webpack_require__(20);
+
+var _dialog2 = _interopRequireDefault(_dialog);
+
+var _usersession = __webpack_require__(14);
+
+var _usersession2 = _interopRequireDefault(_usersession);
+
+var _logger = __webpack_require__(12);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var SyncService = function (_BaseService) {
+  _inherits(SyncService, _BaseService);
+
+  function SyncService(afCore) {
+    _classCallCheck(this, SyncService);
+
+    var _this = _possibleConstructorReturn(this, (SyncService.__proto__ || Object.getPrototypeOf(SyncService)).call(this));
+
+    _this.pendingSyncKey = 0;
+    _this.syncKeys = { m: 0 };
+    _this.afCore = afCore;
+    _this.syncingFlag = false;
+    _this.syncingTimeout = null;
+    _this.firstSyncFlag = true;
+    _this.readMessagesIds = {};
+    _this.dialogUsersSearchQueue = [];
+    _this.joinDialogUsers = {};
+    _this.outReceipts = [];
+    return _this;
   }
 
-  resetService() {
-    this.pendingSyncKey = 0;
-    const startKey = Date.now() - 24 * 3000 * 3600;
-    this.syncKeys = { m: startKey };
-    if (this.syncingTimeout) {
-      clearTimeout(this.syncingTimeout);
-      this.syncingTimeout = null;
+  _createClass(SyncService, [{
+    key: 'resetService',
+    value: function resetService() {
+      this.pendingSyncKey = 0;
+      this.syncKeys = { m: 0 };
+      if (this.syncingTimeout) {
+        clearTimeout(this.syncingTimeout);
+        this.syncingTimeout = null;
+      }
+      this.firstSyncFlag = true;
+      this.syncingFlag = false;
+      this.joinDialogUsers = {};
+      // need to stop all polling
+      if (this.wssocket) {
+        this.wssocket.closeConnection();
+        this.wssocket = null;
+      }
     }
-    this.firstSyncFlag = true;
-    this.syncingFlag = false;
-    this.joinDialogUsers = {};
-    // need to stop all polling
-    if (this.wssocket) {
-      this.wssocket.closeConnection();
-      this.wssocket = null;
+  }, {
+    key: 'startSyncingWithSocket',
+    value: function startSyncingWithSocket() {
+      this.createWSSocket(_request2.default.userToken);
     }
-  }
-
-  startSyncingWithSocket() {
-    this.createWSSocket(__WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */].userToken);
-  }
-
-  pollMessage() {
-    if (!this.pendingSyncKey || !this.syncKeys) {
-      this.executeSyncWithServer();
-    } else if (this.syncKeys.m >= 0 && this.pendingSyncKey > this.syncKeys.m) {
-      this.executeSyncWithServer();
+  }, {
+    key: 'pollMessage',
+    value: function pollMessage() {
+      if (!this.pendingSyncKey || !this.syncKeys) {
+        this.executeSyncWithServer();
+      } else if (this.firstSyncFlag || this.syncKeys.m >= 0 && this.pendingSyncKey > this.syncKeys.m) {
+        this.executeSyncWithServer();
+      }
     }
-  }
+  }, {
+    key: 'executeSyncWithServer',
+    value: function executeSyncWithServer() {
+      var execAfterSchedual = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-  executeSyncWithServer(execAfterSchedual = false) {
-    if (!execAfterSchedual && this.syncingFlag) {
-      return;
-    }
-    if (!execAfterSchedual) {
-      __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('start syncing ...');
-    }
-
-    const SELF = this;
-    let currentSyncedKey = 0;
-    if (this.syncKeys.m) {
-      currentSyncedKey = this.syncKeys.m;
-    }
-
-    this.syncingFlag = true;
-    this.sendPostRequest({
-      m: currentSyncedKey
-    }, '/sync', (response, err) => {
-      if (err) {
-        SELF.postProcessAfterSync(false);
-      } else {
-        SELF.saveSyncedMessages(response.data.messages, () => {
-          SELF.updateSyncKeysFromSyncReply(response.data.sync_key);
-        });
+      if (!execAfterSchedual && this.syncingFlag) {
+        return;
       }
-    });
-  }
-
-  fetchChannelMessagesHistory(channelID, fromMessageID, callback) {
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('fetch channel history');
-    const messageID = fromMessageID !== null ? fromMessageID : Date.now();
-    const SELF = this;
-    this.sendGetRequest(`/channels/${channelID}/messages/history`, { from_message_id: messageID }, (response, err) => {
-      if (err) {
-        if (callback) {
-          callback(null, err);
-        }
-      } else {
-        const messages = [];
-        response.data.messages.forEach(message => {
-          const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-          if (messageObj !== null) {
-            SELF.cacheSenderUserFromMessage(messageObj);
-            messages.push(messageObj);
-          }
-        });
-        if (callback) {
-          callback(messages, null);
-        }
-      }
-    });
-  }
-
-  saveSyncedMessages(messages, callback) {
-    this.outReceipts = [];
-    this.processSyncedMessage(messages, 0, messages.length, callback);
-  }
-
-  processSyncedMessage(messages, currentIndex, maxIndex, callback) {
-    const SELF = this;
-    if (currentIndex >= maxIndex) {
-      this.sendReciept(this.outReceipts);
-      callback();
-      return;
-    }
-
-    const message = messages[currentIndex];
-    const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-    if (message.dialog_type !== 's') {
-      this.outReceipts.push({
-        status: 'received',
-        sender_id: messageObj.sender.id,
-        dialog_id: message.dialog_id,
-        id: message.temp_id
-      });
-    } else {
-      this.processSystemMessage(messageObj);
-    }
-
-    this.checkDialogExist(messageObj, (dialog, newDialog) => {
-      if (dialog) {
-        SELF.saveDialog(messageObj, newDialog);
-      }
-      const nextIndex = currentIndex + 1;
-      SELF.processSyncedMessage(messages, nextIndex, maxIndex, callback);
-    });
-  }
-
-  saveSentMessage(message, callback) {
-    const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-    const SELF = this;
-    this.checkDialogExist(messageObj, (dialog, newDialog) => {
-      if (dialog) {
-        SELF.saveDialog(messageObj, newDialog);
-        if (callback) {
-          callback(messageObj);
-        }
-      }
-    });
-  }
-
-  sendReciept(receipts, callback) {
-    const receiptsJSON = JSON.stringify(receipts);
-    const path = '/messages/receipts';
-    this.sendPostRequest(receiptsJSON, path, (response, error) => {
-      if (callback) {
-        callback(response, error);
-      }
-    });
-  }
-
-  sendReadReciepts(readMessages, callback) {
-    const outReceipts = [];
-    readMessages.forEach(message => {
-      if (message.dialogType !== 's') {
-        outReceipts.push({
-          status: 'read',
-          sender_id: message.sender.id,
-          dialog_id: message.dialogID,
-          id: message.tempID
-        });
-      }
-    });
-    // send read receipt
-    this.sendReciept(outReceipts, callback);
-  }
-
-  markAsRead(dialogID, callback) {
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('mark as read');
-    const dialogCache = this.afCore.Dialog.dialogs;
-    const dialog = dialogCache[dialogID];
-    if (!dialog) {
-      if (callback) {
-        callback();
-      }
-      return;
-    }
-
-    this.sendReadMessages(dialogID, dialog.lastMessageID, callback);
-  }
-
-  sendReadMessages(dialogID, readMessageID, callback) {
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('sendReadMessages');
-    const readMessagesObj = {};
-    readMessagesObj[`${dialogID}`] = readMessageID;
-    const readMessagesJSON = JSON.stringify(readMessagesObj);
-    const path = '/read_messages';
-    const SELF = this;
-    this.sendPostRequest(readMessagesJSON, path, (response, err) => {
-      if (!err) {
-        const dialogCache = SELF.afCore.Dialog.dialogs;
-        const dialog = dialogCache[dialogID];
-        if (dialog) {
-          dialog.unreadMessageCount = SELF.getUnreadMessagesWithMessageID(dialogID, readMessageID);
-        }
-        if (!SELF.readMessagesIds[dialogID] || SELF.readMessagesIds[dialogID] < readMessageID) {
-          SELF.readMessagesIds[dialogID] = readMessageID;
-        }
-
-        if (dialog) {
-          dialog.lastReadMessageID = readMessageID;
-          SELF.notifyDialogReceiptUpdated(dialog);
-        }
-
-        __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('dialog after send read messages %o', dialog);
-      }
-      if (callback) {
-        callback(response, err);
-      }
-    });
-  }
-
-  fetchReadMessages(callback) {
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('fetch read messages');
-    const SELF = this;
-    this.sendGetRequest('/read_messages', null, (response, err) => {
-      if (!err) {
-        SELF.processReadMessages(response.data.read_messages);
+      if (!execAfterSchedual) {
+        _logger2.default.debug('start syncing ...');
       }
 
-      if (callback) {
-        callback();
+      var SELF = this;
+      var currentSyncedKey = 0;
+      if (this.syncKeys.m) {
+        currentSyncedKey = this.syncKeys.m;
       }
-    });
-  }
 
-  processReadMessages(readMessages) {
-    const SELF = this;
-    const dialogCache = this.afCore.Dialog.dialogs;
-    Object.keys(readMessages).forEach(dialogID => {
-      if (dialogCache[dialogID]) {
-        const unreadMessagesCount = SELF.getUnreadMessagesWithMessageID(dialogID, readMessages[dialogID]);
-        dialogCache[dialogID].unreadMessageCount = unreadMessagesCount;
-      }
-    });
-
-    Object.keys(dialogCache).forEach(dialogID => {
-      const dialog = dialogCache[dialogID];
-      if (dialog.unreadMessageCount === 0) {
-        dialog.unreadMessageCount = Object.keys(dialog.messages).length;
-      }
-    });
-  }
-
-  processSystemMessage(messageObj) {
-    // console.log('system message %o ', messageObj);
-    const SELF = this;
-    const dialogCache = this.afCore.Dialog.dialogs;
-    const userCache = this.afCore.User.users;
-    const dialogID = `${messageObj.dialogID}`;
-    const dialog = dialogCache[dialogID];
-    if (!dialog) {
-      // console.log('dialog not found');
-      return;
-    }
-
-    // change dialog name
-    if (messageObj.metaData && messageObj.metaData.new_name) {
-      dialog.title = messageObj.metaData.new_name;
-    }
-
-    // process members
-    if (messageObj.metaData && messageObj.metaData.members) {
-      dialog.members = [];
-      messageObj.metaData.members.forEach(member => {
-        const userID = member;
-        if (!userCache[userID]) {
-          if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
-            SELF.dialogUsersSearchQueue.push(userID);
-          }
-          dialog.waitFetchMemberIDs.push(userID);
+      this.syncingFlag = true;
+      this.sendPostRequest({
+        m: currentSyncedKey
+      }, '/sync', function (response, err) {
+        if (err) {
+          _logger2.default.debug('Sync message error %o', err);
+          SELF.postProcessAfterSync(false);
         } else {
-          dialog.members.push(userCache[userID]);
+          SELF.saveSyncedMessages(response.data.messages, function () {
+            SELF.updateSyncKeysFromSyncReply(response.data.sync_key);
+          });
         }
       });
-      dialog.memberIDs = messageObj.metaData.members;
     }
+  }, {
+    key: 'fetchChannelMessagesHistory',
+    value: function fetchChannelMessagesHistory(channelID, fromMessageID, callback) {
+      _logger2.default.debug('fetch channel history');
+      var messageID = fromMessageID !== null ? fromMessageID : Date.now();
+      var SELF = this;
+      this.sendGetRequest('/channels/' + channelID + '/messages/history', { from_message_id: messageID }, function (response, err) {
+        if (err) {
+          if (callback) {
+            callback(null, err);
+          }
+        } else {
+          var messages = [];
+          response.data.messages.forEach(function (message) {
+            var messageObj = _message2.default.createMessageFromJSON(message);
+            if (messageObj !== null) {
+              SELF.cacheSenderUserFromMessage(messageObj);
+              messages.push(messageObj);
+            }
+          });
+          if (callback) {
+            callback(messages, null);
+          }
+        }
+      });
+    }
+  }, {
+    key: 'saveSyncedMessages',
+    value: function saveSyncedMessages(messages, callback) {
+      this.outReceipts = [];
+      this.processSyncedMessage(messages, 0, messages.length, callback);
+    }
+  }, {
+    key: 'processSyncedMessage',
+    value: function processSyncedMessage(messages, currentIndex, maxIndex, callback) {
+      var SELF = this;
+      if (currentIndex >= maxIndex) {
+        this.sendReciept(this.outReceipts);
+        callback();
+        return;
+      }
 
-    // Join dialog
-    if (messageObj.metaData && messageObj.metaData.action_type === 'j' && messageObj.metaData.users) {
-      Object.keys(messageObj.metaData.users).forEach(userIndex => {
-        const userID = messageObj.metaData.users[userIndex];
-        if (!userCache[userID]) {
-          if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
-            SELF.dialogUsersSearchQueue.push(userID);
+      var message = messages[currentIndex];
+      var messageObj = _message2.default.createMessageFromJSON(message);
+      if (message.dialog_type !== 's') {
+        this.outReceipts.push({
+          status: 'received',
+          sender_id: messageObj.sender.id,
+          dialog_id: message.dialog_id,
+          id: message.temp_id
+        });
+      } else {
+        this.processSystemMessage(messageObj);
+      }
+
+      this.checkDialogExist(messageObj, function (dialog, newDialog) {
+        if (dialog) {
+          SELF.saveDialog(messageObj, newDialog);
+        }
+        var nextIndex = currentIndex + 1;
+        SELF.processSyncedMessage(messages, nextIndex, maxIndex, callback);
+      });
+    }
+  }, {
+    key: 'saveSentMessage',
+    value: function saveSentMessage(message, callback) {
+      var messageObj = _message2.default.createMessageFromJSON(message);
+      var SELF = this;
+      this.checkDialogExist(messageObj, function (dialog, newDialog) {
+        if (dialog) {
+          SELF.saveDialog(messageObj, newDialog);
+          if (callback) {
+            callback(messageObj);
+          }
+        }
+      });
+    }
+  }, {
+    key: 'sendReciept',
+    value: function sendReciept(receipts, callback) {
+      var receiptsJSON = JSON.stringify(receipts);
+      var path = '/messages/receipts';
+      this.sendPostRequest(receiptsJSON, path, function (response, error) {
+        if (callback) {
+          callback(response, error);
+        }
+      });
+    }
+  }, {
+    key: 'sendReadReciepts',
+    value: function sendReadReciepts(readMessages, callback) {
+      var outReceipts = [];
+      readMessages.forEach(function (message) {
+        if (message.dialogType !== 's') {
+          outReceipts.push({
+            status: 'read',
+            sender_id: message.sender.id,
+            dialog_id: message.dialogID,
+            id: message.tempID
+          });
+        }
+      });
+      // send read receipt
+      this.sendReciept(outReceipts, callback);
+    }
+  }, {
+    key: 'markAsRead',
+    value: function markAsRead(dialogID, callback) {
+      _logger2.default.debug('mark as read');
+      var dialogCache = this.afCore.Dialog.dialogs;
+      var dialog = dialogCache[dialogID];
+      if (!dialog) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
+
+      this.sendReadMessages(dialogID, dialog.lastMessageID, callback);
+    }
+  }, {
+    key: 'sendReadMessages',
+    value: function sendReadMessages(dialogID, readMessageID, callback) {
+      _logger2.default.debug('sendReadMessages');
+      var readMessagesObj = {};
+      readMessagesObj['' + dialogID] = readMessageID;
+      var readMessagesJSON = JSON.stringify(readMessagesObj);
+      var path = '/read_messages';
+      var SELF = this;
+      this.sendPostRequest(readMessagesJSON, path, function (response, err) {
+        if (!err) {
+          var dialogCache = SELF.afCore.Dialog.dialogs;
+          var dialog = dialogCache[dialogID];
+          if (dialog) {
+            dialog.unreadMessageCount = SELF.getUnreadMessagesWithMessageID(dialogID, readMessageID);
+          }
+          if (!SELF.readMessagesIds[dialogID] || SELF.readMessagesIds[dialogID] < readMessageID) {
+            SELF.readMessagesIds[dialogID] = readMessageID;
+          }
+
+          if (dialog) {
+            dialog.lastReadMessageID = readMessageID;
+            SELF.notifyDialogReceiptUpdated(dialog);
+          }
+
+          _logger2.default.debug('dialog after send read messages %o', dialog);
+        }
+        if (callback) {
+          callback(response, err);
+        }
+      });
+    }
+  }, {
+    key: 'fetchReadMessages',
+    value: function fetchReadMessages(callback) {
+      _logger2.default.debug('fetch read messages');
+      var SELF = this;
+      this.sendGetRequest('/read_messages', null, function (response, err) {
+        if (!err) {
+          SELF.processReadMessages(response.data.read_messages);
+        }
+
+        if (callback) {
+          callback();
+        }
+      });
+    }
+  }, {
+    key: 'processReadMessages',
+    value: function processReadMessages(readMessages) {
+      var SELF = this;
+      var dialogCache = this.afCore.Dialog.dialogs;
+      Object.keys(readMessages).forEach(function (dialogID) {
+        if (dialogCache[dialogID]) {
+          var unreadMessagesCount = SELF.getUnreadMessagesWithMessageID(dialogID, readMessages[dialogID]);
+          dialogCache[dialogID].unreadMessageCount = unreadMessagesCount;
+        }
+      });
+    }
+  }, {
+    key: 'processSystemMessage',
+    value: function processSystemMessage(messageObj) {
+      var SELF = this;
+      var dialogCache = this.afCore.Dialog.dialogs;
+      var userCache = this.afCore.User.users;
+      var dialogID = '' + messageObj.dialogID;
+      var dialog = dialogCache[dialogID];
+      if (!dialog) {
+        // console.log('dialog not found');
+        return;
+      }
+
+      // change dialog name
+      if (messageObj.metaData && messageObj.metaData.new_name) {
+        dialog.title = messageObj.metaData.new_name;
+      }
+
+      // process members
+      if (messageObj.metaData && messageObj.metaData.members) {
+        dialog.members = [];
+        messageObj.metaData.members.forEach(function (member) {
+          var userID = member;
+          if (!userCache[userID]) {
+            if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
+              SELF.dialogUsersSearchQueue.push(userID);
+            }
             dialog.waitFetchMemberIDs.push(userID);
-          }
-          const joinDialogs = SELF.joinDialogUsers[userID];
-          if (!joinDialogs) {
-            SELF.joinDialogUsers[userID] = [dialog.id];
           } else {
-            SELF.joinDialogUsers[userID].push(dialog.id);
+            dialog.members.push(userCache[userID]);
           }
-        } else {
-          dialog.members.push(userCache[userID]);
-          // notify user join dialog
-          SELF.notifyUserJoinDialog(dialog, userCache[userID]);
-        }
+        });
+        dialog.memberIDs = messageObj.metaData.members;
+      }
 
-        if (dialog.memberIDs.indexOf(userID) === -1) {
-          dialog.memberIDs.push(userID);
+      // Join dialog
+      if (messageObj.metaData && messageObj.metaData.action_type === 'j' && messageObj.metaData.users) {
+        Object.keys(messageObj.metaData.users).forEach(function (userIndex) {
+          var userID = messageObj.metaData.users[userIndex];
+          if (!userCache[userID]) {
+            if (SELF.dialogUsersSearchQueue.indexOf(userID) === -1) {
+              SELF.dialogUsersSearchQueue.push(userID);
+              dialog.waitFetchMemberIDs.push(userID);
+            }
+            var joinDialogs = SELF.joinDialogUsers[userID];
+            if (!joinDialogs) {
+              SELF.joinDialogUsers[userID] = [dialog.id];
+            } else {
+              SELF.joinDialogUsers[userID].push(dialog.id);
+            }
+          } else {
+            dialog.members.push(userCache[userID]);
+            // notify user join dialog
+            SELF.notifyUserJoinDialog(dialog, userCache[userID]);
+          }
+
+          if (dialog.memberIDs.indexOf(userID) === -1) {
+            dialog.memberIDs.push(userID);
+          }
+        });
+      }
+
+      // Leave dialog
+      if (messageObj.metaData && messageObj.metaData.action_type === 'l' && messageObj.metaData.users) {
+        _logger2.default.debug('Receive dialog');
+
+        Object.keys(messageObj.metaData.users).forEach(function (userIndex) {
+          var userID = messageObj.metaData.users[userIndex];
+          var memberIndex = dialog.memberIDs.indexOf(userID);
+          dialog.removeMemberWithID(userID);
+          if (memberIndex >= 0) {
+            if (userCache[userID]) {
+              // notify user leave dialog
+              SELF.notifyUserLeftDialog(dialog, userCache[userID]);
+            }
+          }
+        });
+      }
+    }
+  }, {
+    key: 'notifyUserJoinDialog',
+    value: function notifyUserJoinDialog(dialog, user) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined') {
+          dialogHandler.onUserJoined(dialog, user);
         }
       });
     }
-
-    // Leave dialog
-    if (messageObj.metaData && messageObj.metaData.action_type === 'l' && messageObj.metaData.users) {
-      __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('Receive dialog');
-
-      Object.keys(messageObj.metaData.users).forEach(userIndex => {
-        const userID = messageObj.metaData.users[userIndex];
-        const memberIndex = dialog.memberIDs.indexOf(userID);
-        dialog.removeMemberWithID(userID);
-        if (memberIndex >= 0) {
-          if (userCache[userID]) {
-            // notify user leave dialog
-            SELF.notifyUserLeftDialog(dialog, userCache[userID]);
-          }
+  }, {
+    key: 'notifyMessageReceived',
+    value: function notifyMessageReceived(dialog, messageObj) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined') {
+          dialogHandler.onMessageReceived(dialog, messageObj);
         }
       });
     }
-  }
-
-  notifyUserJoinDialog(dialog, user) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
-        __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('user %o join %o', user, dialog);
-        dialogHandler.onUserJoined(dialog, user);
-      }
-    });
-  }
-
-  notifyMessageReceived(dialog, messageObj) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
-        dialogHandler.onMessageReceived(dialog, messageObj);
-      }
-    });
-  }
-
-  notifyUserLeftDialog(dialog, user) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined') {
-        dialogHandler.onUserLeft(dialog, user);
-      }
-    });
-  }
-
-  getUnreadMessagesWithMessageID(dialogID, messageID) {
-    const messageCache = this.afCore.Dialog.dialogs[dialogID].messages;
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('getUnreadMessagesWithMessageID %o', messageCache);
-    if (messageCache && messageCache[messageID]) {
-      const messageIDs = Object.keys(messageCache);
-      const messageIndex = messageIDs.indexOf(`${messageID}`);
-      if (messageIndex >= 0) {
-        return messageIDs.length - messageIndex - 1;
-      }
-      return messageIDs.length;
+  }, {
+    key: 'notifyUserLeftDialog',
+    value: function notifyUserLeftDialog(dialog, user) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined') {
+          dialogHandler.onUserLeft(dialog, user);
+        }
+      });
     }
-    return 0;
-  }
-
-  cacheSenderUserFromMessage(messageObj) {
-    if (messageObj.sender === null) {
-      return null;
+  }, {
+    key: 'getUnreadMessagesWithMessageID',
+    value: function getUnreadMessagesWithMessageID(dialogID, messageID) {
+      var messageCache = this.afCore.Dialog.dialogs[dialogID].messages;
+      if (messageCache && messageCache[messageID]) {
+        var messageIDs = Object.keys(messageCache);
+        var messageIndex = messageIDs.indexOf('' + messageID);
+        if (messageIndex >= 0) {
+          return messageIDs.length - messageIndex - 1;
+        }
+        return messageIDs.length;
+      }
+      return 0;
     }
-    const users = this.afCore.User.users;
-    if (!users[messageObj.sender.id]) {
-      users[messageObj.sender.id] = messageObj.sender;
+  }, {
+    key: 'cacheSenderUserFromMessage',
+    value: function cacheSenderUserFromMessage(messageObj) {
+      if (messageObj.sender === null) {
+        return null;
+      }
+      var users = this.afCore.User.users;
+      if (!users[messageObj.sender.id]) {
+        users[messageObj.sender.id] = messageObj.sender;
+      }
+
+      return messageObj.sender;
     }
-
-    return messageObj.sender;
-  }
-
-  checkDialogExist(messageObj, callback) {
-    const dialogCache = this.afCore.Dialog.dialogs;
-    const dialogID = `${messageObj.dialogID}`;
-    let dialog = null;
-    const SELF = this;
-    let newDialog = false;
-    if (dialogCache[dialogID]) {
-      dialog = dialogCache[dialogID];
-    } else {
-      newDialog = true;
-      if (messageObj.dialogType !== __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual) {
-        if (this.afCore.Dialog.leaveDialogs.indexOf(dialogID) >= 0) {
-          callback(null, newDialog);
+  }, {
+    key: 'checkDialogExist',
+    value: function checkDialogExist(messageObj, callback) {
+      var dialogCache = this.afCore.Dialog.dialogs;
+      var dialogID = '' + messageObj.dialogID;
+      var dialog = null;
+      var SELF = this;
+      var newDialog = false;
+      if (dialogCache[dialogID]) {
+        dialog = dialogCache[dialogID];
+      } else {
+        newDialog = true;
+        if (messageObj.dialogType !== _dialog2.default.type.individual) {
+          if (this.afCore.Dialog.leaveDialogs.indexOf(dialogID) >= 0) {
+            callback(null, newDialog);
+            return;
+          }
+          this.afCore.Dialog.getDialogInfo(dialogID, function (returnedDialog, err) {
+            if (err) {
+              SELF.afCore.Dialog.leaveDialogs.push(dialogID);
+              callback(null, newDialog);
+            } else {
+              callback(returnedDialog, newDialog);
+            }
+          });
           return;
         }
-        this.afCore.Dialog.getDialogInfo(dialogID, (returnedDialog, err) => {
-          if (err) {
-            SELF.afCore.Dialog.leaveDialogs.push(dialogID);
-            callback(null, newDialog);
+
+        dialog = new _dialog2.default(messageObj.dialogID, messageObj.dialogType === _dialog2.default.type.individual ? _dialog2.default.type.individual : _dialog2.default.type.group);
+
+        if (!messageObj.isSystemMessage()) {
+          if (this.afCore.User.users[messageObj.dialogID]) {
+            dialog.title = this.afCore.User.users[messageObj.dialogID].username;
           } else {
-            callback(returnedDialog, newDialog);
+            // Logger.debug(`user need to be cache, ${messageObj.dialogID} ${messageObj.sender.id}`);
+            this.dialogUsersSearchQueue.push(messageObj.dialogID);
           }
-        });
-        return;
-      }
-
-      dialog = new __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */](messageObj.dialogID, messageObj.dialogType === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual ? __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual : __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group);
-
-      if (!messageObj.isSystemMessage()) {
-        if (this.afCore.User.users[messageObj.dialogID]) {
-          dialog.title = this.afCore.User.users[messageObj.dialogID].username;
-        } else {
-          __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug(`user need to be cache, ${messageObj.dialogID} ${messageObj.sender.id}`);
-          this.dialogUsersSearchQueue.push(messageObj.dialogID);
         }
+        dialogCache[dialogID] = dialog;
       }
-      dialogCache[dialogID] = dialog;
+      callback(dialog, newDialog);
     }
-    callback(dialog, newDialog);
-  }
+  }, {
+    key: 'saveDialog',
+    value: function saveDialog(messageObj, newDialog) {
+      var dialogCache = this.afCore.Dialog.dialogs;
+      var dialogID = '' + messageObj.dialogID;
+      var dialog = dialogCache[dialogID];
 
-  saveDialog(messageObj, newDialog) {
-    const dialogCache = this.afCore.Dialog.dialogs;
-    const dialogID = `${messageObj.dialogID}`;
-    const dialog = dialogCache[dialogID];
-
-    if (dialog.lastMessageTime < messageObj.receiveTime && !messageObj.isSystemMessage()) {
+      if (dialog.lastMessageTime < messageObj.receiveTime) {
+        dialog.lastMessageTime = messageObj.receiveTime;
+      }
       dialog.lastMessageText = messageObj.text;
-      dialog.lastMessageTime = messageObj.receiveTime;
       dialog.lastMessageID = messageObj.messageID;
-    }
 
-    if (!messageObj.isSystemMessage() && messageObj.sender.id !== __WEBPACK_IMPORTED_MODULE_6__usersession__["a" /* default */].currentUserID) {
-      if (this.readMessagesIds[dialogID] && this.readMessagesIds[dialogID] < messageObj.messageID) {
-        dialog.unreadMessageCount += 1;
-      } else if (!this.readMessagesIds[dialogID]) {
-        dialog.unreadMessageCount += 1;
+      if (!messageObj.sender || messageObj.sender.id !== _usersession2.default.currentUserID) {
+        if (this.readMessagesIds[dialogID] && this.readMessagesIds[dialogID] < messageObj.messageID) {
+          dialog.unreadMessageCount += 1;
+        } else if (!this.readMessagesIds[dialogID]) {
+          dialog.unreadMessageCount += 1;
+        }
+        dialog.lastReadMessageID = this.readMessagesIds[dialogID] ? this.readMessagesIds[dialogID] : 0;
       }
-      dialog.lastReadMessageID = this.readMessagesIds[dialogID] ? this.readMessagesIds[dialogID] : 0;
-    }
 
-    // Save message
-    const messageCache = dialogCache[messageObj.dialogID].messages;
-    if (!messageCache[messageObj.messageID]) {
-      this.cacheSenderUserFromMessage(messageObj);
-      messageCache[messageObj.messageID] = messageObj;
-    }
+      // Save message
+      var messageCache = dialogCache[messageObj.dialogID].messages;
+      if (!messageCache[messageObj.messageID]) {
+        this.cacheSenderUserFromMessage(messageObj);
+        messageCache[messageObj.messageID] = messageObj;
+      }
 
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('update dialog %o', dialog);
+      // Logger.debug('update dialog %o %o', dialog, messageObj);
 
-    if (newDialog) {
-      this.notifyDialogCreated(dialog);
-    } else {
-      this.notifyDialogUpdated(dialog);
-    }
-
-    if (!this.firstSyncFlag) {
-      this.notifyMessageReceived(dialog, messageObj);
-    }
-
-    return dialog;
-  }
-
-  updateSyncKeysFromSyncReply(destKey) {
-    const SELF = this;
-    if (!destKey.m) {
-      this.postProcessAfterSync();
-      return;
-    }
-
-    if (this.syncKeys.m < destKey.m) {
-      this.syncKeys.m = destKey.m;
-    }
-
-    // console.log(`update sync key, current sync
-    // key: ${this.syncKeys.m} , dest sync key: ${this.pendingSyncKey}`);
-
-    if (this.pendingSyncKey > destKey.m) {
-      this.syncingTimeout = setTimeout(() => {
-        SELF.executeSyncWithServer(true);
-      }, 500);
-    } else {
-      this.postProcessAfterSync();
-    }
-  }
-
-  createWSSocket(token) {
-    this.wssocket = new __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */](__WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */].appKey, __WEBPACK_IMPORTED_MODULE_1__request__["a" /* default */].appSecret, token);
-    const SELF = this;
-    this.wssocket.connect((event, data) => {
-      SELF.processWSEvent(event, data);
-    });
-  }
-
-  processWSEvent(event, data) {
-    switch (event) {
-      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.CONNECTED:
-        break;
-      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.DISCONNECTED:
-        this.processStocketClose();
-        return;
-      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.DATA_RECV:
-        break;
-      case __WEBPACK_IMPORTED_MODULE_0__wssocket__["a" /* default */].socketEvent.PEER_CLOSE:
-        this.processStocketClose();
-        return;
-      default:
-        break;
-    }
-
-    if (data) {
-      __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('WS data %o', data);
-      this.processSyncData(JSON.parse(data));
-    }
-  }
-
-  processStocketClose() {
-    if (!this.afCore.isLoggedIn()) {
-      return;
-    }
-    this.resetService();
-    const SELF = this;
-    setTimeout(() => {
-      SELF.startSyncingWithSocket();
-    }, 1000);
-  }
-
-  processSyncData(data) {
-    // need to sync messsages in private dialogs
-    if (data.m) {
-      this.pendingSyncKey = data.m;
-      this.pollMessage();
-    }
-
-    if (data.cm) {
-      this.processChannelNewMessage(data.cm);
-    }
-
-    if (data.n) {
-      this.processTopTenOnlineUsers(data.n);
-    }
-
-    if (data.t) {
-      this.notifyTotalOnlineUsers(data.t);
-    }
-
-    // {"e":{"name":"kEventStartTyping","dialog_id":"f52d7e77-1d9e-4f96-a165-073870cfb9ba",
-    // "custom_data":"{\"id\":\"11833c637fa2a34f65986db35e0a97fc\",
-    // \"user_name\":\"melodie gill\",\"avatar\":\"\"}"}}"
-    if (data.e) {
-      this.processEvent(data.e);
-    }
-
-    if (data.r) {
-      this.readMessagesIds = data.r;
-    }
-  }
-
-  processEvent(eventObj) {
-    const dialogID = eventObj.dialog_id;
-    const dialogCache = this.afCore.Dialog.dialogs;
-    const dialog = dialogCache[dialogID];
-    if (!dialog) {
-      return;
-    }
-
-    if (eventObj.name === 'kEventStartTyping' || eventObj.name === 'kEventStopTyping') {
-      const customData = JSON.parse(eventObj.custom_data);
-      const user = new __WEBPACK_IMPORTED_MODULE_3__datamodels_user__["a" /* default */](customData.id, customData.user_name, customData.avatar);
-      const dialogHandlers = this.afCore.dialogHandlers;
-      Object.keys(dialogHandlers).forEach(handerID => {
-        const dialogHandler = dialogHandlers[handerID];
-        if (dialogHandler.onTypingStatusUpdated) {
-          dialogHandler.onTypingStatusUpdated(eventObj.name, dialog, user);
-        }
-      });
-    }
-  }
-
-  processChannelNewMessage(message) {
-    const messageObj = __WEBPACK_IMPORTED_MODULE_4__datamodels_message__["a" /* default */].createMessageFromJSON(message);
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('channel message %o', messageObj);
-    const dialog = this.afCore.PublicChannel.getCachedChannel(messageObj.dialogID);
-    if (dialog) {
-      this.notifyMessageReceived(dialog, messageObj);
-    }
-  }
-
-  processTopTenOnlineUsers(users) {
-    const usersList = [];
-    Object.keys(users).forEach(userIndex => {
-      const user = users[userIndex];
-      const userObj = new __WEBPACK_IMPORTED_MODULE_3__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
-      usersList.push(userObj);
-    });
-    this.notifyTopTenOnlineUsers(usersList);
-  }
-
-  postProcessAfterSync(success = true) {
-    if (this.firstSyncFlag) {
-      this.firstSyncFlag = false;
-    }
-
-    this.syncingFlag = false;
-    __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('stop syncing ...');
-
-    if (!success) {
-      return;
-    }
-
-    const SELF = this;
-    if (this.dialogUsersSearchQueue.length > 0) {
-      this.afCore.User.batchSearchUsersWithIDs(this.dialogUsersSearchQueue, (users, err) => {
-        if (!err) {
-          SELF.processSearchedUsers(users);
-          SELF.dialogUsersSearchQueue = [];
-        }
-
-        SELF.fetchReadMessages(() => {
-          SELF.notifyBadgeUpdated();
-          SELF.afCore.Dialog.dumpDialogCache();
-          SELF.afCore.User.dumpUserCache();
-          SELF.afCore.Dialog.dumpUnreadMessageCount();
-        });
-      });
-    }
-  }
-
-  processSearchedUsers(users) {
-    const userCache = this.afCore.User.users;
-    const dialogCache = this.afCore.Dialog.dialogs;
-    const SELF = this;
-
-    Object.keys(users).forEach(userIndex => {
-      const user = users[userIndex];
-      if (!userCache[user.id]) {
-        userCache[user.id] = user;
-        __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug('add user %o', user);
+      if (newDialog) {
+        this.notifyDialogCreated(dialog);
       } else {
-        userCache[user.id].avatar = user.avatar;
+        this.notifyDialogUpdated(dialog);
       }
 
-      const notifyDialogIDs = SELF.joinDialogUsers[user.id];
-      if (notifyDialogIDs) {
-        notifyDialogIDs.forEach(dialogID => {
-          if (dialogCache[dialogID]) {
-            SELF.notifyUserJoinDialog(dialogCache[dialogID], user);
-          }
-        });
-      }
-    });
-
-    this.joinDialogUsers = {};
-
-    const notifyDialogs = [];
-    Object.keys(dialogCache).forEach(dialogID => {
-      const dialog = dialogCache[dialogID];
-      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.individual && (!dialog.title || dialog.title === '')) {
-        if (userCache[dialog.id]) {
-          __WEBPACK_IMPORTED_MODULE_7__logger__["a" /* default */].debug(`set dialog title ${userCache[dialog.id].username}`);
-          dialog.title = userCache[dialog.id].username;
-          notifyDialogs.push(dialog);
-        }
+      if (!this.firstSyncFlag) {
+        this.notifyMessageReceived(dialog, messageObj);
       }
 
-      if (dialog.type === __WEBPACK_IMPORTED_MODULE_5__datamodels_dialog__["a" /* default */].type.group) {
-        dialog.waitFetchMemberIDs.forEach(memberID => {
-          if (userCache[memberID]) {
-            dialog.members.push(userCache[memberID]);
-          }
-        });
-        dialog.waitFetchMemberIDs = [];
+      return dialog;
+    }
+  }, {
+    key: 'updateSyncKeysFromSyncReply',
+    value: function updateSyncKeysFromSyncReply(destKey) {
+      var SELF = this;
+      if (!destKey.m) {
+        this.postProcessAfterSync();
+        return;
       }
-    });
 
-    if (notifyDialogs.length > 0) {
-      Object.keys(notifyDialogs).forEach(dialogIndex => {
-        SELF.notifyDialogUpdated(notifyDialogs[dialogIndex]);
+      if (this.syncKeys.m < destKey.m) {
+        this.syncKeys.m = destKey.m;
+      }
+
+      // console.log(`update sync key, current sync
+      // key: ${this.syncKeys.m} , dest sync key: ${this.pendingSyncKey}`);
+
+      if (this.pendingSyncKey > destKey.m) {
+        this.syncingTimeout = setTimeout(function () {
+          SELF.executeSyncWithServer(true);
+        }, 500);
+      } else {
+        _logger2.default.debug('stop sync pendingSyncKey %o destKey %o', this.pendingSyncKey, destKey.m);
+
+        this.postProcessAfterSync();
+      }
+    }
+  }, {
+    key: 'createWSSocket',
+    value: function createWSSocket(token) {
+      this.wssocket = new _wssocket2.default(_request2.default.appKey, _request2.default.appSecret, token);
+      var SELF = this;
+      this.wssocket.connect(function (event, data) {
+        SELF.processWSEvent(event, data);
       });
     }
-  }
-
-  subsribeOnlineUsers() {
-    this.wssocket.subsribeOnlineUsers();
-  }
-
-  unsubsribeOnlineUsers() {
-    this.wssocket.unsubsribeOnlineUsers();
-  }
-
-  joinChannel(channelID) {
-    this.wssocket.joinChannel(channelID);
-  }
-
-  leaveChannel(channelID) {
-    this.wssocket.leaveChannel(channelID);
-  }
-
-  notifyDialogUpdated(dialog) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined' && dialogHandler.onDialogChanged) {
-        dialogHandler.onDialogChanged(dialog);
+  }, {
+    key: 'processWSEvent',
+    value: function processWSEvent(event, data) {
+      switch (event) {
+        case _wssocket2.default.socketEvent.CONNECTED:
+          break;
+        case _wssocket2.default.socketEvent.DISCONNECTED:
+          this.processStocketClose();
+          return;
+        case _wssocket2.default.socketEvent.DATA_RECV:
+          break;
+        case _wssocket2.default.socketEvent.PEER_CLOSE:
+          this.processStocketClose();
+          return;
+        default:
+          break;
       }
-    });
-  }
 
-  notifyDialogCreated(dialog) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined' && dialogHandler.onDialogCreated) {
-        dialogHandler.onDialogCreated(dialog);
+      if (data) {
+        _logger2.default.debug('WS data %o', data);
+        this.processSyncData(JSON.parse(data));
       }
-    });
-  }
-
-  notifyBadgeUpdated() {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined' && dialogHandler.onBadgeUpdated) {
-        dialogHandler.onBadgeUpdated();
+    }
+  }, {
+    key: 'processStocketClose',
+    value: function processStocketClose() {
+      if (!this.afCore.isLoggedIn()) {
+        return;
       }
-    });
-  }
-
-  notifyTopTenOnlineUsers(usersList) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined' && dialogHandler.topTenOnlineUsers) {
-        dialogHandler.topTenOnlineUsers(usersList);
+      this.resetService();
+      var SELF = this;
+      setTimeout(function () {
+        SELF.startSyncingWithSocket();
+      }, 1000);
+    }
+  }, {
+    key: 'processSyncData',
+    value: function processSyncData(data) {
+      // need to sync messsages in private dialogs
+      if (data.m) {
+        this.pendingSyncKey = data.m;
+        this.pollMessage();
       }
-    });
-  }
 
-  notifyTotalOnlineUsers(totalUsers) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (typeof dialogHandler !== 'undefined' && dialogHandler.totalOnlineUsers) {
-        dialogHandler.totalOnlineUsers(totalUsers);
+      if (data.cm) {
+        this.processChannelNewMessage(data.cm);
       }
-    });
-  }
 
-  notifyDialogReceiptUpdated(dialog) {
-    const dialogHandlers = this.afCore.dialogHandlers;
-    Object.keys(dialogHandlers).forEach(handerID => {
-      const dialogHandler = dialogHandlers[handerID];
-      if (dialogHandler.onReadReceiptUpdated && dialogHandler.onReadReceiptUpdated) {
-        dialogHandler.onReadReceiptUpdated(dialog);
+      if (data.n) {
+        this.processTopTenOnlineUsers(data.n);
       }
-    });
-  }
 
-  testSendReadMessages() {
-    const dialogCache = this.afCore.Dialog.dialogs;
-    Object.keys(dialogCache).forEach(dialogID => {
-      const dialog = dialogCache[dialogID];
-      if (Object.keys(dialog.messages).length > 0) {
-        const message = dialog.messages[Object.keys(dialog.messages).length - 1];
-        this.sendReadMessages(dialogID, message.messageID);
+      if (data.t) {
+        this.notifyTotalOnlineUsers(data.t);
       }
-    });
-  }
-}
 
+      // {"e":{"name":"kEventStartTyping","dialog_id":"f52d7e77-1d9e-4f96-a165-073870cfb9ba",
+      // "custom_data":"{\"id\":\"11833c637fa2a34f65986db35e0a97fc\",
+      // \"user_name\":\"melodie gill\",\"avatar\":\"\"}"}}"
+      if (data.e) {
+        this.processEvent(data.e);
+      }
 
+      if (data.r) {
+        this.readMessagesIds = data.r;
+      }
+    }
+  }, {
+    key: 'processEvent',
+    value: function processEvent(eventObj) {
+      var dialogID = eventObj.dialog_id;
+      var dialogCache = this.afCore.Dialog.dialogs;
+      var dialog = dialogCache[dialogID];
+      if (!dialog) {
+        return;
+      }
+
+      if (eventObj.name === 'kEventStartTyping' || eventObj.name === 'kEventStopTyping') {
+        var customData = JSON.parse(eventObj.custom_data);
+        var user = new _user2.default(customData.id, customData.user_name, customData.avatar);
+        var dialogHandlers = this.afCore.dialogHandlers;
+        Object.keys(dialogHandlers).forEach(function (handerID) {
+          var dialogHandler = dialogHandlers[handerID];
+          if (dialogHandler.onTypingStatusUpdated) {
+            dialogHandler.onTypingStatusUpdated(eventObj.name, dialog, user);
+          }
+        });
+      }
+    }
+  }, {
+    key: 'processChannelNewMessage',
+    value: function processChannelNewMessage(message) {
+      var messageObj = _message2.default.createMessageFromJSON(message);
+      _logger2.default.debug('channel message %o', messageObj);
+      var dialog = this.afCore.PublicChannel.getCachedChannel(messageObj.dialogID);
+      if (dialog) {
+        this.notifyMessageReceived(dialog, messageObj);
+      }
+    }
+  }, {
+    key: 'processTopTenOnlineUsers',
+    value: function processTopTenOnlineUsers(users) {
+      var usersList = [];
+      Object.keys(users).forEach(function (userIndex) {
+        var user = users[userIndex];
+        var userObj = new _user2.default(user.id, user.user_name, user.avatar);
+        usersList.push(userObj);
+      });
+      this.notifyTopTenOnlineUsers(usersList);
+    }
+  }, {
+    key: 'postProcessAfterSync',
+    value: function postProcessAfterSync() {
+      var success = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      if (this.firstSyncFlag) {
+        this.firstSyncFlag = false;
+      }
+
+      this.syncingFlag = false;
+      _logger2.default.debug('stop syncing ...');
+
+      if (!success) {
+        return;
+      }
+
+      var SELF = this;
+      if (this.dialogUsersSearchQueue.length > 0) {
+        this.afCore.User.batchSearchUsersWithIDs(this.dialogUsersSearchQueue, function (users, err) {
+          if (!err) {
+            SELF.processSearchedUsers(users);
+            SELF.dialogUsersSearchQueue = [];
+          }
+
+          SELF.fetchReadMessages(function () {
+            SELF.notifyBadgeUpdated();
+            SELF.afCore.Dialog.dumpDialogCache();
+            SELF.afCore.User.dumpUserCache();
+            SELF.afCore.Dialog.dumpUnreadMessageCount();
+          });
+        });
+      }
+    }
+  }, {
+    key: 'processSearchedUsers',
+    value: function processSearchedUsers(users) {
+      var userCache = this.afCore.User.users;
+      var dialogCache = this.afCore.Dialog.dialogs;
+      var SELF = this;
+
+      Object.keys(users).forEach(function (userIndex) {
+        var user = users[userIndex];
+        if (!userCache[user.id]) {
+          userCache[user.id] = user;
+        } else {
+          userCache[user.id].avatar = user.avatar;
+        }
+
+        var notifyDialogIDs = SELF.joinDialogUsers[user.id];
+        if (notifyDialogIDs) {
+          notifyDialogIDs.forEach(function (dialogID) {
+            if (dialogCache[dialogID]) {
+              SELF.notifyUserJoinDialog(dialogCache[dialogID], user);
+            }
+          });
+        }
+      });
+
+      this.joinDialogUsers = {};
+
+      var notifyDialogs = [];
+      Object.keys(dialogCache).forEach(function (dialogID) {
+        var dialog = dialogCache[dialogID];
+        if (dialog.type === _dialog2.default.type.individual && (!dialog.title || dialog.title === '')) {
+          if (userCache[dialog.id]) {
+            _logger2.default.debug('set dialog title ' + userCache[dialog.id].username);
+            dialog.title = userCache[dialog.id].username;
+            notifyDialogs.push(dialog);
+          }
+        }
+
+        if (dialog.type === _dialog2.default.type.group) {
+          dialog.waitFetchMemberIDs.forEach(function (memberID) {
+            if (userCache[memberID]) {
+              dialog.members.push(userCache[memberID]);
+            }
+          });
+          dialog.waitFetchMemberIDs = [];
+        }
+      });
+
+      if (notifyDialogs.length > 0) {
+        Object.keys(notifyDialogs).forEach(function (dialogIndex) {
+          SELF.notifyDialogUpdated(notifyDialogs[dialogIndex]);
+        });
+      }
+    }
+  }, {
+    key: 'subsribeOnlineUsers',
+    value: function subsribeOnlineUsers() {
+      this.wssocket.subsribeOnlineUsers();
+    }
+  }, {
+    key: 'unsubsribeOnlineUsers',
+    value: function unsubsribeOnlineUsers() {
+      this.wssocket.unsubsribeOnlineUsers();
+    }
+  }, {
+    key: 'joinChannel',
+    value: function joinChannel(channelID) {
+      this.wssocket.joinChannel(channelID);
+    }
+  }, {
+    key: 'leaveChannel',
+    value: function leaveChannel(channelID) {
+      this.wssocket.leaveChannel(channelID);
+    }
+  }, {
+    key: 'notifyDialogUpdated',
+    value: function notifyDialogUpdated(dialog) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined' && dialogHandler.onDialogChanged) {
+          dialogHandler.onDialogChanged(dialog);
+        }
+      });
+    }
+  }, {
+    key: 'notifyDialogCreated',
+    value: function notifyDialogCreated(dialog) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined' && dialogHandler.onDialogCreated) {
+          dialogHandler.onDialogCreated(dialog);
+        }
+      });
+    }
+  }, {
+    key: 'notifyBadgeUpdated',
+    value: function notifyBadgeUpdated() {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined' && dialogHandler.onBadgeUpdated) {
+          dialogHandler.onBadgeUpdated();
+        }
+      });
+    }
+  }, {
+    key: 'notifyTopTenOnlineUsers',
+    value: function notifyTopTenOnlineUsers(usersList) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined' && dialogHandler.topTenOnlineUsers) {
+          dialogHandler.topTenOnlineUsers(usersList);
+        }
+      });
+    }
+  }, {
+    key: 'notifyTotalOnlineUsers',
+    value: function notifyTotalOnlineUsers(totalUsers) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (typeof dialogHandler !== 'undefined' && dialogHandler.totalOnlineUsers) {
+          dialogHandler.totalOnlineUsers(totalUsers);
+        }
+      });
+    }
+  }, {
+    key: 'notifyDialogReceiptUpdated',
+    value: function notifyDialogReceiptUpdated(dialog) {
+      var dialogHandlers = this.afCore.dialogHandlers;
+      Object.keys(dialogHandlers).forEach(function (handerID) {
+        var dialogHandler = dialogHandlers[handerID];
+        if (dialogHandler.onReadReceiptUpdated && dialogHandler.onReadReceiptUpdated) {
+          dialogHandler.onReadReceiptUpdated(dialog);
+        }
+      });
+    }
+  }, {
+    key: 'testSendReadMessages',
+    value: function testSendReadMessages() {
+      var _this2 = this;
+
+      var dialogCache = this.afCore.Dialog.dialogs;
+      Object.keys(dialogCache).forEach(function (dialogID) {
+        var dialog = dialogCache[dialogID];
+        if (Object.keys(dialog.messages).length > 0) {
+          var message = dialog.messages[Object.keys(dialog.messages).length - 1];
+          _this2.sendReadMessages(dialogID, message.messageID);
+        }
+      });
+    }
+  }]);
+
+  return SyncService;
+}(_service2.default);
+
+exports.default = SyncService;
 
 /***/ }),
 /* 76 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return UserService; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__service__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__usersession__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__datamodels_user__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__logger__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__datamodels_pager__ = __webpack_require__(72);
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _service = __webpack_require__(10);
 
+var _service2 = _interopRequireDefault(_service);
 
-class UserService extends __WEBPACK_IMPORTED_MODULE_0__service__["a" /* default */] {
-  constructor(afCore) {
-    super();
-    this.users = {};
-    this.afCore = afCore;
+var _usersession = __webpack_require__(14);
+
+var _usersession2 = _interopRequireDefault(_usersession);
+
+var _user = __webpack_require__(9);
+
+var _user2 = _interopRequireDefault(_user);
+
+var _logger = __webpack_require__(12);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _pager = __webpack_require__(72);
+
+var _pager2 = _interopRequireDefault(_pager);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var UserService = function (_BaseService) {
+  _inherits(UserService, _BaseService);
+
+  function UserService(afCore) {
+    _classCallCheck(this, UserService);
+
+    var _this = _possibleConstructorReturn(this, (UserService.__proto__ || Object.getPrototypeOf(UserService)).call(this));
+
+    _this.users = {};
+    _this.afCore = afCore;
+    return _this;
   }
 
   /*
    find the user first by searching local cached user, and if not found,
    fetch from the server
    */
-  findUserWithID(userid, callback) {
-    const SELF = this;
-    if (this.users[userid]) {
-      if (callback) {
-        callback(this.users[userid], null);
+
+
+  _createClass(UserService, [{
+    key: 'findUserWithID',
+    value: function findUserWithID(userid, callback) {
+      var SELF = this;
+      if (this.users[userid]) {
+        if (callback) {
+          callback(this.users[userid], null);
+        }
+      } else {
+        this.fetchUserInfo(userid, function (response, err) {
+          if (err) {
+            if (callback) {
+              callback(null, err);
+            }
+          } else if (callback) {
+            callback(SELF.users[userid], null);
+          }
+        });
       }
-    } else {
-      this.fetchUserInfo(userid, (response, err) => {
-        if (err) {
+    }
+  }, {
+    key: 'batchSearchUsersWithIDs',
+    value: function batchSearchUsersWithIDs(userids, callback) {
+      this.sendPostRequest(userids, '/users/batch_search', function (response, err) {
+        if (!err) {
+          var users = [];
+          response.data.users.forEach(function (user) {
+            var userObj = new _user2.default(user.id, user.user_name, user.avatar);
+            userObj.customData = user.custom_data;
+            users.push(userObj);
+          });
           if (callback) {
-            callback(null, err);
+            callback(users, null);
           }
         } else if (callback) {
-          callback(SELF.users[userid], null);
+          callback(null, err);
         }
       });
     }
-  }
+  }, {
+    key: 'createUserListQuery',
+    value: function createUserListQuery() {
+      var userService = this;
+      return new function () {
+        this.hasNext = true;
+        this.page = 1;
+        this.isLoading = false;
 
-  batchSearchUsersWithIDs(userids, callback) {
-    this.sendPostRequest(userids, '/users/batch_search', (response, err) => {
-      if (!err) {
-        const users = [];
-        response.data.users.forEach(user => {
-          const userObj = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
-          userObj.customData = user.custom_data;
-          __WEBPACK_IMPORTED_MODULE_3__logger__["a" /* default */].debug('fetch user obj %o', userObj);
-          users.push(userObj);
-        });
-        if (callback) {
-          callback(users, null);
-        }
-      } else if (callback) {
-        callback(null, err);
+        var SELF = this;
+        this.reset = function () {
+          SELF.hasNext = true;
+          SELF.page = 1;
+          SELF.isLoading = false;
+        };
+        this.next = function (callback) {
+          SELF.isLoading = true;
+          userService.searchUsersWithPager('', SELF.page, 10, function (pager, users, err) {
+            if (!err) {
+              SELF.isLoading = false;
+              if (pager.totalPage === pager.currentPage) {
+                SELF.hasNext = false;
+              }
+              if (callback) {
+                callback(users, null);
+              }
+            } else {
+              callback(null, err);
+            }
+          });
+        };
+      }();
+    }
+  }, {
+    key: 'searchUsersWithPager',
+    value: function searchUsersWithPager(searchKey, page, perPage, callback) {
+      var params = {};
+      if (searchKey) {
+        params.search = searchKey;
       }
-    });
-  }
+      if (page !== undefined && page !== null) {
+        params.page = page;
+      }
+      if (perPage) {
+        params.per_page = perPage;
+      }
 
-  createUserListQuery() {
-    const userService = this;
-    return new function () {
-      this.hasNext = true;
-      this.page = 1;
-      this.isLoading = false;
+      this.sendGetRequest('/users', params, function (response, err) {
+        if (!err) {
+          var data = response.data;
+          var users = [];
+          var pager = new _pager2.default(data.total_count, data.total_page, data.current_page);
+          data.users.forEach(function (userItem) {
+            var user = new _user2.default(userItem.id, userItem.user_name);
+            user.avatar = userItem.avatar;
+            user.customData = userItem.custom_data;
+            user.muted = userItem.muted;
+            user.blocked = userItem.blocked;
+            users.push(user);
+          });
 
-      const SELF = this;
-      this.reset = function () {
-        SELF.hasNext = true;
-        SELF.page = 1;
-        SELF.isLoading = false;
-      };
-      this.next = function (callback) {
-        SELF.isLoading = true;
-        userService.searchUsersWithPager('', SELF.page, 10, (pager, users, err) => {
-          if (!err) {
-            SELF.isLoading = false;
-            if (pager.totalPage === pager.currentPage) {
-              SELF.hasNext = false;
-            }
-            if (callback) {
-              callback(users, null);
-            }
-          } else {
-            callback(null, err);
+          if (callback) {
+            callback(pager, users, null);
           }
-        });
-      };
-    }();
-  }
-
-  searchUsersWithPager(searchKey, page, perPage, callback) {
-    const params = {};
-    if (searchKey) {
-      params.search = searchKey;
-    }
-    if (page !== undefined && page !== null) {
-      params.page = page;
-    }
-    if (perPage) {
-      params.per_page = perPage;
+        } else if (callback) {
+          callback(null, null, err);
+        }
+      });
     }
 
-    this.sendGetRequest('/users', params, (response, err) => {
-      if (!err) {
-        const data = response.data;
-        const users = [];
-        const pager = new __WEBPACK_IMPORTED_MODULE_4__datamodels_pager__["a" /* default */](data.total_count, data.total_page, data.current_page);
-        data.users.forEach(userItem => {
-          const user = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](userItem.id, userItem.user_name);
-          user.avatar = userItem.avatar;
-          user.customData = userItem.custom_data;
-          user.muted = userItem.muted;
-          user.blocked = userItem.blocked;
-          users.push(user);
-        });
+    /*
+     fetch user info from the server and save the user to `allUsers`
+     */
 
+  }, {
+    key: 'fetchUserInfo',
+    value: function fetchUserInfo(userid, callback) {
+      var SELF = this;
+      if (SELF.users[userid]) {
         if (callback) {
-          callback(pager, users, null);
+          callback(SELF.users[userid], null);
         }
-      } else if (callback) {
-        callback(null, null, err);
+        return;
       }
-    });
-  }
-
-  /*
-   fetch user info from the server and save the user to `allUsers`
-   */
-  fetchUserInfo(userid, callback) {
-    const SELF = this;
-    if (SELF.users[userid]) {
-      if (callback) {
-        callback(SELF.users[userid], null);
-      }
-      return;
+      this.sendGetRequest('/users/' + userid, null, function (response, err) {
+        if (!err) {
+          var user = new _user2.default(userid, response.data.user_name);
+          user.avatar = response.data.avatar;
+          user.customData = response.data.custom_data;
+          SELF.users[userid] = user;
+          if (callback) {
+            callback(user, null);
+          }
+        } else if (callback) {
+          callback(null, err);
+        }
+      });
     }
-    this.sendGetRequest(`/users/${userid}`, null, (response, err) => {
-      if (!err) {
-        const user = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](userid, response.data.user_name);
-        user.avatar = response.data.avatar;
-        user.customData = response.data.custom_data;
-        SELF.users[userid] = user;
-        if (callback) {
-          callback(user, null);
+  }, {
+    key: 'blockUser',
+    value: function blockUser(userID, callback) {
+      this.sendPostRequest(null, '/users/' + userID + '/block', function (response, err) {
+        if (!err) {
+          if (callback) {
+            callback(null);
+          }
+        } else if (callback) {
+          callback(err);
         }
-      } else if (callback) {
-        callback(null, err);
-      }
-    });
-  }
-
-  blockUser(userID, callback) {
-    this.sendPostRequest(null, `/users/${userID}/block`, (response, err) => {
-      if (!err) {
-        if (callback) {
-          callback(null);
+      });
+    }
+  }, {
+    key: 'unBlockUser',
+    value: function unBlockUser(userID, callback) {
+      this.sendPostRequest(null, '/users/' + userID + '/unblock', function (response, err) {
+        if (!err) {
+          if (callback) {
+            callback(null);
+          }
+        } else if (callback) {
+          callback(err);
         }
-      } else if (callback) {
-        callback(err);
-      }
-    });
-  }
-
-  unBlockUser(userID, callback) {
-    this.sendPostRequest(null, `/users/${userID}/unblock`, (response, err) => {
-      if (!err) {
-        if (callback) {
-          callback(null);
+      });
+    }
+  }, {
+    key: 'getFollowers',
+    value: function getFollowers(userID, callback) {
+      this.sendGetRequest('/users/' + userID + '/followers', null, function (response, err) {
+        if (!err) {
+          var data = response.data;
+          var users = [];
+          data.forEach(function (userItem) {
+            var user = new _user2.default(userItem.id, userItem.user_name);
+            user.avatar = userItem.avatar;
+            user.customData = userItem.custom_data;
+            users.push(user);
+          });
+          if (callback) {
+            callback(users, null);
+          }
+        } else if (callback) {
+          callback(null, err);
         }
-      } else if (callback) {
-        callback(err);
-      }
-    });
-  }
-
-  updateCurrentUserAvatar(avatar, callback) {
-    this.sendPutRequest({ avatar }, `/users/${__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID}`, (response, err) => {
-      if (!err) {
-        __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserAvatar = avatar;
-      }
-
-      if (callback) {
-        callback(response, err);
-      }
-    });
-  }
-
-  followUser(userID, callback) {
-    this.sendPostRequest(null, `/users/${userID}/follow`, (response, err) => {
-      if (!err) {
-        if (callback) {
-          callback(null);
+      });
+    }
+  }, {
+    key: 'getFollowings',
+    value: function getFollowings(userID, callback) {
+      this.sendGetRequest('/users/' + userID + '/followings', null, function (response, err) {
+        if (!err) {
+          var data = response.data;
+          var users = [];
+          data.forEach(function (userItem) {
+            var user = new _user2.default(userItem.id, userItem.user_name);
+            user.avatar = userItem.avatar;
+            user.customData = userItem.custom_data;
+            users.push(user);
+          });
+          if (callback) {
+            callback(users, null);
+          }
+        } else if (callback) {
+          callback(null, err);
         }
-      } else if (callback) {
-        callback(err);
-      }
-    });
-  }
-
-  unFollowUser(userID, callback) {
-    this.sendPostRequest(null, `/users/${userID}/unfollow`, (response, err) => {
-      if (!err) {
-        if (callback) {
-          callback(null);
+      });
+    }
+  }, {
+    key: 'updateCurrentUserAvatar',
+    value: function updateCurrentUserAvatar(avatar, callback) {
+      this.sendPutRequest({ avatar: avatar }, '/users/' + _usersession2.default.currentUserID, function (response, err) {
+        if (!err) {
+          _usersession2.default.currentUserAvatar = avatar;
         }
-      } else if (callback) {
-        callback(err);
-      }
-    });
-  }
 
-  updateCurrentUserName(name, callback) {
-    this.sendPutRequest({ user_name: name }, `/users/${__WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserID}`, (response, err) => {
-      if (!err) {
-        __WEBPACK_IMPORTED_MODULE_1__usersession__["a" /* default */].currentUserName = name;
-      }
-
-      if (callback) {
-        callback(response, err);
-      }
-    });
-  }
-
-  getFriends(callback) {
-    this.sendGetRequest('/users/friends', null, (response, err) => {
-      if (!err) {
-        const users = [];
-        response.data.users.forEach(user => {
-          const userObj = new __WEBPACK_IMPORTED_MODULE_2__datamodels_user__["a" /* default */](user.id, user.user_name, user.avatar);
-          userObj.customData = user.custom_data;
-          userObj.muted = user.muted;
-          __WEBPACK_IMPORTED_MODULE_3__logger__["a" /* default */].debug('fetch user obj %o', userObj);
-          users.push(userObj);
-        });
         if (callback) {
-          callback(users, null);
+          callback(response, err);
         }
-      } else if (callback) {
-        callback(null, err);
-      }
-    });
-  }
+      });
+    }
+  }, {
+    key: 'followUser',
+    value: function followUser(userID, callback) {
+      this.sendPostRequest(null, '/users/' + userID + '/follow', function (response, err) {
+        if (!err) {
+          if (callback) {
+            callback(null);
+          }
+        } else if (callback) {
+          callback(err);
+        }
+      });
+    }
+  }, {
+    key: 'unFollowUser',
+    value: function unFollowUser(userID, callback) {
+      this.sendPostRequest(null, '/users/' + userID + '/unfollow', function (response, err) {
+        if (!err) {
+          if (callback) {
+            callback(null);
+          }
+        } else if (callback) {
+          callback(err);
+        }
+      });
+    }
+  }, {
+    key: 'updateCurrentUserName',
+    value: function updateCurrentUserName(name, callback) {
+      this.sendPutRequest({ user_name: name }, '/users/' + _usersession2.default.currentUserID, function (response, err) {
+        if (!err) {
+          _usersession2.default.currentUserName = name;
+        }
 
-  dumpUserCache() {
-    __WEBPACK_IMPORTED_MODULE_3__logger__["a" /* default */].debug('user cache %o', this.users);
-  }
-}
+        if (callback) {
+          callback(response, err);
+        }
+      });
+    }
+  }, {
+    key: 'getFriends',
+    value: function getFriends(callback) {
+      this.sendGetRequest('/users/friends', null, function (response, err) {
+        if (!err) {
+          var users = [];
+          response.data.users.forEach(function (user) {
+            var userObj = new _user2.default(user.id, user.user_name, user.avatar);
+            userObj.customData = user.custom_data;
+            userObj.muted = user.muted;
+            _logger2.default.debug('fetch user obj %o', userObj);
+            users.push(userObj);
+          });
+          if (callback) {
+            callback(users, null);
+          }
+        } else if (callback) {
+          callback(null, err);
+        }
+      });
+    }
+  }, {
+    key: 'dumpUserCache',
+    value: function dumpUserCache() {
+      _logger2.default.debug('user cache %o', this.users);
+    }
+  }]);
 
+  return UserService;
+}(_service2.default);
 
+exports.default = UserService;
 
 /***/ }),
 /* 77 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return IDUtil; });
-class IDUtil {
-  static createUniqueID() {
-    const CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
-    const chars = CHARS;
-    const uuid = new Array(36);
-    let rnd = 0;
-    let r = 0;
-    for (let i = 0; i < 36; i += 1) {
-      if (i === 8 || i === 13 || i === 18 || i === 23) {
-        uuid[i] = '-';
-      } else if (i === 14) {
-        uuid[i] = '4';
-      } else {
-        if (rnd <= 0x02) {
-          rnd = 0x2000000 + Math.random() * 0x1000000 | 0; // eslint-disable-line no-bitwise
-        }
-        r = rnd & 0xf; // eslint-disable-line no-bitwise
-        rnd >>= 4; // eslint-disable-line no-bitwise
-        uuid[i] = chars[i === 19 ? r & 0x3 | 0x8 : r]; // eslint-disable-line no-bitwise
-      }
-    }
-    return uuid.join('');
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var IDUtil = function () {
+  function IDUtil() {
+    _classCallCheck(this, IDUtil);
   }
-}
 
+  _createClass(IDUtil, null, [{
+    key: 'createUniqueID',
+    value: function createUniqueID() {
+      var CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+      var chars = CHARS;
+      var uuid = new Array(36);
+      var rnd = 0;
+      var r = 0;
+      for (var i = 0; i < 36; i += 1) {
+        if (i === 8 || i === 13 || i === 18 || i === 23) {
+          uuid[i] = '-';
+        } else if (i === 14) {
+          uuid[i] = '4';
+        } else {
+          if (rnd <= 0x02) {
+            rnd = 0x2000000 + Math.random() * 0x1000000 | 0; // eslint-disable-line no-bitwise
+          }
+          r = rnd & 0xf; // eslint-disable-line no-bitwise
+          rnd >>= 4; // eslint-disable-line no-bitwise
+          uuid[i] = chars[i === 19 ? r & 0x3 | 0x8 : r]; // eslint-disable-line no-bitwise
+        }
+      }
+      return uuid.join('');
+    }
+  }]);
 
+  return IDUtil;
+}();
+
+exports.default = IDUtil;
 
 /***/ }),
 /* 78 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AFWSSocket; });
-const io = __webpack_require__(119);
-const jwtToken = __webpack_require__(35);
 
-class AFWSSocket {
-  constructor(appKey, appSecret, token) {
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var io = __webpack_require__(119);
+var jwtToken = __webpack_require__(35);
+
+var AFWSSocket = function () {
+  function AFWSSocket(appKey, appSecret, token) {
+    _classCallCheck(this, AFWSSocket);
+
     this.appKey = appKey;
     this.appSecret = appSecret;
     this.token = token;
   }
 
-  connect(callback) {
-    const requestToken = jwtToken(this.appSecret, this.token);
-    this.socket = io.connect('https://chat-staging.hacknocraft.com:8002', {
-      transports: ['websocket'],
-      reconnect: true,
-      secure: true,
-      rejectUnauthorized: false,
-      query: {
-        app_id: this.appKey,
-        authorization: `Bearer ${requestToken}`
-      }
+  _createClass(AFWSSocket, [{
+    key: 'connect',
+    value: function connect(callback) {
+      var requestToken = jwtToken(this.appSecret, this.token);
+      this.socket = io.connect('https://chat-staging.hacknocraft.com:8002', {
+        transports: ['websocket'],
+        reconnect: true,
+        secure: true,
+        rejectUnauthorized: false,
+        query: {
+          app_id: this.appKey,
+          authorization: 'Bearer ' + requestToken
+        }
 
-    });
+      });
 
-    const SELF = this;
-    this.socket.on('connect', () => {
-      if (callback) {
-        callback(AFWSSocket.socketEvent.CONNECTED);
-      }
+      var SELF = this;
+      this.socket.on('connect', function () {
+        if (callback) {
+          callback(AFWSSocket.socketEvent.CONNECTED);
+        }
 
-      SELF.socket.on('sync', data => {
-        const obj = JSON.parse(data);
-        if (obj.close) {
-          if (callback) {
-            callback(AFWSSocket.socketEvent.PEER_CLOSE);
+        SELF.socket.on('sync', function (data) {
+          var obj = JSON.parse(data);
+          if (obj.close) {
+            if (callback) {
+              callback(AFWSSocket.socketEvent.PEER_CLOSE);
+            }
+          } else if (callback) {
+            callback(AFWSSocket.socketEvent.DATA_RECV, data);
           }
-        } else if (callback) {
-          callback(AFWSSocket.socketEvent.DATA_RECV, data);
+        });
+      });
+
+      this.socket.on('disconnect', function () {
+        console.log('on disconnect');
+        if (callback) {
+          callback(AFWSSocket.socketEvent.DISCONNECTED);
         }
       });
-    });
+    }
+  }, {
+    key: 'subsribeOnlineUsers',
+    value: function subsribeOnlineUsers() {
+      this.socket.emit('subscribe_online_users', {});
+    }
+  }, {
+    key: 'unsubsribeOnlineUsers',
+    value: function unsubsribeOnlineUsers() {
+      this.socket.emit('unsubscribe_online_users', {});
+    }
+  }, {
+    key: 'joinChannel',
+    value: function joinChannel(channelID) {
+      this.socket.emit('join_channel', [{ id: channelID }]);
+    }
+  }, {
+    key: 'leaveChannel',
+    value: function leaveChannel(channelID) {
+      this.socket.emit('leave_channel', [{ id: channelID }]);
+    }
+  }, {
+    key: 'closeConnection',
+    value: function closeConnection() {
+      this.socket.close();
+    }
+  }]);
 
-    this.socket.on('disconnect', () => {
-      console.log('on disconnect');
-      if (callback) {
-        callback(AFWSSocket.socketEvent.DISCONNECTED);
-      }
-    });
-  }
-
-  subsribeOnlineUsers() {
-    this.socket.emit('subscribe_online_users', {});
-  }
-
-  unsubsribeOnlineUsers() {
-    this.socket.emit('unsubscribe_online_users', {});
-  }
-
-  joinChannel(channelID) {
-    this.socket.emit('join_channel', [{ id: channelID }]);
-  }
-
-  leaveChannel(channelID) {
-    this.socket.emit('leave_channel', [{ id: channelID }]);
-  }
-
-  closeConnection() {
-    this.socket.close();
-  }
-}
+  return AFWSSocket;
+}();
 
 AFWSSocket.socketEvent = {
   CONNECTED: 'CONNECTED',
@@ -11355,7 +12064,7 @@ AFWSSocket.socketEvent = {
   PEER_CLOSE: 'PEER_CLOSE'
 };
 
-
+exports.default = AFWSSocket;
 
 /***/ }),
 /* 79 */
