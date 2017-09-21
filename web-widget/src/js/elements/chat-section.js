@@ -271,7 +271,7 @@ class ChatSection extends Element {
     chatFileInput.id = 'file_' + target.id;
     hide(chatFileInput);
     chatFile.appendChild(chatFileInput);
-    contentInput.appendChild(chatFile);
+    //contentInput.appendChild(chatFile);
     chatContent.appendChild(contentInput);
 
     target.content.parentNode.removeChild(target.content);
