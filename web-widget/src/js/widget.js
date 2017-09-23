@@ -179,7 +179,7 @@ class AFWidget {
     this.af = window.af;
     this.af.initialize(appId, sercret);
     this.af.setLogLevel(1);
-    this.af.setSyncStartTimestamp(Math.floor(Date.now() / 1000));
+    this.af.setSyncStartTimestamp(Math.floor(Date.now() / 1000) - 3*24*3600);
     this.afadapter = new AFAdapter();
 
     this.popup.addCloseBtnClickEvent(() => {
