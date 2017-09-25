@@ -469,6 +469,10 @@ class ChatSection extends Element {
       else
       if (message.attachment.type.match(/^location$/)) {
         console.log("location message");
+        let location = this.createLocation();
+        this._setClass(location, [className.IMAGE]);
+        this.createMapWithLocation(location, message.attachment.title, message.attachment.location2D.latitude, message.attachment.location2D.longitude);
+        itemText.appendChild(location);
       }
       else {
         this._setClass(itemText, [className.FILE_MESSAGE]);
@@ -520,6 +524,27 @@ class ChatSection extends Element {
     messageContent.appendChild(messageItem);
     messageSet.appendChild(messageContent);
     return messageSet;
+  }
+
+  createMapWithLocation(target, title, latitude, longitude)
+  {
+    let lat = latitude;
+    let lon= longitude;
+    let latlon  = new google.maps.LatLng(lat, lon)
+    target.style.height = '200px';
+    target.style.width = '200px';
+
+    var myOptions={
+      center:latlon,
+      zoom:14,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      mapTypeControl:false,
+      navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
+    };
+
+    let map = new google.maps.Map(target, myOptions);
+    var marker=new google.maps.Marker({position:latlon,map: map, title:title });
+
   }
 
   createAdminMessageItem(message) {

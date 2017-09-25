@@ -32,15 +32,21 @@
 </body>
 
 <!--<script src="AppFriends.min.js"></script>-->
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script src="appfriends.js"></script>  for develop
 <script src="build/widget.AppFriends.js"></script>
 <script>
-  afWidget.startWithConnect(
-    "OVDcuEetZm2hr6sN0vBn0gtt",
-    "BJNEGColQuMB0XSKx4zTaQtt",
-    "11833c637fa2a34f65986db35e0a97fc",
-    "melodie gill"
-  );
+
+  (function(){
+    afWidget.startWithConnect(
+            "OVDcuEetZm2hr6sN0vBn0gtt",
+            "BJNEGColQuMB0XSKx4zTaQtt",
+            "11833c637fa2a34f65986db35e0a97fc",
+            "melodie gill"
+    );
+  })();
+
+
 </script>
 
 </html>

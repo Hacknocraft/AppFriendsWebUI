@@ -15,5 +15,10 @@ module.exports = {
     'no-console': 1,
     'camelcase': 1,
     'no-unused-vars': 1
+  },
+  "globals": {
+    "window": true,
+    "document": true,
+    "google": true
   }
 };
