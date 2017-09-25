@@ -175,7 +175,8 @@ class AFWidget {
     this.af = window.af;
     this.af.initialize(appId, sercret);
     this.afadapter = new AFAdapter();
-
+    this.af.setSyncStartTimestamp(0);
+    this.af.setLogLevel(1);
     this.popup.addCloseBtnClickEvent(() => {
       this.closePopup();
     });
@@ -281,10 +282,10 @@ class AFWidget {
 
   dialogBadgeUpdated() {
     console.log("badge changed");
+    this.spinner.remove(this.listBoard.list);
   }
 
   dialogUserLeft(dialog, user){
-    console.log("dialogUserLeft %o %o", dialog, user);
     if (this.afadapter.isCurrentUser(user)) {
       let item = this.listBoard.getChannelItem(dialog.id);
       this.listBoard.list.removeChild(item);
