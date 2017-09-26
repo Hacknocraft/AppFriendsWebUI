@@ -69,6 +69,10 @@ class Element {
     return document.createElement(this.tagName.VIDEO);
   }
 
+  createLocation() {
+    return document.createElement(this.tagName.DIV);
+  }
+
   _setClass(...args) {
     args.reduce((target, classes) => {
       return target.className += classes.join(' ');

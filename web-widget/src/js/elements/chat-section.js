@@ -364,7 +364,7 @@ class ChatSection extends Element {
   }
 
   setImageSize(target, message) {
-    this._setBackgroundImage(target, message.attachment.url);
+    this._setBackgroundImage(target, message.attachment.thumbnailURL);
     var img = new Image();
     img.addEventListener('load', (res) => {
       res.path ? this._imageResize(target, res.path[0].width, res.path[0].height) : this._imageResize(target, res.target.width, res.target.height);
@@ -445,18 +445,16 @@ class ChatSection extends Element {
         image.src = message.attachment.url;
         this.setImageSize(image, message);
         itemText.appendChild(image);
-      } else if (message.attachment.type.match(/^video\/.+$/)) {
+      } else if (message.attachment.type.match(/^video$/)) {
         console.log("video message");
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let video = this.createVideo();
         video.controls = true;
         video.preload = 'auto';
-        var resize = {'resizeWidth': 160, 'resizeHeight': 160};
-        if (message.thumbnails && message.thumbnails.length > 0) {
-          video.poster = message.thumbnails[0].url;
-          resize = this._imageResize(video, message.thumbnails[0].real_width, message.thumbnails[0].real_height);
-          video.width = resize.resizeWidth;
-          video.height = resize.resizeHeight;
+        var resize = {'resizeWidth': 120, 'resizeHeight': 120};
+        if (message.attachment.thumbnailURL) {
+          video.poster = message.attachment.thumbnailURL;
+          this.setImageSize(video, message);
         } else {
           var _self = this;
           video.addEventListener( "loadedmetadata", function () {
@@ -465,9 +463,18 @@ class ChatSection extends Element {
             video.height = resize.resizeHeight;
           });
         }
-        video.src = message.url;
+        video.src = message.attachment.streamingURL;
         itemText.appendChild(video);
-      } else {
+      }
+      else
+      if (message.attachment.type.match(/^location$/)) {
+        console.log("location message");
+        let location = this.createLocation();
+        this._setClass(location, [className.IMAGE]);
+        this.createMapWithLocation(location, message.attachment.title, message.attachment.location2D.latitude, message.attachment.location2D.longitude);
+        itemText.appendChild(location);
+      }
+      else {
         this._setClass(itemText, [className.FILE_MESSAGE]);
         let file = this.createA();
         file.href = message.url;
@@ -475,7 +482,8 @@ class ChatSection extends Element {
         if (message.attachment.type.match(/^image\/.+$/)) {
           this._setClass(file, [className.IMAGE]);
           this.setImageSize(file, message);
-        } else {
+        }
+        else {
           this._setClass(file, [className.FILE]);
           var fileIcon = this.createDiv();
           this._setClass(fileIcon, [className.FILE_ICON]);
@@ -516,6 +524,27 @@ class ChatSection extends Element {
     messageContent.appendChild(messageItem);
     messageSet.appendChild(messageContent);
     return messageSet;
+  }
+
+  createMapWithLocation(target, title, latitude, longitude)
+  {
+    let lat = latitude;
+    let lon= longitude;
+    let latlon  = new google.maps.LatLng(lat, lon)
+    target.style.height = '200px';
+    target.style.width = '200px';
+
+    var myOptions={
+      center:latlon,
+      zoom:14,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      mapTypeControl:false,
+      navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
+    };
+
+    let map = new google.maps.Map(target, myOptions);
+    var marker=new google.maps.Marker({position:latlon,map: map, title:title });
+
   }
 
   createAdminMessageItem(message) {
