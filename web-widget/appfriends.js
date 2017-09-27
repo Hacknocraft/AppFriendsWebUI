@@ -4943,11 +4943,37 @@ var Dialog = function () {
             if (sortedMessages.length > 0) {
               var cachedDialog = window.af.getDialog(dialogSelf.id);
               cachedDialog.earliestMessageID = sortedMessages[0].messageID;
+            } else {
+              window.af.MessageSync.fetchMessagesHistory(dialogSelf.id, messageID, function (historyMessages, error) {
+                SELF.isLoading = false;
+                if (historyMessages.length === 0 && error === null) {
+                  SELF.hasMore = false;
+                }
+                if (historyMessages.length > 0) {
+                  var _cachedDialog = window.af.getDialog(dialogSelf.id);
+                  historyMessages.forEach(function (historyMessage) {
+                    try {
+                      _cachedDialog.messages[historyMessage.messageID] = historyMessage;
+                    } catch (ex) {
+                      console.log(ex);
+                    }
+                  });
+
+                  _cachedDialog.earliestMessageID = historyMessages[0].messageID;
+                  if (historyMessages.length < 20) {
+                    SELF.hasMore = false;
+                  } else {
+                    SELF.hasMore = true;
+                  }
+                }
+                callback(historyMessages, error);
+              });
+              return;
             }
             SELF.isLoading = false;
-            if (sortedMessages.length < 20) {
-              SELF.hasMore = false;
-            }
+            // if (sortedMessages.length < 20) {
+            //   SELF.hasMore = false;
+            // }
             callback(sortedMessages, null);
           }
         };
@@ -10842,6 +10868,32 @@ var SyncService = function (_BaseService) {
       });
     }
   }, {
+    key: 'fetchMessagesHistory',
+    value: function fetchMessagesHistory(diaologID, fromMessageID, callback) {
+      _logger2.default.debug('fetch message history');
+      var messageID = fromMessageID !== null ? fromMessageID : Date.now();
+      var SELF = this;
+      this.sendGetRequest('/sync/history', { from_message_id: messageID, dialog_id: diaologID }, function (response, err) {
+        if (err) {
+          if (callback) {
+            callback(null, err);
+          }
+        } else {
+          var messages = [];
+          response.data.messages.forEach(function (message) {
+            var messageObj = _message2.default.createMessageFromJSON(message);
+            if (messageObj !== null) {
+              SELF.cacheSenderUserFromMessage(messageObj);
+              messages.push(messageObj);
+            }
+          });
+          if (callback) {
+            callback(messages, null);
+          }
+        }
+      });
+    }
+  }, {
     key: 'saveSyncedMessages',
     value: function saveSyncedMessages(messages, callback) {
       this.outReceipts = [];
@@ -11193,6 +11245,12 @@ var SyncService = function (_BaseService) {
           dialog.unreadMessageCount += 1;
         }
         dialog.lastReadMessageID = this.readMessagesIds[dialogID] ? this.readMessagesIds[dialogID] : 0;
+      }
+
+      if (!dialog.earliestMessageID) {
+        dialog.earliestMessageID = messageObj.messageID;
+      } else if (dialog.earliestMessageID > messageObj.messageID) {
+        dialog.earliestMessageID = messageObj.messageID;
       }
 
       // Save message

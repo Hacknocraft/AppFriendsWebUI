@@ -175,7 +175,7 @@ class AFWidget {
     this.af = window.af;
     this.af.initialize(appId, sercret);
     this.afadapter = new AFAdapter();
-    this.af.setSyncStartTimestamp(0);
+    this.af.setSyncStartTimestamp(new Date().getTime() / 1000);
     this.af.setLogLevel(1);
     this.popup.addCloseBtnClickEvent(() => {
       this.closePopup();
@@ -766,7 +766,13 @@ class AFWidget {
 
   chatScrollEvent(target, channelSet) {
     this.chatSection.addScrollEvent(target.messageContent, () => {
-      if (target.messageContent.scrollTop == 0) {
+      if (target.messageContent.scrollTop <= 5) {
+        this.getMessageList(channelSet, target, true);
+      }
+    });
+
+    this.chatSection.addClickEvent(target.messageContent, () => {
+      if (target.messageContent.scrollTop <= 5) {
         this.getMessageList(channelSet, target, true);
       }
     });
